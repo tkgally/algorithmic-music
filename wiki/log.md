@@ -3,6 +3,22 @@
 Append-only chronological record of wiki operations, newest first. Entry format per [conventions](conventions.md):
 `## [YYYY-MM-DD] op | Title` where op ∈ session · create · update · ingest · lint · query · findings.
 
+## [2026-07-06] session | Session 003 — verify theory core, draft Indian popular/film music
+
+Resumed the deferred verify-and-mature pass on the theory core (all five pages promoted to `reviewed`) and drafted the Indian popular/film music page (closing a launch-engine coverage gap). Full narrative: `logs/sessions/003-2026-07-06.md`.
+
+## [2026-07-06] create | Indian popular and film music
+
+New page `indian-popular-and-film-music.md` (`draft`): filmi/Bollywood + regional pop as an East–West hybrid — the playback-song industry, a history by music director, the mukhda/antara song form (vs. Western verse-chorus), the Western-harmony-under-raga fusion mechanics, keherwa/dadra rhythm, the filmi orchestra and its electronic eras, and the regional scenes (Punjabi/bhangra, Tamil/Telugu, Bengali, gully rap). Researched by two parallel subagents (Arnold 1988, Beaster-Jones 2015, Booth 2008, Manuel 1993 as scholarly anchors); practitioner/inferred claims flagged in text. Implications center the launch engine: reuse the classical raga/drone core + mukhda/antara sectioning + Western rhythm + an optional raga-constrained chord filter, on a raga-purity↔harmonic-richness dial. Closes the Indian popular/film coverage gap; added to `index.md`, linked from `indian-classical-music.md`.
+
+## [2026-07-06] update | Verify-and-mature the theory core; promote 5 pages to reviewed
+
+melody, phrase-structure, form-and-structure, tension-and-release, harmony verified against their cited primary sources (five parallel verification subagents; edits and cross-links owned by the session) and promoted `draft` → `reviewed`. Real fixes: **tension-and-release** tonal-interval-space model weights corrected to hierarchical 0.32 > dissonance 0.30 > voice-leading 0.27 > tonal distance 0.16 (draft had 0.40/0.25/0.20/0.19, wrong order); **harmony** Axis-progression count corrected to ~200 songs (draft said "300+"); **melody** contour-clustering paper re-attributed to Cornelissen et al. 2026 (draft said "Savage"). Plus citation upgrades throughout (primary journal cites / DOIs for von Hippel & Huron, Vos & Troost, Farbood, Granot & Eitan, Narmour 1990, Schoenberg, McClelland/Rothstein). Corpus numbers (harmony) and TenseMusic figures (tension) confirmed verbatim. `index.md` marks the five pages `·reviewed`.
+
+## [2026-07-06] lint | Link and frontmatter check (61 pages)
+
+`node experiments/tools/wiki-lint.mjs` clean — 61 pages, no broken links, no orphans, frontmatter conformant — after adding the new page and the theory-core edits.
+
 ## [2026-07-06] session | Session 002 — answered open questions, propagated decisions
 
 Tom answered all eight bootstrap questions in [project-open-questions](project-open-questions.md); this session moved them to "Answered" (with per-item propagation notes) and threaded the decisions through the wiki and process docs. No new content pages; a propagation + policy-settling session. Full narrative: `logs/sessions/002-2026-07-06.md`.
