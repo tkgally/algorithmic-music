@@ -1,0 +1,214 @@
+@keyframes breathing {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(0,0,0,0.4);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #121212;
+    color: #e0e0e0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+#main-container {
+    width: 90%;
+    max-width: 800px;
+    background-color: #1e1e1e;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid #333;
+}
+
+#header {
+    text-align: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 1rem;
+}
+
+#header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+#header p {
+    margin-top: 0.5rem;
+    color: #aaa;
+    font-size: 1rem;
+}
+
+#controls-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+#master-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+button {
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #333;
+    color: #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+button:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+
+button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+#start-stop-btn.playing {
+    background-color: #F44336;
+}
+#start-stop-btn.playing:hover {
+    background-color: #d32f2f;
+}
+
+#freeze-btn.frozen {
+    background-color: #2196F3;
+    color: white;
+}
+#freeze-btn.frozen:hover {
+    background-color: #1976D2;
+}
+
+
+#synth-params {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.param {
+    position: relative;
+}
+
+.param label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #ccc;
+}
+
+.param input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #333;
+    border-radius: 5px;
+    outline: none;
+    cursor: pointer;
+}
+
+.param input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.param input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.param input[type="range"]:hover::-webkit-slider-thumb {
+    background: #5cdb5e;
+}
+.param input[type="range"]:hover::-moz-range-thumb {
+    background: #5cdb5e;
+}
+
+
+.tooltip {
+    visibility: hidden;
+    width: 200px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.param:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+#visualizer-container {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #333;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.voice-viz {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #2a2a2a;
+    border: 2px solid #444;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.2rem;
+    animation: breathing 8s ease-in-out infinite;
+}

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MURMURATION — a self-playing ensemble</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#121623; --ink:#e8e6df; --dim:#8b90a0;
+    --accent:#f0b35e;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:radial-gradient(1200px 700px at 50% -10%, #1a2033 0%, var(--bg) 60%);
+    color:var(--ink);
+    font-family:-apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    min-height:100vh; padding:22px 20px 40px;
+  }
+  header{max-width:1060px; margin:0 auto 14px; display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;}
+  h1{font-size:22px; letter-spacing:.28em; font-weight:600;}
+  h1 span{color:var(--accent);}
+  .tagline{color:var(--dim); font-size:13px;}
+  .wrap{max-width:1060px; margin:0 auto;}
+  #stage{
+    width:100%; height:300px; display:block; border-radius:14px;
+    background:#0a0d15; box-shadow:0 0 0 1px #ffffff12, 0 18px 50px #00000066;
+  }
+  .transport{display:flex; gap:10px; align-items:center; margin:14px 0 6px; flex-wrap:wrap;}
+  button{
+    background:#1b2133; color:var(--ink); border:1px solid #ffffff1f;
+    border-radius:10px; padding:9px 18px; font-size:14px; cursor:pointer;
+    transition:background .15s, transform .05s;
+  }
+  button:hover{background:#252d45;}
+  button:active{transform:scale(.97);}
+  #playBtn{background:var(--accent); color:#161206; border:none; font-weight:700; min-width:110px;}
+  #playBtn:hover{background:#ffc773;}
+  .presets{display:flex; gap:8px; flex-wrap:wrap; margin-left:auto;}
+  .presets button{padding:7px 12px; font-size:12.5px; color:#c9cddb;}
+  .controls{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr));
+    gap:10px; margin-top:12px;
+  }
+  .ctrl{
+    background:var(--panel); border:1px solid #ffffff10; border-radius:12px;
+    padding:12px 14px 10px;
+  }
+  .ctrl .row{display:flex; justify-content:space-between; align-items:baseline;}
+  .ctrl .name{font-size:14px; font-weight:600; letter-spacing:.04em;}
+  .ctrl .val{font-size:12px; color:var(--accent); font-variant-numeric:tabular-nums;}
+  .ctrl .sub{font-size:11px; color:var(--dim); margin:2px 0 8px; min-height:26px; line-height:1.25;}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:22px; background:transparent; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:4px; border-radius:2px; background:linear-gradient(90deg,#39415e,#39415e);
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--accent); margin-top:-6px; box-shadow:0 0 8px #f0b35e66;
+  }
+  input[type=range]::-moz-range-track{height:4px; border-radius:2px; background:#39415e;}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);border:none;}
+  footer{max-width:1060px; margin:18px auto 0; color:var(--dim); font-size:12px; line-height:1.5;}
+  #overlay{
+    position:fixed; inset:0; background:#0b0e14ee; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:18px; z-index:10; text-align:center; padding:20px;
+  }
+  #overlay h2{letter-spacing:.3em; font-weight:600; font-size:26px;}
+  #overlay p{color:var(--dim); max-width:520px; line-height:1.6; font-size:14px;}
+  #overlay button{font-size:17px; padding:14px 40px; background:var(--accent); color:#161206; border:none; font-weight:700;}
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <h2>MURMURATION</h2>
+  <p>A self-playing ensemble. Independent voices wander through a shared harmony —
+     borrowing each other's phrases, moving with or against the crowd, drifting with the weather.
+     You don't play notes; you shape their behavior.</p>
+  <button id="beginBtn">Begin</button>
+</div>
+
+<header>
+  <h1>MURMUR<span>ATION</span></h1>
+  <div class="tagline">a self-playing ensemble — shape the flock, not the notes</div>
+</header>
+
+<div class="wrap">
+  <canvas id="stage"></canvas>
+
+  <div class="transport">
+    <button id="playBtn">Pause</button>
+    <button id="diceBtn" title="Randomize every behavior">🎲 Shake the dice</button>
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <div class="controls" id="controls"></div>
+</div>
+
+<footer>
+  Every voice chooses its next note by weighing the pull of the harmony, its appetite for leaps,
+  what its neighbors just sang, and its urge to disagree. No two performances are the same.
+  Try <b>Contrarians</b> high with <b>Gravity</b> high — orderly rebellion. Or <b>Weave</b> at maximum
+  for rhythms that only realign once a minute.
+</footer>
+
+<script>
+"use strict";
+
+/* ---------- modes (needed by the Color control's readout) ---------- */
+
+const MODES = [
+  {name:'Phrygian',   pcs:[0,1,3,5,7,8,10]},
+  {name:'Aeolian',    pcs:[0,2,3,5,7,8,10]},
+  {name:'Dorian',     pcs:[0,2,3,5,7,9,10]},
+  {name:'Mixolydian', pcs:[0,2,4,5,7,9,10]},
+  {name:'Ionian',     pcs:[0,2,4,5,7,9,11]},
+  {name:'Lydian',     pcs:[0,2,4,6,7,9,11]},
+];
+function modeIndex(color){ return Math.min(5, Math.floor(color*6)); }
+
+/* ---------- parameters & UI ---------- */
+
+const CTRLS = [
+  {id:'voices',  name:'Ensemble',    sub:'how many voices join the flock',                       min:1,  max:8,   step:1,    val:5,   fmt:v=>v+' voices'},
+  {id:'gravity', name:'Gravity',     sub:'pull toward the harmonic center — consonance vs. drift', min:0, max:1, step:0.01, val:0.65, fmt:pct},
+  {id:'wander',  name:'Wanderlust',  sub:'appetite for leaps and surprises in each melody',      min:0,  max:1,   step:0.01, val:0.45, fmt:pct},
+  {id:'conv',    name:'Conversation',sub:'voices overhear and borrow each other’s phrases', min:0,  max:1,   step:0.01, val:0.55, fmt:pct},
+  {id:'contra',  name:'Contrarians', sub:'urge to move against the crowd’s direction',      min:0,  max:1,   step:0.01, val:0.40, fmt:pct},
+  {id:'weave',   name:'Weave',       sub:'how tangled the rhythms interlock — unison to polyrhythm', min:0, max:1, step:0.01, val:0.50, fmt:pct},
+  {id:'material',name:'Material',    sub:'what the instruments are made of: glass → wood → brass', min:0, max:1, step:0.01, val:0.22, fmt:matName},
+  {id:'weather', name:'Weather',     sub:'slow tides that swell and thin the music over minutes', min:0, max:1,  step:0.01, val:0.50, fmt:pct},
+  {id:'color',   name:'Color',       sub:'darkness → light of the harmony itself',          min:0,  max:1,   step:0.01, val:0.60, fmt:colName},
+  {id:'bpm',     name:'Heartbeat',   sub:'the ensemble’s shared pulse',                     min:50, max:150, step:1,    val:96,  fmt:v=>v+' bpm'},
+];
+function pct(v){ return Math.round(v*100)+'%'; }
+function matName(v){ return v<0.33?'glass':(v<0.67?'wood':'brass'); }
+function colName(v){ return MODES[modeIndex(v)].name; }
+
+const P = {};
+CTRLS.forEach(c => P[c.id] = c.val);
+
+const controlsEl = document.getElementById('controls');
+const sliderEls = {};
+CTRLS.forEach(c => {
+  const div = document.createElement('div');
+  div.className = 'ctrl';
+  div.innerHTML = `<div class="row"><span class="name">${c.name}</span><span class="val" id="val_${c.id}"></span></div>
+    <div class="sub">${c.sub}</div>
+    <input type="range" min="${c.min}" max="${c.max}" step="${c.step}" value="${c.val}" id="sl_${c.id}">`;
+  controlsEl.appendChild(div);
+  const sl = div.querySelector('input');
+  sliderEls[c.id] = sl;
+  const valEl = div.querySelector('.val');
+  const refresh = () => valEl.textContent = c.fmt(parseFloat(sl.value));
+  sl.addEventListener('input', () => { P[c.id] = parseFloat(sl.value); refresh(); onParamChange(c.id); });
+  refresh();
+});
+
+function setParams(obj, animate){
+  for (const k in obj){
+    if (!(k in P)) continue;
+    P[k] = obj[k];
+    sliderEls[k].value = obj[k];
+    sliderEls[k].dispatchEvent(new Event('input'));
+  }
+}
+
+/* ---------- presets ---------- */
+
+const PRESETS = [
+  {name:'Glass Rain',  p:{voices:5, gravity:.72, wander:.32, conv:.5,  contra:.3, weave:.6,  material:.05, weather:.55, color:.85, bpm:100}},
+  {name:'Cathedral',   p:{voices:4, gravity:.9,  wander:.18, conv:.35, contra:.2, weave:.2,  material:.12, weather:.75, color:.55, bpm:64}},
+  {name:'Night Market',p:{voices:6, gravity:.5,  wander:.6,  conv:.7,  contra:.5, weave:.8,  material:.55, weather:.4,  color:.35, bpm:116}},
+  {name:'Argument',    p:{voices:7, gravity:.3,  wander:.85, conv:.8,  contra:.95,weave:.9,  material:.8,  weather:.3,  color:.15, bpm:128}},
+  {name:'Sleepwalk',   p:{voices:3, gravity:.6,  wander:.5,  conv:.45, contra:.4, weave:.42, material:.4,  weather:.95, color:.5,  bpm:76}},
+];
+const presetsEl = document.getElementById('presets');
+PRESETS.forEach(pr => {
+  const b = document.createElement('button');
+  b.textContent = pr.name;
+  b.onclick = () => setParams(pr.p);
+  presetsEl.appendChild(b);
+});
+document.getElementById('diceBtn').onclick = () => {
+  setParams({
+    voices: 2 + Math.floor(Math.random()*7),
+    gravity: .2 + Math.random()*.75,
+    wander:  .1 + Math.random()*.8,
+    conv:    Math.random(),
+    contra:  Math.random(),
+    weave:   Math.random(),
+    material:Math.random(),
+    weather: Math.random(),
+    color:   Math.random(),
+    bpm:     60 + Math.floor(Math.random()*70),
+  });
+};
+
+/* ---------- music theory ---------- */
+
+const NOTE_NAMES = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const ROMAN = ['I','II','III','IV','V','VI','VII'];
+function mod(x,n){ return ((x % n) + n) % n; }
+function mtof(m){ return 440 * Math.pow(2, (m-69)/12); }
+
+let keyRoot = 50;                 // D3 — midi of scale degree 0
+let scalePcs = MODES[modeIndex(P.color)].pcs;
+let chordRoot = 0;                // scale degree of current chord root
+let chordDegs = new Set([0,2,4]);
+let chordCount = 0;
+
+function degreeToMidi(deg){
+  const oct = Math.floor(deg/7);
+  return keyRoot + oct*12 + scalePcs[mod(deg,7)];
+}
+function advanceChord(){
+  scalePcs = MODES[modeIndex(P.color)].pcs;       // apply Color at chord boundaries
+  const choices = [0,0,0,3,3,4,4,5,5,1,2];        // weighted degree walk
+  let next = choices[Math.floor(Math.random()*choices.length)];
+  if (next === chordRoot) next = choices[Math.floor(Math.random()*choices.length)];
+  chordRoot = next;
+  chordDegs = new Set([mod(chordRoot,7), mod(chordRoot+2,7), mod(chordRoot+4,7)]);
+  if (P.color > 0.6) chordDegs.add(mod(chordRoot+6,7));
+  chordCount++;
+  if (chordCount % 4 === 0 && Math.random() < 0.4){   // occasional modulation by fifth
+    keyRoot += (Math.random() < 0.5 ? 7 : -5);
+    if (keyRoot > 55) keyRoot -= 12;
+    if (keyRoot < 45) keyRoot += 12;
+    vizEvents.push({t:0, type:'modulate'});
+  }
+}
+
+/* ---------- audio graph ---------- */
+
+let AC = null, master, comp, convolver, wetBus, noiseBuf;
+let started = false, playing = false;
+
+function buildAudio(){
+  AC = new (window.AudioContext || window.webkitAudioContext)();
+  comp = AC.createDynamicsCompressor();
+  comp.threshold.value = -20; comp.ratio.value = 5; comp.knee.value = 12;
+  master = AC.createGain(); master.gain.value = 0.8;
+  comp.connect(master); master.connect(AC.destination);
+
+  // generated hall impulse
+  const len = Math.floor(AC.sampleRate * 3.2);
+  const ir = AC.createBuffer(2, len, AC.sampleRate);
+  for (let ch = 0; ch < 2; ch++){
+    const d = ir.getChannelData(ch);
+    for (let i = 0; i < len; i++)
+      d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.6);
+  }
+  convolver = AC.createConvolver(); convolver.buffer = ir;
+  wetBus = AC.createGain(); wetBus.gain.value = 1;
+  wetBus.connect(convolver); convolver.connect(comp);
+
+  noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+  const nd = noiseBuf.getChannelData(0);
+  for (let i = 0; i < nd.length; i++) nd[i] = Math.random()*2-1;
+
+  buildVoices();
+}
+
+/* ---------- voices ---------- */
+
+const ROLES = [
+  {label:'bass',    lo:-17, hi:-8, hits:4, durSteps:5,   gain:1.05},
+  {label:'alto',    lo:-2,  hi:8,  hits:6, durSteps:2,   gain:0.8},
+  {label:'soprano', lo:3,   hi:13, hits:7, durSteps:1.8, gain:0.7},
+  {label:'tenor',   lo:-9,  hi:1,  hits:5, durSteps:2.6, gain:0.85},
+  {label:'sparkle', lo:8,   hi:19, hits:9, durSteps:1.2, gain:0.5},
+  {label:'alto ii', lo:0,   hi:9,  hits:6, durSteps:2,   gain:0.72},
+  {label:'deep',    lo:-14, hi:-5, hits:3, durSteps:6,   gain:0.9},
+  {label:'high',    lo:6,   hi:15, hits:8, durSteps:1.5, gain:0.6},
+];
+const WEAVE_LENS = [16, 12, 20, 10, 24, 14, 18, 22];
+
+let voices = [];
+
+function euclid(hits, len){
+  const pat = new Array(len).fill(false);
+  hits = Math.max(1, Math.min(len, Math.round(hits)));
+  for (let i = 0; i < hits; i++) pat[Math.floor(i*len/hits)] = true;
+  return pat;
+}
+
+function buildVoices(){
+  voices = ROLES.map((role, i) => {
+    const dry = AC.createGain(); dry.gain.value = 0.85;
+    const wet = AC.createGain(); wet.gain.value = 0.3;
+    dry.connect(comp); wet.connect(wetBus);
+    return {
+      i, role, dry, wet,
+      deg: Math.floor((role.lo + role.hi)/2),
+      lastDir: 0,
+      motif: [],       // recent intervals (in scale degrees)
+      echo: [],        // borrowed intervals being replayed
+      active: true,
+      glow: 0,
+      pattern: [], len: 16, rot: 0,
+    };
+  });
+  rebuildPatterns();
+}
+
+function rebuildPatterns(){
+  voices.forEach((v, i) => {
+    const target = WEAVE_LENS[i % WEAVE_LENS.length];
+    v.len = Math.round(16 + (target - 16) * P.weave);
+    v.pattern = euclid(v.role.hits * v.len / 16, v.len);
+    v.rot = Math.floor(P.weave * i * 3) % v.len;
+  });
+}
+
+function onParamChange(id){
+  if (id === 'weave') rebuildPatterns();
+}
+
+/* ---------- note choice: the heart of the flock ---------- */
+
+function ensembleDirection(self){
+  let sum = 0, n = 0;
+  for (const v of voices.slice(0, P.voices)){
+    if (v === self) continue;
+    sum += v.lastDir; n++;
+  }
+  return n ? sum / n : 0;
+}
+
+function chooseDegree(v){
+  const {lo, hi} = v.role;
+
+  if (v.echo.length){                       // replaying a borrowed phrase
+    const interval = v.echo.shift();
+    let d = v.deg + interval;
+    if (d < lo || d > hi) d = v.deg - interval;   // invert at range edges
+    return Math.max(lo, Math.min(hi, d));
+  }
+
+  const maxLeap = 2 + Math.round(P.wander * 6);
+  const from = Math.max(lo, v.deg - maxLeap);
+  const to   = Math.min(hi, v.deg + maxLeap);
+  const eDir = ensembleDirection(v);
+  const cands = [], scores = [];
+
+  for (let d = from; d <= to; d++){
+    const dist = Math.abs(d - v.deg);
+    const dir = Math.sign(d - v.deg);
+    let s = 0;
+    s -= dist * dist * 0.14 * (1.4 - P.wander);           // stepwise motion is cheap; leaps cost less when wandering
+    if (dist === 0) s -= 0.6;
+    const pc = mod(d, 7);
+    if (chordDegs.has(pc)) s += P.gravity * 2.3;          // harmonic pull
+    if (pc === mod(chordRoot,7)) s += P.gravity * 1.1;
+    s -= P.contra * 1.8 * eDir * dir;                     // move against the crowd
+    cands.push(d); scores.push(s);
+  }
+
+  const T = 0.55 + P.wander * 1.7;                        // temperature: wanderlust = surprise
+  const maxS = Math.max(...scores);
+  const weights = scores.map(s => Math.exp((s - maxS) / T));
+  let total = weights.reduce((a,b)=>a+b, 0), r = Math.random() * total;
+  for (let i = 0; i < cands.length; i++){
+    r -= weights[i];
+    if (r <= 0) return cands[i];
+  }
+  return cands[cands.length - 1];
+}
+
+function maybeConverse(v){
+  if (Math.random() > P.conv * 0.18) return;
+  const others = voices.slice(0, P.voices).filter(o => o !== v && o.motif.length >= 3);
+  if (!others.length) return;
+  const src = others[Math.floor(Math.random() * others.length)];
+  v.echo = src.motif.slice(-4);
+  vizEvents.push({t: AC.currentTime, type:'echo', a: v.i, b: src.i});
+}
+
+/* ---------- timbre: glass / wood / brass ---------- */
+
+function playNote(v, midi, t, dur, vel){
+  const f = mtof(midi);
+  const m = Math.max(0, Math.min(1, P.material + (v.i - 3.5) * 0.02));
+  const glass = Math.max(0, 1 - m*2);
+  const wood  = 1 - Math.abs(m - 0.5)*2;
+  const brass = Math.max(0, m*2 - 1);
+
+  const out = AC.createGain();
+  out.connect(v.dry); out.connect(v.wet);
+
+  const bright = 0.4 + tide * 0.8;
+  const filt = AC.createBiquadFilter();
+  filt.type = 'lowpass';
+  filt.Q.value = 0.7 + brass * 2;
+  const cutoff = Math.min(9000, Math.max(300, f * (2.5 + glass*5 + brass*2) * bright));
+  filt.connect(out);
+  if (brass > 0.05){
+    filt.frequency.setValueAtTime(Math.max(200, cutoff*0.25), t);
+    filt.frequency.exponentialRampToValueAtTime(cutoff, t + 0.12);
+  } else {
+    filt.frequency.setValueAtTime(cutoff, t);
+  }
+
+  const atk = 0.004 + wood*0.006 + brass*0.06;
+  const tail = glass*2.2 + wood*0.35 + brass*0.25;       // ring-out after the note
+  const stopT = t + dur + tail + 0.3;
+
+  out.gain.setValueAtTime(0.0001, t);
+  out.gain.linearRampToValueAtTime(vel, t + atk);
+  if (brass > 0.5){
+    out.gain.setValueAtTime(vel, t + dur);
+    out.gain.setTargetAtTime(0.0001, t + dur, 0.09 + tail*0.3);
+  } else {
+    out.gain.setTargetAtTime(0.0001, t + atk, 0.12 + tail*0.5);
+  }
+
+  const oscs = [];
+  function layer(type, freq, gain, detune){
+    if (gain < 0.02) return;
+    const o = AC.createOscillator(); o.type = type;
+    o.frequency.value = freq;
+    if (detune) o.detune.value = detune;
+    const g = AC.createGain(); g.gain.value = gain;
+    o.connect(g); g.connect(filt);
+    o.start(t); o.stop(stopT);
+    oscs.push(o);
+  }
+  layer('sine',     f,        glass*0.9 + wood*0.25, 0);
+  layer('triangle', f,        wood*0.9  + glass*0.1, 0);
+  layer('sawtooth', f,        brass*0.7,             0);
+  layer('sawtooth', f,        brass*0.35,            9);
+  layer('sine',     f*2.756,  glass*0.3,             0);   // inharmonic bell partial
+
+  if (wood > 0.1){                                        // knock transient
+    const src = AC.createBufferSource(); src.buffer = noiseBuf;
+    const bp = AC.createBiquadFilter(); bp.type = 'bandpass';
+    bp.frequency.value = Math.min(8000, f*3); bp.Q.value = 1.5;
+    const ng = AC.createGain();
+    ng.gain.setValueAtTime(wood*0.5*vel*3, t);
+    ng.gain.setTargetAtTime(0.0001, t, 0.012);
+    src.connect(bp); bp.connect(ng); ng.connect(out);
+    src.start(t); src.stop(t + 0.08);
+  }
+}
+
+/* ---------- weather & scheduler ---------- */
+
+let weatherWalk = 0.5, tide = 0.5;
+const STEPS_PER_CHORD = 32;
+let stepIdx = 0, nextStepT = 0, schedTimer = null;
+const LOOKAHEAD = 0.14;
+
+function stepDur(){ return 60 / P.bpm / 4; }
+
+function updateWeather(){
+  weatherWalk += (Math.random() - 0.5) * 0.03;
+  if (weatherWalk < 0.05){ weatherWalk = 0.05; }
+  if (weatherWalk > 0.95){ weatherWalk = 0.95; }
+  tide = Math.max(0, Math.min(1, 0.5 + (weatherWalk - 0.5) * 2 * P.weather));
+}
+
+function rerollActivity(){
+  const pool = voices.slice(0, P.voices);
+  pool.forEach(v => {
+    const bonus = (v.role.label === 'bass' || v.role.label === 'deep') ? 0.3 : 0;
+    v.active = Math.random() < (0.5 + 0.45*tide + bonus);
+  });
+  if (!pool.some(v => v.active) && pool.length) pool[0].active = true;
+  const glassAmt = Math.max(0, 1 - P.material*2);
+  const wetLevel = 0.18 + glassAmt*0.25 + tide*0.25;
+  pool.forEach(v => v.wet.gain.setTargetAtTime(wetLevel, AC.currentTime, 0.5));
+}
+
+function scheduleStep(idx, t){
+  if (idx % STEPS_PER_CHORD === 0){
+    advanceChord();
+    rerollActivity();
+    vizEvents.push({t, type:'chord'});
+  }
+  updateWeather();
+
+  for (const v of voices.slice(0, P.voices)){
+    if (!v.active) continue;
+    if (!v.pattern[mod(idx + v.rot, v.len)]) continue;
+    const density = 0.55 + 0.45 * tide;
+    if (Math.random() > density) continue;
+
+    const newDeg = chooseDegree(v);
+    const interval = newDeg - v.deg;
+    v.lastDir = Math.sign(interval);
+    if (interval !== 0){
+      v.motif.push(interval);
+      if (v.motif.length > 5) v.motif.shift();
+    }
+    v.deg = newDeg;
+    maybeConverse(v);
+
+    const midi = degreeToMidi(newDeg);
+    const accent = mod(idx + v.rot, v.len) === 0;
+    const vel = 0.14 * v.role.gain * (accent ? 1.35 : 1) * (0.7 + 0.5*tide);
+    const dur = v.role.durSteps * stepDur();
+    const humanT = t + (Math.random() - 0.5) * 0.007;
+    playNote(v, midi, humanT, dur, vel);
+    vizEvents.push({t: humanT, type:'note', voice: v.i, midi, vel});
+  }
+}
+
+function scheduler(){
+  while (nextStepT < AC.currentTime + LOOKAHEAD){
+    scheduleStep(stepIdx, nextStepT);
+    nextStepT += stepDur();
+    stepIdx++;
+  }
+}
+
+function startPlaying(){
+  playing = true;
+  AC.resume();
+  nextStepT = AC.currentTime + 0.1;
+  if (!schedTimer) schedTimer = setInterval(scheduler, 25);
+  document.getElementById('playBtn').textContent = 'Pause';
+}
+function stopPlaying(){
+  playing = false;
+  clearInterval(schedTimer); schedTimer = null;
+  AC.suspend();
+  document.getElementById('playBtn').textContent = 'Play';
+}
+
+document.getElementById('playBtn').onclick = () => {
+  if (!started) return;
+  playing ? stopPlaying() : startPlaying();
+};
+document.getElementById('beginBtn').onclick = () => {
+  document.getElementById('overlay').style.display = 'none';
+  if (!started){
+    buildAudio();
+    started = true;
+    startPlaying();
+  }
+};
+
+/* ---------- visualization ---------- */
+
+const canvas = document.getElementById('stage');
+const ctx = canvas.getContext('2d');
+const vizEvents = [];
+const ripples = [];
+const echoLines = [];
+let chordFlash = 0, modFlash = 0;
+
+function voiceColor(i){ return `hsl(${(i * 47 + 20) % 360}, 70%, 62%)`; }
+function voicePos(i, n, w, h){
+  const a = -Math.PI/2 + (i / Math.max(n,1)) * Math.PI * 2;
+  return [w/2 + Math.cos(a) * w*0.36, h/2 + Math.sin(a) * h*0.33];
+}
+
+function resize(){
+  const r = canvas.getBoundingClientRect();
+  canvas.width = r.width * devicePixelRatio;
+  canvas.height = r.height * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+function draw(){
+  requestAnimationFrame(draw);
+  const w = canvas.getBoundingClientRect().width;
+  const h = canvas.getBoundingClientRect().height;
+  const now = AC ? AC.currentTime : 0;
+
+  // consume due events
+  for (let i = vizEvents.length - 1; i >= 0; i--){
+    const e = vizEvents[i];
+    if (e.t > now + 0.02) continue;
+    vizEvents.splice(i, 1);
+    if (e.type === 'note'){
+      const v = voices[e.voice];
+      if (v) v.glow = 1;
+      const [x, y] = voicePos(e.voice, P.voices, w, h);
+      ripples.push({x, y, r: 6, a: Math.min(1, e.vel*5), hue: (e.voice*47+20)%360});
+    } else if (e.type === 'echo'){
+      echoLines.push({a: e.a, b: e.b, alpha: 0.8});
+    } else if (e.type === 'chord'){
+      chordFlash = 1;
+    } else if (e.type === 'modulate'){
+      modFlash = 1;
+    }
+  }
+
+  // background breathes with the weather
+  const hue = 220 - P.color * 60 + tide * 20;
+  ctx.fillStyle = `hsl(${hue}, 30%, ${5 + tide*4}%)`;
+  ctx.fillRect(0, 0, w, h);
+  const grad = ctx.createRadialGradient(w/2, h/2, 10, w/2, h/2, w*0.55);
+  grad.addColorStop(0, `hsla(${hue+30}, 45%, ${14 + tide*10}%, ${0.5 + modFlash*0.4})`);
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+  modFlash *= 0.97;
+
+  const n = P.voices;
+
+  // conversation web
+  ctx.lineWidth = 1;
+  for (let i = 0; i < n; i++){
+    for (let j = i+1; j < n; j++){
+      const [x1,y1] = voicePos(i, n, w, h), [x2,y2] = voicePos(j, n, w, h);
+      ctx.strokeStyle = `rgba(160,170,210,${0.04 + P.conv*0.06})`;
+      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    }
+  }
+  // active echo lines
+  for (let i = echoLines.length-1; i >= 0; i--){
+    const L = echoLines[i];
+    const [x1,y1] = voicePos(L.a, n, w, h), [x2,y2] = voicePos(L.b, n, w, h);
+    ctx.strokeStyle = `rgba(240,179,94,${L.alpha})`;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+    L.alpha -= 0.02;
+    if (L.alpha <= 0) echoLines.splice(i, 1);
+  }
+
+  // ripples
+  for (let i = ripples.length-1; i >= 0; i--){
+    const rp = ripples[i];
+    ctx.strokeStyle = `hsla(${rp.hue}, 75%, 65%, ${rp.a})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI*2); ctx.stroke();
+    rp.r += 1.6; rp.a -= 0.02;
+    if (rp.a <= 0) ripples.splice(i, 1);
+  }
+
+  // voice orbs
+  for (let i = 0; i < voices.length && i < n; i++){
+    const v = voices[i];
+    const [x, y] = voicePos(i, n, w, h);
+    const R = 7 + v.glow * 9;
+    ctx.fillStyle = voiceColor(i);
+    ctx.globalAlpha = v.active ? 0.5 + v.glow*0.5 : 0.15;
+    ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(230,230,240,0.55)';
+    ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(v.role.label, x, y + R + 13);
+    v.glow *= 0.92;
+  }
+
+  // center readout
+  ctx.textAlign = 'center';
+  ctx.fillStyle = `rgba(232,230,223,${0.75 + chordFlash*0.25})`;
+  ctx.font = '600 20px sans-serif';
+  ctx.fillText(NOTE_NAMES[mod(keyRoot,12)] + ' ' + MODES[modeIndex(P.color)].name, w/2, h/2 - 4);
+  ctx.fillStyle = 'rgba(240,179,94,0.9)';
+  ctx.font = '13px sans-serif';
+  ctx.fillText('chord ' + ROMAN[mod(chordRoot,7)] + '   ·   weather ' + Math.round(tide*100) + '%', w/2, h/2 + 18);
+  chordFlash *= 0.95;
+}
+draw();
+</script>
+</body>
+</html>

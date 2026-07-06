@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fable — Autonomous Generative Synthesizer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>FABLE</h1>
+    <p class="tagline">autonomous music synthesizer</p>
+  </div>
+
+  <div class="transport">
+    <button id="playBtn" class="play">&#9654;&nbsp; Play</button>
+    <button id="resetBtn" class="ghost" title="Stop the music and reset the clock to 0:00 &mdash; all settings and the seed stay unchanged">&#8634; Reset</button>
+    <div class="clock">
+      <span id="timeDisplay">0:00&thinsp;/&thinsp;3:00</span>
+      <div id="progress"><div id="progressBar"></div></div>
+    </div>
+    <div class="readouts">
+      <span class="chip" id="keyDisplay" title="Current key &amp; mode">&mdash;</span>
+      <span class="chip" id="chordDisplay" title="Current chord">&mdash;</span>
+      <span class="chip" id="sectionDisplay" title="Current section">&mdash;</span>
+    </div>
+    <button id="surpriseBtn" class="ghost" title="Randomize the character of the music">&#10022; Surprise me</button>
+  </div>
+</header>
+
+<section id="vizwrap">
+  <canvas id="viz"></canvas>
+  <div id="vizHint">press play &mdash; the machine will compose</div>
+</section>
+
+<main id="controls">
+
+  <div class="group">
+    <h2>Essence</h2>
+    <div class="ctl"><label for="tempo" title="Beats per minute">Tempo</label>
+      <input id="tempo" type="range" min="40" max="180" step="1" value="96"><output id="o-tempo">96 bpm</output></div>
+    <div class="ctl sel"><label for="key" title="Home key — the music may wander but is drawn back here">Key</label>
+      <select id="key">
+        <option value="random" selected>Random</option>
+        <option value="0">C</option><option value="1">C&#9839;</option><option value="2">D</option>
+        <option value="3">E&#9837;</option><option value="4">E</option><option value="5">F</option>
+        <option value="6">F&#9839;</option><option value="7">G</option><option value="8">A&#9837;</option>
+        <option value="9">A</option><option value="10">B&#9837;</option><option value="11">B</option>
+      </select></div>
+    <div class="ctl sel"><label for="mode" title="The scale color of the home key">Mode</label>
+      <select id="mode">
+        <option value="auto" selected>Auto</option>
+        <option value="ionian">Ionian (major)</option>
+        <option value="dorian">Dorian</option>
+        <option value="phrygian">Phrygian</option>
+        <option value="lydian">Lydian</option>
+        <option value="mixolydian">Mixolydian</option>
+        <option value="aeolian">Aeolian (minor)</option>
+        <option value="harmonicMinor">Harmonic minor</option>
+        <option value="melodicMinor">Melodic minor</option>
+      </select></div>
+    <div class="ctl sel"><label for="meter" title="Time signature — odd meters give the rhythm a limp and a lilt">Meter</label>
+      <select id="meter">
+        <option value="4/4" selected>4/4</option>
+        <option value="3/4">3/4</option>
+        <option value="6/8">6/8</option>
+        <option value="5/4">5/4</option>
+        <option value="7/8">7/8</option>
+      </select></div>
+    <div class="ctl"><label for="length" title="Length of the piece — drag to the far right for an endless stream">Length</label>
+      <input id="length" type="range" min="20" max="620" step="10" value="180"><output id="o-length">3:00</output></div>
+    <div class="ctl sel"><label for="arc" title="The narrative shape of tension over the whole piece">Arc</label>
+      <select id="arc">
+        <option value="arch" selected>Arch &mdash; rise &amp; fall</option>
+        <option value="ascent">Ascent &mdash; ever upward</option>
+        <option value="waves">Waves &mdash; tides of tension</option>
+        <option value="still">Stillness &mdash; quiet plateau</option>
+        <option value="plunge">Plunge &mdash; bright to dark</option>
+        <option value="twinPeaks">Twin peaks &mdash; two climaxes</option>
+        <option value="valley">Valley &mdash; bright edges, dark heart</option>
+        <option value="staircase">Staircase &mdash; rising in steps</option>
+        <option value="sawtooth">Sawtooth &mdash; build, break, rebuild</option>
+        <option value="slowBurn">Slow burn &mdash; patience, then fire</option>
+      </select></div>
+    <div class="ctl seedrow"><label for="seed" title="Random seed — same seed + same settings = same piece">Seed</label>
+      <input id="seed" type="number" min="1" max="999999" step="1" value="1207">
+      <button id="diceBtn" class="ghost small" title="Roll a new seed">&#127922;</button></div>
+  </div>
+
+  <div class="group">
+    <h2>Character</h2>
+    <div class="ctl"><label for="complexity" title="Rhythmic subdivision, harmonic density, busyness of all voices">Complexity</label>
+      <input id="complexity" type="range" min="0" max="100" value="55"><output id="o-complexity">55%</output></div>
+    <div class="ctl"><label for="variety" title="Tonal variety — adventurous chords, distant modulations, richer scale colors">Tonal variety</label>
+      <input id="variety" type="range" min="0" max="100" value="40"><output id="o-variety">40%</output></div>
+    <div class="ctl"><label for="gravity" title="ORIGINAL — how strongly melodies are pulled toward the tonal center; low values float free">Gravity</label>
+      <input id="gravity" type="range" min="0" max="100" value="60"><output id="o-gravity">60%</output></div>
+    <div class="ctl"><label for="wanderlust" title="ORIGINAL — the urge to modulate to new keys at section boundaries">Wanderlust</label>
+      <input id="wanderlust" type="range" min="0" max="100" value="30"><output id="o-wanderlust">30%</output></div>
+    <div class="ctl"><label for="shadow" title="ORIGINAL — borrowed chords, secondary dominants and chromatic passing tones that darken the harmony">Shadow</label>
+      <input id="shadow" type="range" min="0" max="100" value="25"><output id="o-shadow">25%</output></div>
+    <div class="ctl"><label for="fractality" title="ORIGINAL — motivic self-similarity: how often the music develops its own themes (transposed, inverted, reversed) rather than inventing new material">Fractality</label>
+      <input id="fractality" type="range" min="0" max="100" value="60"><output id="o-fractality">60%</output></div>
+    <div class="ctl"><label for="hocket" title="ORIGINAL — medieval interlocking: the counter-voice sings in the gaps the melody leaves">Hocket</label>
+      <input id="hocket" type="range" min="0" max="100" value="20"><output id="o-hocket">20%</output></div>
+    <div class="ctl"><label for="sparkle" title="ORIGINAL — grace notes, ornaments and octave glints scattered over the surface">Sparkle</label>
+      <input id="sparkle" type="range" min="0" max="100" value="30"><output id="o-sparkle">30%</output></div>
+    <div class="ctl"><label for="tide" title="ORIGINAL — slow swells of brightness and dynamics, like breathing on a long cycle">Tide</label>
+      <input id="tide" type="range" min="0" max="100" value="35"><output id="o-tide">35%</output></div>
+    <div class="ctl"><label for="humanity" title="Timing looseness, velocity variation and slight detuning — a machine pretending to breathe">Humanity</label>
+      <input id="humanity" type="range" min="0" max="100" value="50"><output id="o-humanity">50%</output></div>
+    <div class="ctl"><label for="swing" title="Shuffle feel on offbeats (ignored in compound meters)">Swing</label>
+      <input id="swing" type="range" min="0" max="100" value="0"><output id="o-swing">0%</output></div>
+  </div>
+
+  <div class="group">
+    <h2>Ensemble</h2>
+    <div class="ctl"><label for="mixLead" title="The main melodic voice">Lead</label>
+      <input id="mixLead" type="range" min="0" max="100" value="80"><output id="o-mixLead">80%</output></div>
+    <div class="ctl sel"><label for="leadTimbre" title="Timbre of the lead voice">&nbsp;&nbsp;voice</label>
+      <select id="leadTimbre">
+        <option value="glass" selected>Glass (FM bell)</option>
+        <option value="reed">Reed (filtered saw)</option>
+        <option value="breath">Breath (flute-ish)</option>
+        <option value="pluck">Pluck (string)</option>
+        <option value="keys">Keys (electric piano)</option>
+        <option value="brass">Brass (swelling saw)</option>
+        <option value="organ">Organ (drawbars)</option>
+        <option value="pure">Pure (sine)</option>
+      </select></div>
+    <div class="ctl"><label for="mixCounter" title="A second voice in counterpoint with the lead">Counterpoint</label>
+      <input id="mixCounter" type="range" min="0" max="100" value="55"><output id="o-mixCounter">55%</output></div>
+    <div class="ctl"><label for="mixPad" title="Sustained harmony beneath everything">Pads</label>
+      <input id="mixPad" type="range" min="0" max="100" value="65"><output id="o-mixPad">65%</output></div>
+    <div class="ctl sel"><label for="padTimbre" title="Timbre of the pad">&nbsp;&nbsp;voice</label>
+      <select id="padTimbre">
+        <option value="warm" selected>Warm (analog)</option>
+        <option value="halo">Halo (glass air)</option>
+        <option value="choir">Choir (vowel formants)</option>
+        <option value="strings">Strings (ensemble)</option>
+        <option value="hollow">Hollow (woody dark)</option>
+      </select></div>
+    <div class="ctl"><label for="mixArp" title="A rippling broken-chord pattern">Arpeggio</label>
+      <input id="mixArp" type="range" min="0" max="100" value="50"><output id="o-mixArp">50%</output></div>
+    <div class="ctl"><label for="mixBass" title="The foundation voice">Bass</label>
+      <input id="mixBass" type="range" min="0" max="100" value="75"><output id="o-mixBass">75%</output></div>
+    <div class="ctl"><label for="mixPerc" title="Synthesized drums — they only enter when the music has enough energy">Percussion</label>
+      <input id="mixPerc" type="range" min="0" max="100" value="60"><output id="o-mixPerc">60%</output></div>
+  </div>
+
+  <div class="group">
+    <h2>Space</h2>
+    <div class="ctl"><label for="reverb" title="A generated hall — the room the ensemble plays in">Reverb</label>
+      <input id="reverb" type="range" min="0" max="100" value="45"><output id="o-reverb">45%</output></div>
+    <div class="ctl"><label for="echo" title="Tempo-synced dotted-eighth echo on lead and arpeggio">Echo</label>
+      <input id="echo" type="range" min="0" max="100" value="30"><output id="o-echo">30%</output></div>
+    <div class="ctl"><label for="master" title="Master volume">Volume</label>
+      <input id="master" type="range" min="0" max="100" value="80"><output id="o-master">80%</output></div>
+    <p class="note">Fable composes in real time: it invents motifs, develops them by
+    transposition, inversion and retrograde, harmonizes with functional progressions
+    (with borrowed shadows and secondary dominants), modulates when wanderlust strikes,
+    and shapes the whole piece along the arc you choose. Every seed is a different piece.
+    Tweak anything while it plays &mdash; the music listens.</p>
+  </div>
+
+</main>
+
+<footer>
+  <span>Pure HTML&thinsp;/&thinsp;CSS&thinsp;/&thinsp;JS &middot; Web Audio API &middot; no samples, no libraries &mdash; every sound is synthesized live.</span>
+  <span>space&nbsp;=&nbsp;play/stop</span>
+</footer>
+
+<script src="synth.js"></script>
+</body>
+</html>

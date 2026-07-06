@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rhythms & Drones</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23000'/><path d='M4 16 Q8 8, 12 16 T20 16 Q24 24, 28 16' stroke='%23fff' stroke-width='2' fill='none'/><circle cx='8' cy='24' r='2' fill='%23fff'/><circle cx='16' cy='24' r='2' fill='%23fff'/><circle cx='24' cy='24' r='2' fill='%23fff'/></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <h1>Rhythms & Drones</h1>
+    </header>
+        <div class="transport-controls">
+      <button id="transportToggle" class="transport-btn">Start</button>
+    </div>
+
+    <section class="card blend-controls">
+      <div class="blend-control">
+        <label for="mixBalance">Mix</label>
+        <input type="range" id="mixBalance" min="0" max="100" value="70">
+        <span id="mixBalance-value" class="value">70</span>
+      </div>
+      <div class="blend-control">
+        <label for="coordination">Coordination</label>
+        <input type="range" id="coordination" min="0" max="100" value="50">
+        <span id="coordination-value" class="value">50</span>
+      </div>
+    </section>
+
+
+
+    <div class="engine-column">
+      <section class="panel rhythm-panel" id="rhythm-panel">
+<!-- 
+        <div class="panel-header">
+          <h2>Rhythm Engine</h2>
+        </div>
+ -->
+
+        <div class="controls-grid">
+          <div class="controls-column">
+            <div class="control-row">
+              <span class="control-label">BPM</span>
+              <input type="range" class="slider" min="60" max="180" value="100" id="bpm">
+              <span class="control-value" id="bpm-value">100</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">TIME SIG</span>
+              <input type="range" class="slider" min="0" max="3" value="0" id="timeSig">
+              <span class="control-value" id="timeSig-value">4/4</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">SYNCOPATION</span>
+              <input type="range" class="slider" min="0" max="100" value="30" id="syncopation">
+              <span class="control-value" id="syncopation-value">30</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">ON/OFF BEAT</span>
+              <input type="range" class="slider" min="0" max="100" value="70" id="onBeat">
+              <span class="control-value" id="onBeat-value">70</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">EVOLUTION</span>
+              <input type="range" class="slider" min="0" max="100" value="40" id="evolution">
+              <span class="control-value" id="evolution-value">40</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">SOUND COUNT</span>
+              <input type="range" class="slider" min="3" max="15" value="10" id="soundCount">
+              <span class="control-value" id="soundCount-value">10</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">STEREO WIDTH</span>
+              <input type="range" class="slider" min="0" max="100" value="60" id="stereoWidth">
+              <span class="control-value" id="stereoWidth-value">60</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">COMPLEXITY</span>
+              <input type="range" class="slider" min="0" max="100" value="50" id="complexity">
+              <span class="control-value" id="complexity-value">50</span>
+            </div>
+          </div>
+
+          <div class="controls-column">
+            <div class="control-row">
+              <span class="control-label">SWING</span>
+              <input type="range" class="slider" min="0" max="100" value="0" id="swing">
+              <span class="control-value" id="swing-value">0</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">ACCENT PROB</span>
+              <input type="range" class="slider" min="0" max="100" value="25" id="accentProb">
+              <span class="control-value" id="accentProb-value">25</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">FILL FREQ</span>
+              <input type="range" class="slider" min="0" max="100" value="15" id="fillFreq">
+              <span class="control-value" id="fillFreq-value">15</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">LOW EMPHASIS</span>
+              <input type="range" class="slider" min="0" max="100" value="70" id="lowEmphasis">
+              <span class="control-value" id="lowEmphasis-value">70</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">HIGH EMPHASIS</span>
+              <input type="range" class="slider" min="0" max="100" value="50" id="highEmphasis">
+              <span class="control-value" id="highEmphasis-value">50</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">PATTERN LEN</span>
+              <input type="range" class="slider" min="0" max="2" value="1" id="patternLen">
+              <span class="control-value" id="patternLen-value">16</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">HUMANIZE</span>
+              <input type="range" class="slider" min="0" max="100" value="20" id="humanize">
+              <span class="control-value" id="humanize-value">20</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+   <!-- 
+   <section class="panel" id="drone-panel">
+        <div class="panel-header">
+          <h2>Drone Engine</h2>
+        </div>
+
+        <div class="drone-inline">
+          <span class="voice-display">Voices: <span id="voice-count">0</span></span>
+        </div>
+      </section>
+ -->
+    </div>
+  </div>
+
+  <script src="rhythm.js"></script>
+  <script src="drone.js"></script>
+</body>
+</html>

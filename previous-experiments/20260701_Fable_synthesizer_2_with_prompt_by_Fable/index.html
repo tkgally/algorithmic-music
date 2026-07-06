@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Counterpoint Garden — a self-playing polyphony</title>
+<style>
+  :root{
+    --bg:#0d1017;
+    --panel:#141925;
+    --panel2:#181e2c;
+    --ink:#e8e4d8;
+    --muted:#8b93a7;
+    --accent:#e4b363;
+    --line:#232b3d;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink);
+    font:15px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  h1,h2,.serif{ font-family: Georgia, "Times New Roman", serif; font-weight:normal; }
+
+  header{
+    display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 18px;
+    padding:16px 22px 8px;
+  }
+  header h1{ margin:0; font-size:26px; letter-spacing:.5px; }
+  header .sub{ color:var(--muted); font-style:italic; font-family:Georgia,serif; }
+  header .spacer{ flex:1; }
+
+  #playBtn{
+    background:var(--accent); color:#1a1408; border:none; border-radius:24px;
+    padding:9px 22px; font-size:15px; font-weight:600; cursor:pointer;
+    transition:transform .15s, background .2s;
+  }
+  #playBtn:hover{ transform:scale(1.04); }
+  #playBtn.playing{ background:#2c3448; color:var(--ink); }
+
+  .volwrap{ display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px; }
+  .volwrap input{ width:110px; }
+
+  #viz{ display:block; width:100%; height:38vh; min-height:200px; }
+
+  main{ padding:10px 22px 40px; max-width:1180px; margin:0 auto; }
+
+  .knobs{
+    display:grid; gap:14px 22px;
+    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    margin-top:6px;
+  }
+  .knob{
+    background:var(--panel); border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px 10px;
+  }
+  .knob label{ display:flex; justify-content:space-between; align-items:baseline; cursor:default; }
+  .knob .name{ font-family:Georgia,serif; font-size:17px; letter-spacing:.4px; }
+  .knob .hint{
+    display:block; color:var(--muted); font-size:12.5px; font-style:italic; font-family:Georgia,serif;
+    max-height:0; overflow:hidden; opacity:0; transition:max-height .25s ease, opacity .25s ease, margin .25s;
+    margin-top:0;
+  }
+  .knob:hover .hint, .knob:focus-within .hint{ max-height:3.2em; opacity:1; margin-top:2px; }
+  @media (hover:none){ .knob .hint{ max-height:3.2em; opacity:1; margin-top:2px; } }
+
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:26px; background:transparent; margin:4px 0 0; }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:6px; border-radius:3px;
+    background:linear-gradient(90deg, var(--accent) 0 var(--fill,50%), #2a3247 var(--fill,50%) 100%);
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:18px; height:18px; border-radius:50%; margin-top:-6px;
+    background:#f4e9cf; border:2px solid #3a3325; box-shadow:0 0 6px rgba(228,179,99,.55); cursor:pointer;
+  }
+  input[type=range]::-moz-range-track{ height:6px; border-radius:3px; background:#2a3247; }
+  input[type=range]::-moz-range-progress{ height:6px; border-radius:3px; background:var(--accent); }
+  input[type=range]::-moz-range-thumb{
+    width:16px; height:16px; border-radius:50%; background:#f4e9cf; border:2px solid #3a3325; cursor:pointer;
+  }
+
+  .rows{ display:flex; flex-wrap:wrap; gap:12px 26px; margin-top:20px; align-items:flex-start; }
+  .group{ }
+  .group h2{ margin:0 0 8px; font-size:15px; color:var(--muted); letter-spacing:1.5px;
+    text-transform:uppercase; font-family:inherit; font-weight:600; }
+  .seg{ display:flex; flex-wrap:wrap; gap:8px; }
+  .seg button, .presets button, #surpriseBtn{
+    background:var(--panel2); color:var(--ink); border:1px solid var(--line); border-radius:20px;
+    padding:7px 15px; font-size:14px; cursor:pointer; font-family:Georgia,serif;
+    transition:background .2s, border-color .2s, transform .12s;
+  }
+  .seg button:hover, .presets button:hover, #surpriseBtn:hover{ border-color:var(--accent); transform:translateY(-1px); }
+  .seg button.on{ background:var(--accent); color:#1a1408; border-color:var(--accent); }
+  .presets{ display:flex; flex-wrap:wrap; gap:8px; }
+  #surpriseBtn{ background:#31262f; border-color:#5a4258; }
+  #surpriseBtn:hover{ border-color:#c78bc0; }
+
+  footer{ color:#5a6175; font-size:12px; text-align:center; padding:0 20px 26px; font-style:italic; }
+
+  /* -------- begin overlay -------- */
+  #overlay{
+    position:fixed; inset:0; z-index:10; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:18px; text-align:center;
+    background:radial-gradient(ellipse at 50% 35%, #1a2133 0%, #0b0e15 75%);
+    padding:24px;
+  }
+  #overlay h1{ font-size:38px; margin:0; }
+  #overlay p{ color:var(--muted); font-family:Georgia,serif; font-style:italic; margin:0; max-width:34em; }
+  #beginBtn{
+    margin-top:10px; background:var(--accent); color:#1a1408; border:none; border-radius:40px;
+    padding:16px 46px; font-size:20px; font-family:Georgia,serif; cursor:pointer;
+    box-shadow:0 0 40px rgba(228,179,99,.35); transition:transform .2s;
+  }
+  #beginBtn:hover{ transform:scale(1.06); }
+  #overlay.hidden{ display:none; }
+</style>
+</head>
+<body>
+
+<div id="overlay">
+  <h1>Counterpoint Garden</h1>
+  <p>A small ensemble of invented voices composes for you, endlessly — listening to one
+     another, echoing, arguing, resting. You do not play the notes; you tend the garden.</p>
+  <button id="beginBtn">Begin</button>
+  <p style="font-size:13px">headphones recommended · everything lives in this one file</p>
+</div>
+
+<header>
+  <h1>Counterpoint Garden</h1>
+  <span class="sub">a self-playing polyphony</span>
+  <span class="spacer"></span>
+  <div class="volwrap">quiet <input type="range" id="vol" min="0" max="1" step="0.01" value="0.7"> loud</div>
+  <button id="playBtn">Begin</button>
+</header>
+
+<canvas id="viz"></canvas>
+
+<main>
+  <div class="knobs" id="knobs"><!-- sliders injected here --></div>
+
+  <div class="rows">
+    <div class="group">
+      <h2>Material</h2>
+      <div class="seg" id="materials"></div>
+    </div>
+    <div class="group">
+      <h2>Places to start</h2>
+      <div class="presets" id="presets"></div>
+    </div>
+    <div class="group">
+      <h2>&nbsp;</h2>
+      <button id="surpriseBtn" title="a curated leap to somewhere new">Surprise me ✶</button>
+    </div>
+  </div>
+</main>
+
+<footer>one HTML file · Web Audio API · no notes were pre-recorded, and none will ever repeat exactly</footer>
+
+<script>
+'use strict';
+/* =====================================================================
+   COUNTERPOINT GARDEN
+   ---------------------------------------------------------------------
+   Structure of this file:
+     1. Helpers
+     2. Parameters, control metadata, presets
+     3. Music theory: modes, harmony timeline (the "weather system")
+     4. Synthesis engine (materials -> sound; knows nothing about notes)
+     5. Composition engine (Voices + Conductor; knows nothing about audio
+        nodes — it only calls Synth.play)
+     6. Visualization
+     7. UI wiring & bootstrap
+   ===================================================================== */
+
+/* ---------------- 1. Helpers ---------------- */
+const rand = Math.random;
+const rr = (a, b) => a + rand() * (b - a);
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, t) => a + (b - a) * t;
+const pick = arr => arr[(rand() * arr.length) | 0];
+// weighted pick from [[value, weight], ...]
+function wpick(pairs){
+  let tot = 0; for (const p of pairs) tot += p[1];
+  let r = rand() * tot;
+  for (const p of pairs){ r -= p[1]; if (r <= 0) return p[0]; }
+  return pairs[pairs.length - 1][0];
+}
+const mod = (n, m) => ((n % m) + m) % m;
+
+/* ---------------- 2. Parameters ---------------- */
+// All continuous controls live in [0,1]. The engine reads them live,
+// so every knob has an immediate (or next-phrase) audible effect.
+const params = {
+  conversation: 0.60,  gravity: 0.70,  weather: 0.35,  crowd: 0.40,
+  mischief: 0.22,      memory: 0.60,   pulse: 0.45,    horizon: 0.50,
+  dusk: 0.30,          material: 'glass',
+};
+
+const CONTROLS = [
+  ['conversation','Conversation','how closely the voices listen, echo, and answer one another'],
+  ['gravity','Gravity','the pull of home — consonance, resolution, return'],
+  ['weather','Weather','slow change moving through the piece: drifting keys, shifting light'],
+  ['crowd','Crowd','how many voices gather; they arrive and leave politely'],
+  ['mischief','Mischief','leaps, jokes, syncopations, broken patterns'],
+  ['memory','Memory','how strongly the music returns to what it has sung before'],
+  ['pulse','Pulse','from floating, breathing time to an insistent shared groove'],
+  ['horizon','Horizon','how far apart the voices roam, from a huddle to the whole sky'],
+  ['dusk','Dusk','the light of the harmony and tone — bright noon to violet night'],
+];
+
+const MATERIALS = {
+  glass:  { label:'Glass',  hint:'struck and ringing',      send:0.45 },
+  wood:   { label:'Wood',   hint:'warm and short-spoken',   send:0.22 },
+  brass:  { label:'Brass',  hint:'breath through metal',    send:0.28 },
+  breath: { label:'Breath', hint:'air given a pitch',       send:0.50 },
+  water:  { label:'Water',  hint:'drops and slow currents', send:0.55 },
+};
+
+const PRESETS = [
+  ['First Light',     {conversation:.6, gravity:.7,  weather:.35, crowd:.4,  mischief:.22, memory:.6,  pulse:.45, horizon:.5,  dusk:.3,  material:'glass'}],
+  ['Glass Cathedral', {conversation:.45,gravity:.85, weather:.2,  crowd:.55, mischief:.1,  memory:.75, pulse:.3,  horizon:.8,  dusk:.25, material:'glass'}],
+  ['Night Market',    {conversation:.7, gravity:.55, weather:.5,  crowd:.8,  mischief:.7,  memory:.45, pulse:.85, horizon:.45, dusk:.55, material:'wood'}],
+  ['Deep Water',      {conversation:.35,gravity:.4,  weather:.55, crowd:.35, mischief:.3,  memory:.4,  pulse:.12, horizon:.6,  dusk:.8,  material:'water'}],
+  ['Evensong',        {conversation:.5, gravity:.92, weather:.15, crowd:.5,  mischief:.08, memory:.85, pulse:.55, horizon:.4,  dusk:.6,  material:'brass'}],
+  ['Murmuration',     {conversation:.9, gravity:.5,  weather:.7,  crowd:.9,  mischief:.5,  memory:.3,  pulse:.4,  horizon:.55, dusk:.45, material:'breath'}],
+];
+
+/* ---------------- 3. Music theory ---------------- */
+// Modes ordered bright -> dark. Dusk chooses a home neighborhood on this
+// axis; Weather wanders around it one step at a time.
+const MODES = [
+  [0,2,4,6,7,9,11], // lydian
+  [0,2,4,5,7,9,11], // ionian
+  [0,2,4,5,7,9,10], // mixolydian
+  [0,2,3,5,7,9,10], // dorian
+  [0,2,3,5,7,8,10], // aeolian
+  [0,1,3,5,7,8,10], // phrygian
+];
+
+// A chord = a root scale-degree; its tones are stacked scale-thirds.
+function chordTones(rootDeg){
+  return [rootDeg, mod(rootDeg+2,7), mod(rootDeg+4,7)];
+}
+
+// The Harmony object owns a short timeline of future chords so that all
+// voices, whichever moment they are scheduling into, agree on the harmony.
+class Harmony {
+  constructor(){
+    this.tonicPC = 2 + ((rand()*12)|0) % 10;  // a random home pitch class
+    this.modeIdx = 1;                          // start ionian-ish
+    this.tempo = 72;                           // drifts with Weather/Pulse
+    this.timeline = [];                        // [{t0,t1,rootDeg,tonicPC,modeIdx,tones,beat}]
+    this.chordsSinceHome = 0;
+    this.cadencing = false;
+  }
+  reset(t){
+    this.timeline = [];
+    this.pushChord(t, 0); // begin at home
+  }
+  beatDur(){ // Pulse nudges the underlying tempo; Weather has drifted this.tempo
+    const bpm = clamp(this.tempo * (0.82 + params.pulse * 0.42), 40, 132);
+    return 60 / bpm;
+  }
+  // Choose the next chord root: a weighted walk on scale degrees.
+  // Gravity strengthens tonal moves (I, IV, V and cadences); low gravity
+  // flattens the field and favors stepwise, modal root motion.
+  nextRoot(cur){
+    const g = params.gravity;
+    if (this.cadencing){ this.cadencing = false; this.chordsSinceHome = 0; return 0; }
+    if (this.chordsSinceHome > 3 + rand()*4 && rand() < g){
+      this.cadencing = true; return 4; // dominant, then home next time
+    }
+    const base = [3, 1, 1.6, 2, 2.4, 1.6, 0.7]; // I ii iii IV V vi vii
+    const pairs = [];
+    for (let d = 0; d < 7; d++){
+      if (d === cur) continue;
+      let w = base[d];
+      if (d === 0) w *= 1 + g*1.6;
+      if (d === 3 || d === 4) w *= 1 + g*0.7;
+      // low gravity: love neighbors (modal drift)
+      const stepDist = Math.min(mod(d-cur,7), mod(cur-d,7));
+      if (stepDist === 1) w *= 1 + (1-g)*1.4;
+      pairs.push([d, w]);
+    }
+    const d = wpick(pairs);
+    this.chordsSinceHome = (d === 0) ? 0 : this.chordsSinceHome + 1;
+    return d;
+  }
+  pushChord(t0, forcedRoot){
+    const last = this.timeline[this.timeline.length-1];
+    // ------- Weather: between chords, the world may shift -------
+    const w = params.weather;
+    if (last && rand() < w*0.28){
+      // drift the tonal center by a fifth (up or down)
+      this.tonicPC = mod(this.tonicPC + (rand()<0.5 ? 7 : 5), 12);
+      this.chordsSinceHome = 0;
+    }
+    // mode leans toward the Dusk target, and Weather shakes it around
+    const duskTarget = Math.round(params.dusk * (MODES.length-1));
+    if (this.modeIdx < duskTarget) this.modeIdx++;
+    else if (this.modeIdx > duskTarget) this.modeIdx--;
+    else if (rand() < w*0.22) this.modeIdx = clamp(this.modeIdx + (rand()<0.5?-1:1), 0, MODES.length-1);
+    if (rand() < w*0.3) this.tempo = clamp(this.tempo * rr(0.94, 1.07), 48, 100);
+
+    const rootDeg = (forcedRoot !== undefined) ? forcedRoot : this.nextRoot(last ? last.rootDeg : 0);
+    const beat = this.beatDur();
+    const durBeats = wpick([[4,2],[6,1],[8,1.2]]);
+    this.timeline.push({
+      t0, t1: t0 + durBeats*beat, rootDeg,
+      tonicPC: this.tonicPC, modeIdx: this.modeIdx,
+      tones: chordTones(rootDeg), beat,
+    });
+    if (this.timeline.length > 8) this.timeline.shift();
+  }
+  // Make sure chords exist up to time t; return the chord governing t.
+  at(t){
+    let last = this.timeline[this.timeline.length-1];
+    while (t >= last.t1){ this.pushChord(last.t1); last = this.timeline[this.timeline.length-1]; }
+    for (let i = this.timeline.length-1; i >= 0; i--){
+      if (t >= this.timeline[i].t0) return this.timeline[i];
+    }
+    return this.timeline[0];
+  }
+  // midi pitch of an absolute scale index under a given chord's mode/tonic
+  midiOf(chord, sIdx){
+    const oct = Math.floor(sIdx/7), deg = mod(sIdx,7);
+    return 24 + chord.tonicPC + oct*12 + MODES[chord.modeIdx][deg];
+  }
+  // nearest scale index to a midi pitch
+  indexNear(chord, midi){
+    let best = 0, bd = 1e9;
+    for (let s = 0; s < 63; s++){
+      const d = Math.abs(this.midiOf(chord, s) - midi);
+      if (d < bd){ bd = d; best = s; }
+    }
+    return best;
+  }
+}
+
+/* ---------------- 4. Synthesis engine ---------------- */
+// Turns (voice, midi, time, duration, velocity) into sound. Each material
+// is a small orchestration recipe; per-voice variation (detune, brightness,
+// pan) keeps the voices tellable-apart even in one material.
+const NVOICES = 8;
+const VOICE_COLORS = ['#e4b363','#e07a9e','#7fd1b9','#8ab4f8','#f2e86d','#c9a3ff','#6fd3e8','#f0906b'];
+
+class Synth {
+  constructor(ctx){
+    this.ctx = ctx;
+    const sr = ctx.sampleRate;
+
+    // master chain: voices -> compressor -> master gain -> out
+    this.comp = ctx.createDynamicsCompressor();
+    this.comp.threshold.value = -20; this.comp.knee.value = 22;
+    this.comp.ratio.value = 4; this.comp.attack.value = 0.01; this.comp.release.value = 0.3;
+    this.master = ctx.createGain(); this.master.gain.value = 0.7;
+    this.analyser = ctx.createAnalyser(); this.analyser.fftSize = 1024;
+    this.comp.connect(this.master); this.master.connect(this.analyser); this.analyser.connect(ctx.destination);
+
+    // reverb: a generated exponential-decay noise impulse (no assets needed)
+    const irLen = (sr * 2.6) | 0;
+    const ir = ctx.createBuffer(2, irLen, sr);
+    for (let ch = 0; ch < 2; ch++){
+      const d = ir.getChannelData(ch);
+      for (let i = 0; i < irLen; i++)
+        d[i] = (rand()*2-1) * Math.pow(1 - i/irLen, 2.2) * 0.5;
+    }
+    this.verb = ctx.createConvolver(); this.verb.buffer = ir;
+    this.verbGain = ctx.createGain(); this.verbGain.gain.value = 0.9;
+    this.verb.connect(this.verbGain); this.verbGain.connect(this.comp);
+
+    // shared noise loop for breath / attack ticks
+    const nb = ctx.createBuffer(1, sr*2, sr);
+    const nd = nb.getChannelData(0);
+    for (let i = 0; i < nd.length; i++) nd[i] = rand()*2-1;
+    this.noiseBuf = nb;
+
+    // persistent per-voice chains: noteInput -> pan -> {dry, send}
+    this.voices = [];
+    for (let i = 0; i < NVOICES; i++){
+      const input = ctx.createGain(); input.gain.value = 0; // fades on enter/exit
+      const pan = ctx.createStereoPanner();
+      pan.pan.value = clamp((i/(NVOICES-1))*1.5 - 0.75 + rr(-0.08,0.08), -0.85, 0.85);
+      const dry = ctx.createGain(); dry.gain.value = 0.9;
+      const send = ctx.createGain(); send.gain.value = MATERIALS[params.material].send;
+      input.connect(pan); pan.connect(dry); pan.connect(send);
+      dry.connect(this.comp); send.connect(this.verb);
+      this.voices.push({
+        input, pan, dry, send,
+        detune: rr(-7,7),               // cents — personal intonation
+        brightness: rr(0.85, 1.18),     // personal timbre tilt
+      });
+    }
+  }
+  setVolume(v){ this.master.gain.setTargetAtTime(v*v, this.ctx.currentTime, 0.05); }
+  setMaterialSends(){
+    // Dusk deepens the space a little
+    const base = MATERIALS[params.material].send * (0.75 + params.dusk*0.5);
+    for (const v of this.voices) v.send.gain.setTargetAtTime(base, this.ctx.currentTime, 0.4);
+  }
+  fadeVoice(i, target, secs){
+    const g = this.voices[i].input.gain;
+    g.cancelScheduledValues(this.ctx.currentTime);
+    g.setTargetAtTime(target, this.ctx.currentTime, secs/3);
+  }
+  level(){ // rough output RMS, used by tests and the visualization
+    const buf = new Uint8Array(this.analyser.fftSize);
+    this.analyser.getByteTimeDomainData(buf);
+    let s = 0; for (let i = 0; i < buf.length; i++){ const x = (buf[i]-128)/128; s += x*x; }
+    return Math.sqrt(s/buf.length);
+  }
+
+  play(vi, midi, t, dur, vel){
+    const v = this.voices[vi];
+    const f = 440 * Math.pow(2, (midi - 69) / 12);
+    // brightness: personal tilt, dimmed by Dusk
+    const bright = v.brightness * (1.15 - params.dusk*0.4);
+    // register compensation so basses don't boom and tops don't pierce
+    const gmul = midi < 45 ? 0.75 : midi > 84 ? 0.8 : 1;
+    const a = { f, t, dur, vel: vel*gmul, bright, detune: v.detune, out: v.input };
+    this[params.material](a);
+  }
+
+  // --- material recipes -------------------------------------------------
+  // Each returns nothing; each builds an isolated node graph into a.out,
+  // schedules its own envelope, and cleans itself up when the note ends.
+  _cleanup(src, nodes){
+    src.onended = () => { for (const n of nodes) { try{ n.disconnect(); }catch(e){} } };
+  }
+  _oscNote(a, type, ratio, peak, atk, tau, stopAfter, filterNode){
+    // helper: oscillator -> (optional filter) -> envelope -> out
+    const {ctx} = this;
+    const o = ctx.createOscillator(); o.type = type;
+    o.frequency.value = a.f * ratio; o.detune.value = a.detune;
+    const g = ctx.createGain(); g.gain.value = 0;
+    if (filterNode){ o.connect(filterNode); filterNode.connect(g); }
+    else o.connect(g);
+    g.connect(a.out);
+    g.gain.setValueAtTime(0, a.t);
+    g.gain.linearRampToValueAtTime(peak, a.t + atk);
+    g.gain.setTargetAtTime(0, a.t + atk, tau);
+    o.start(a.t); o.stop(a.t + stopAfter);
+    this._cleanup(o, filterNode ? [o,filterNode,g] : [o,g]);
+    return o;
+  }
+  glass(a){ // struck, ringing, slightly inharmonic — bell/glass armonica
+    const ring = clamp(0.5 + a.dur*0.7, 0.6, 2.2);
+    this._oscNote(a, 'sine', 1,     0.22*a.vel,            0.006, ring,      ring*5+0.5);
+    this._oscNote(a, 'sine', 2.756, 0.05*a.vel*a.bright,   0.004, ring*0.45, ring*3+0.3);
+    this._oscNote(a, 'sine', 5.404, 0.016*a.vel*a.bright,  0.003, ring*0.22, ring*2+0.2);
+  }
+  wood(a){ // short-spoken marimba-like knock with a soft tick
+    const {ctx} = this;
+    const tau = clamp(0.09 + a.dur*0.05, 0.09, 0.28);
+    const lp = ctx.createBiquadFilter(); lp.type='lowpass';
+    lp.frequency.value = Math.min(a.f*6*a.bright, 8500); lp.Q.value = 0.6;
+    this._oscNote(a, 'triangle', 1, 0.34*a.vel, 0.002, tau, 1.4, lp);
+    this._oscNote(a, 'sine', 3.92, 0.06*a.vel*a.bright, 0.001, tau*0.35, 0.8);
+    // attack tick: a breath of filtered noise
+    const n = ctx.createBufferSource(); n.buffer = this.noiseBuf; n.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = Math.min(a.f*2.5, 6000); bp.Q.value=3;
+    const ng = ctx.createGain(); ng.gain.value = 0;
+    n.connect(bp); bp.connect(ng); ng.connect(a.out);
+    ng.gain.setValueAtTime(0.09*a.vel, a.t);
+    ng.gain.setTargetAtTime(0, a.t, 0.02);
+    n.start(a.t); n.stop(a.t + 0.15);
+    this._cleanup(n, [n,bp,ng]);
+  }
+  brass(a){ // slow-blooming saw pair behind an opening filter, slight vibrato
+    const {ctx} = this;
+    const atk = 0.05 + (1 - a.vel)*0.1;
+    const rel = 0.22, peak = 0.13*a.vel;
+    const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.Q.value = 1.1;
+    lp.frequency.setValueAtTime(a.f*1.2, a.t);
+    lp.frequency.setTargetAtTime(Math.min(a.f*(2.2 + 3.2*a.bright*a.vel), 9000), a.t, atk*1.3);
+    lp.frequency.setTargetAtTime(a.f*1.4, a.t + a.dur, rel);
+    const g = ctx.createGain(); g.gain.value = 0;
+    lp.connect(g); g.connect(a.out);
+    const oscs = [];
+    for (const dc of [-4, 4]){
+      const o = ctx.createOscillator(); o.type='sawtooth';
+      o.frequency.value = a.f; o.detune.value = a.detune + dc;
+      o.connect(lp); o.start(a.t); o.stop(a.t + a.dur + rel*4);
+      oscs.push(o);
+    }
+    // vibrato arrives after the note settles, like a player warming into it
+    const lfo = ctx.createOscillator(); lfo.frequency.value = rr(4.5, 5.6);
+    const lg = ctx.createGain(); lg.gain.setValueAtTime(0, a.t);
+    lg.gain.setTargetAtTime(6, a.t + 0.35, 0.3);
+    lfo.connect(lg); for (const o of oscs) lg.connect(o.detune);
+    lfo.start(a.t); lfo.stop(a.t + a.dur + rel*4);
+    g.gain.setValueAtTime(0, a.t);
+    g.gain.linearRampToValueAtTime(peak, a.t + atk);
+    g.gain.setValueAtTime(peak, Math.max(a.t + atk, a.t + a.dur - 0.03));
+    g.gain.setTargetAtTime(0, a.t + a.dur, rel);
+    this._cleanup(oscs[0], [oscs[0], oscs[1], lfo, lg, lp, g]);
+  }
+  breath(a){ // pitched air: narrow noise bands + a soft sustained core tone
+    const {ctx} = this;
+    const atk = 0.14 + rand()*0.1, rel = 0.4;
+    const stop = a.t + a.dur + rel*4;
+    const sustainEnv = (g, peak) => {
+      g.gain.setValueAtTime(0, a.t);
+      g.gain.linearRampToValueAtTime(peak, a.t + atk);
+      g.gain.setValueAtTime(peak, Math.max(a.t + atk, a.t + a.dur - 0.05));
+      g.gain.setTargetAtTime(0, a.t + a.dur, rel);
+    };
+    const mkBand = (freq, Q, peak) => {
+      const n = ctx.createBufferSource(); n.buffer = this.noiseBuf; n.loop = true;
+      n.playbackRate.value = rr(0.9, 1.1);
+      const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value = freq; bp.Q.value = Q;
+      const g = ctx.createGain(); g.gain.value = 0;
+      n.connect(bp); bp.connect(g); g.connect(a.out);
+      sustainEnv(g, peak);
+      // slow wandering of the band center — like unsteady breath
+      const lfo = ctx.createOscillator(); lfo.frequency.value = rr(0.3, 0.8);
+      const lg = ctx.createGain(); lg.gain.value = freq*0.015;
+      lfo.connect(lg); lg.connect(bp.frequency); lfo.start(a.t); lfo.stop(stop);
+      n.start(a.t); n.stop(stop);
+      this._cleanup(n, [n,bp,g,lfo,lg]);
+    };
+    mkBand(a.f, 22, 0.5*a.vel);
+    mkBand(a.f*2, 20, 0.16*a.vel*a.bright);
+    // the core tone underneath the air
+    const o = ctx.createOscillator(); o.type='sine';
+    o.frequency.value = a.f; o.detune.value = a.detune;
+    const g = ctx.createGain(); g.gain.value = 0;
+    o.connect(g); g.connect(a.out);
+    sustainEnv(g, 0.15*a.vel);
+    o.start(a.t); o.stop(stop);
+    this._cleanup(o, [o,g]);
+  }
+  water(a){ // droplets: a downward pitch-glide ping with a gentle body
+    const {ctx} = this;
+    const o = ctx.createOscillator(); o.type='sine';
+    o.frequency.setValueAtTime(a.f*1.22, a.t);
+    o.frequency.exponentialRampToValueAtTime(a.f, a.t + 0.07);
+    o.detune.value = a.detune;
+    // watery wobble
+    const m = ctx.createOscillator(); m.frequency.value = rr(4.5, 7);
+    const mg = ctx.createGain(); mg.gain.value = a.f*0.008;
+    m.connect(mg); mg.connect(o.frequency);
+    const g = ctx.createGain(); g.gain.value = 0;
+    o.connect(g); g.connect(a.out);
+    const tau = clamp(0.18 + a.dur*0.22, 0.2, 0.9);
+    g.gain.setValueAtTime(0, a.t);
+    g.gain.linearRampToValueAtTime(0.26*a.vel, a.t + 0.005);
+    g.gain.setTargetAtTime(0, a.t + 0.005, tau);
+    const stop = a.t + tau*5 + 0.3;
+    o.start(a.t); o.stop(stop); m.start(a.t); m.stop(stop);
+    this._cleanup(o, [o,m,mg,g]);
+    // low body for longer notes: a quiet undertone that swells
+    if (a.dur > 0.8){
+      this._oscNote(a, 'sine', 0.5, 0.07*a.vel, 0.4, a.dur*0.6, a.dur*3+1);
+    }
+  }
+}
+
+/* ---------------- 5. Composition engine ---------------- */
+/*
+  Eight voice slots span the ensemble bottom-to-top. Each voice:
+    - lives in a register band (spread controlled by Horizon),
+    - has a role (foundation / weaver / soarer) shaping its rhythm vocabulary,
+    - sings in phrases: build a phrase -> realize it note by note -> rest.
+  Phrase material comes from three springs:
+    - Conversation: imitate a motif another voice just sang (maybe inverted,
+      reversed, or stretched),
+    - Memory: recall a motif from the piece's own past (or its Theme),
+    - invention: a fresh contour.
+  Every single note is then *negotiated*: candidate pitches near the motif's
+  suggestion are scored for harmony (Gravity), voice-leading, counterpoint
+  against the other voices' most recent motion (contrary/oblique preferred,
+  sometimes deliberately ignored), clashes with sounding pitches, and
+  register. Mischief heats up the choice temperature and invites leaps.
+*/
+
+// activation order interleaves registers so small Crowds still span the range
+const ACTIVATION_ORDER = [0, 4, 6, 2, 7, 1, 5, 3];
+const ROLES = ['foundation','foundation','weaver','weaver','weaver','soarer','soarer','soarer'];
+
+// rhythm vocabularies per role, in beats: [duration, weight]
+const RHYTHMS = {
+  foundation: [[1,0.5],[1.5,0.8],[2,2],[3,1.5],[4,1]],
+  weaver:     [[0.5,1.4],[0.75,0.6],[1,2],[1.5,1.2],[2,0.8],[3,0.3]],
+  soarer:     [[0.25,0.5],[0.5,2],[0.75,0.9],[1,1.6],[1.5,0.6],[2,0.3]],
+};
+
+class Voice {
+  constructor(i){
+    this.i = i;
+    this.role = ROLES[i];
+    this.color = VOICE_COLORS[i];
+    this.state = 'idle';      // idle | waiting | playing | retiring
+    this.time = 0;            // ideal (unswung) time of the next event
+    this.queue = [];          // remaining notes of current phrase: {step,dur,accent}
+    this.sIdx = 0;            // absolute scale index of last pitch
+    this.lastMidi = null; this.prevMidi = null; this.lastMoveTime = 0;
+    this.soundingUntil = 0;
+    this.phraseNotes = [];    // record of current phrase for the motif bank
+    this.rubatoPhase = rand()*Math.PI*2;
+    this.rubatoRate = rr(0.15, 0.4);
+    this.answeredMotif = null; // set when this phrase imitates someone (for viz)
+  }
+  // register center in midi, spread by Horizon
+  center(){
+    const lo = 45 - params.horizon*8, hi = 76 + params.horizon*9;
+    return lerp(lo, hi, this.i/(NVOICES-1));
+  }
+  // ----- phrase construction -------------------------------------------
+  buildPhrase(cond){
+    const H = cond.harmony;
+    const chord = H.at(this.time);
+    this.answeredMotif = null;
+    let steps = null, durs = null;
+
+    // 1) Conversation: answer a motif someone else finished recently
+    if (rand() < params.conversation*0.75){
+      const recent = cond.recentMotifs.filter(m => m.voice !== this.i && cond.now() - m.time < 14);
+      if (recent.length){
+        const m = recent[recent.length-1 - ((rand()*Math.min(3,recent.length))|0)];
+        steps = m.steps.slice(); durs = m.durs.slice();
+        // transformations keep imitation alive rather than parroting
+        if (rand() < 0.3) steps = steps.map(s => -s);                 // inversion
+        if (rand() < 0.15){ steps.reverse(); durs.reverse(); }        // retrograde
+        if (rand() < 0.2){ const k = rand()<0.5 ? 2 : 0.5; durs = durs.map(d => clamp(d*k, 0.25, 4)); }
+        this.answeredMotif = m.voice;
+      }
+    }
+    // 2) Memory: return to the piece's own past
+    if (!steps && cond.motifBank.length && rand() < params.memory*0.65){
+      const m = (cond.theme && rand() < 0.4) ? cond.theme : pick(cond.motifBank);
+      steps = m.steps.slice(); durs = m.durs.slice();
+      if (rand() < 0.25) steps = steps.map(s => -s);
+    }
+    // 3) invention: a fresh contour (arch, fall, rise, wander)
+    if (!steps){
+      const len = 3 + ((rand()*5)|0) + ((rand() < params.mischief) ? ((rand()*3)|0) : 0);
+      steps = []; durs = [];
+      const shape = pick(['arch','fall','rise','wander']);
+      for (let n = 0; n < len; n++){
+        const pos = n/len;
+        let dir;
+        if (shape==='arch') dir = pos < 0.5 ? 1 : -1;
+        else if (shape==='fall') dir = -1;
+        else if (shape==='rise') dir = 1;
+        else dir = rand() < 0.5 ? 1 : -1;
+        let mag = wpick([[1,3],[2,1.4],[0,0.5]]);
+        if (rand() < params.mischief*0.3){ mag = 3 + ((rand()*4)|0); } // a leap!
+        steps.push(dir*mag);
+        durs.push(wpick(RHYTHMS[this.role]));
+      }
+    }
+    // longer, statelier values when time floats free
+    if (params.pulse < 0.3) durs = durs.map(d => d * 1.4);
+
+    this.queue = steps.map((s, n) => ({
+      step: s, dur: durs[n] || 1,
+      accent: n === 0 ? 0.2 : 0,
+    }));
+    // phrase peak gets a small accent
+    if (this.queue.length > 2){
+      let peakN = 0, acc = 0, cum = 0;
+      this.queue.forEach((q, n) => { cum += q.step; if (cum > acc){ acc = cum; peakN = n; } });
+      this.queue[peakN].accent = Math.max(this.queue[peakN].accent, 0.15);
+    }
+    this.phraseNotes = [];
+    // start pitch: drift toward register center
+    if (this.lastMidi === null || Math.abs(this.lastMidi - this.center()) > 14){
+      this.sIdx = H.indexNear(chord, this.center() + rr(-4, 4));
+    }
+    this.state = 'playing';
+    if (this.answeredMotif !== null)
+      cond.viz.arcs.push({ from: this.answeredMotif, to: this.i, t: this.time });
+  }
+  // ----- note-by-note negotiation ---------------------------------------
+  // The motif suggests a step; harmony, counterpoint and register all get a
+  // vote; Mischief raises the temperature of the final choice.
+  choosePitch(cond, suggestedStep){
+    const H = cond.harmony;
+    const chord = H.at(this.time);
+    const g = params.gravity, mis = params.mischief;
+    const center = this.center();
+    const candidates = new Set([suggestedStep, suggestedStep-1, suggestedStep+1,
+                                suggestedStep-2, suggestedStep+2]);
+    if (rand() < mis*0.25) candidates.add(suggestedStep + (rand()<0.5?-7:7)); // octave escape
+    let best = [], totW = 0;
+    for (const st of candidates){
+      const s = this.sIdx + st;
+      if (s < 0 || s > 62) continue;
+      const midi = H.midiOf(chord, s);
+      if (Math.abs(midi - center) > 12 + params.horizon*4) continue;
+      const deg = mod(s, 7);
+      // harmonic score: chord tone / color / tension
+      let harm;
+      if (chord.tones.includes(deg)) harm = 1;
+      else if (deg === mod(chord.rootDeg+6,7) || deg === mod(chord.rootDeg+1,7)) harm = 0.5;
+      else harm = 0.32;
+      if (this.role === 'foundation'){ // basses anchor the harmony
+        harm = (deg === chord.rootDeg) ? 1.4 : (deg === mod(chord.rootDeg+4,7)) ? 1.0 : harm*0.4;
+      }
+      // fidelity to the motif
+      const fid = 1 / (1 + Math.abs(st - suggestedStep)*0.9);
+      // smooth voice-leading, unless Mischief wants a leap
+      const stepPref = 1/(1 + Math.abs(st)*0.35) + mis*0.25*Math.min(Math.abs(st)*0.15, 0.6);
+      // counterpoint: prefer contrary/oblique motion vs voices that just moved
+      let cp = 0, nOthers = 0;
+      const myDir = Math.sign(midi - (this.lastMidi ?? midi));
+      for (const other of cond.voices){
+        if (other === this || other.lastMidi === null) continue;
+        if (cond.now() - other.lastMoveTime > 2.5) continue;
+        nOthers++;
+        const oDir = Math.sign(other.lastMidi - (other.prevMidi ?? other.lastMidi));
+        if (myDir === 0 || oDir === 0) cp += 0.5;                    // oblique
+        else if (myDir !== oDir) cp += 1;                            // contrary
+        else cp -= 0.35;                                             // parallel
+        // clash with a currently-sounding pitch: Gravity objects
+        if (other.soundingUntil > this.time){
+          const iv = mod(midi - other.lastMidi, 12);
+          if (iv === 0 && midi !== other.lastMidi) {} // octaves fine
+          else if (midi === other.lastMidi) cp -= 0.8;               // unison steal
+          else if (iv === 1 || iv === 11) cp -= (1.6*g - mis*0.8);
+          else if (iv === 6 || iv === 2) cp -= (0.5*g - mis*0.3);
+        }
+      }
+      if (nOthers) cp /= nOthers;
+      // occasionally, on purpose, ignore counterpoint manners entirely
+      if (rand() < 0.18 + mis*0.25) cp = 0;
+      const pull = -Math.abs(midi - center)*0.02; // gentle register homing
+      const score = 2.0*g*harm + 1.5*fid + 1.0*stepPref + 0.8*cp + pull + (1-g)*0.4*rand();
+      const temp = 0.55 + mis*0.9;
+      const w = Math.exp(score/temp);
+      best.push([s, w]); totW += w;
+    }
+    if (!best.length) return this.sIdx; // trapped: repeat the note
+    let r = rand()*totW;
+    for (const [s, w] of best){ r -= w; if (r <= 0) return s; }
+    return best[best.length-1][0];
+  }
+  // ----- the voice's clock ----------------------------------------------
+  scheduleUpTo(cond, until){
+    let guard = 0;
+    while (this.time < until && this.state !== 'idle' && guard++ < 64){
+      if (this.state === 'waiting' || this.state === 'retiring' && !this.queue.length){
+        if (this.state === 'retiring'){ this.finishRetirement(cond); return; }
+        this.buildPhrase(cond);
+        continue;
+      }
+      const ev = this.queue.shift();
+      const H = cond.harmony;
+      const beat = H.at(this.time).beat;
+      this.playEvent(cond, ev, beat);
+      this.time += ev.dur * beat;
+      if (!this.queue.length) this.endPhrase(cond, beat);
+    }
+  }
+  playEvent(cond, ev, beat){
+    const H = cond.harmony;
+    const s = this.choosePitch(cond, ev.step);
+    const chord = H.at(this.time);
+    const midi = H.midiOf(chord, s);
+    // --- timing: Pulse blends between quantized grid and personal rubato ---
+    const p = params.pulse;
+    let t = this.time;
+    const q = cond.gridAlign(t, beat*0.5);
+    t = lerp(t, q, Math.pow(p, 1.5));
+    t += (1-p)*(1-p) * 0.09 * Math.sin(this.time*this.rubatoRate + this.rubatoPhase); // slow personal sway
+    t += (1-p) * rr(-0.012, 0.012);
+    if (p > 0.55 && rand() < params.mischief*0.3) t += beat*0.5;      // syncopated push
+    t = Math.max(t, cond.now() + 0.02);
+    // --- dynamics ---
+    const beatPos = cond.beatPhase(this.time, beat);
+    const onBeat = beatPos < 0.08 || beatPos > 0.92;
+    let vel = 0.55 + ev.accent + (onBeat ? 0.07*p : 0) + rr(-0.06, 0.09);
+    if (this.queue.length === 0) vel -= 0.08; // phrases exhale at the end
+    vel = clamp(vel, 0.18, 1);
+    const dur = ev.dur * beat * ((this.role === 'foundation') ? 0.95 : 0.88);
+    cond.synth.play(this.i, midi, t, dur, vel);
+    // bookkeeping for counterpoint & viz
+    this.prevMidi = this.lastMidi; this.lastMidi = midi;
+    this.lastMoveTime = cond.now();
+    this.sIdx = s; this.soundingUntil = t + dur;
+    this.phraseNotes.push({ step: ev.step, dur: ev.dur });
+    cond.viz.notes.push({ v: this.i, midi, t0: t, t1: t + dur, vel });
+    cond.stats.notes++;
+  }
+  endPhrase(cond, beat){
+    // donate the finished motif to the room and maybe to the long memory
+    if (this.phraseNotes.length >= 3){
+      const motif = {
+        steps: this.phraseNotes.map(n => n.step),
+        durs: this.phraseNotes.map(n => n.dur),
+        voice: this.i, time: cond.now(),
+      };
+      cond.recentMotifs.push(motif);
+      if (cond.recentMotifs.length > 24) cond.recentMotifs.shift();
+      if (rand() < 0.3 + params.memory*0.5){
+        cond.motifBank.push(motif);
+        if (cond.motifBank.length > 30) cond.motifBank.shift();
+      }
+      if (!cond.theme && motif.steps.length >= 4) cond.theme = motif; // the piece's Theme
+    }
+    if (this.state === 'retiring'){ this.finishRetirement(cond); return; }
+    // --- breathing: rest longer when the room is crowded (call & response) ---
+    const active = cond.voices.filter(v => v.state === 'playing').length;
+    let rest = (1 + rand()*3) + active*0.8;
+    rest *= (1 - params.conversation*0.35);        // eager answerers barely wait
+    if (rand() < 0.15 + active*0.04) rest += 4 + rand()*6; // sometimes: truly listen
+    this.time += rest * beat;
+    this.state = 'waiting';
+  }
+  finishRetirement(cond){
+    cond.synth.fadeVoice(this.i, 0, 1.6);
+    this.state = 'idle';
+    this.queue = [];
+  }
+}
+
+class Conductor {
+  constructor(ctx, synth){
+    this.ctx = ctx; this.synth = synth;
+    this.harmony = new Harmony();
+    this.voices = []; for (let i = 0; i < NVOICES; i++) this.voices.push(new Voice(i));
+    this.recentMotifs = []; this.motifBank = []; this.theme = null;
+    this.gridRef = 0;
+    this.viz = { notes: [], arcs: [] };
+    this.stats = { notes: 0 };
+    this.timer = null;
+    this.lastCrowdCheck = 0;
+  }
+  now(){ return this.ctx.currentTime; }
+  targetCount(){ return 3 + Math.round(params.crowd*5); }
+  gridAlign(t, grid){ return this.gridRef + Math.round((t - this.gridRef)/grid)*grid; }
+  beatPhase(t, beat){ return mod((t - this.gridRef)/beat, 1); }
+
+  start(){
+    const t = this.now() + 0.1;
+    this.gridRef = t;
+    this.harmony.reset(t);
+    // stagger the ensemble's entrance so the piece opens like a curtain
+    let entry = 0;
+    for (const slot of ACTIVATION_ORDER.slice(0, this.targetCount())){
+      const v = this.voices[slot];
+      v.state = 'waiting';
+      v.time = t + entry; entry += rr(0.8, 2.2);
+      this.synth.fadeVoice(slot, 1, 2);
+    }
+    this.timer = setInterval(() => this.tick(), 170);
+    this.tick();
+  }
+  stop(){ clearInterval(this.timer); this.timer = null; }
+
+  tick(){
+    const until = this.now() + 1.15; // lookahead: generous, survives tab throttling
+    this.harmony.at(until);          // extend the chord timeline
+    this.manageCrowd();
+    for (const v of this.voices) if (v.state !== 'idle') v.scheduleUpTo(this, until);
+  }
+  manageCrowd(){
+    const t = this.now();
+    if (t - this.lastCrowdCheck < 1.5) return;
+    this.lastCrowdCheck = t;
+    const activeList = this.voices.filter(v => v.state !== 'idle' && v.state !== 'retiring');
+    const target = this.targetCount();
+    if (activeList.length < target){
+      // welcome a newcomer: pick the next idle slot in activation order
+      for (const slot of ACTIVATION_ORDER){
+        const v = this.voices[slot];
+        if (v.state === 'idle'){
+          v.state = 'waiting';
+          v.time = t + rr(0.5, 2);
+          v.lastMidi = null;
+          this.synth.fadeVoice(slot, 1, rr(1.5, 2.5)); // fade in mid-phrase
+          break;
+        }
+      }
+    } else if (activeList.length > target){
+      // ask the most recent arrival to finish its phrase and bow out
+      for (let k = ACTIVATION_ORDER.length-1; k >= 0; k--){
+        const v = this.voices[ACTIVATION_ORDER[k]];
+        if (v.state === 'waiting'){ v.state = 'idle'; this.synth.fadeVoice(v.i, 0, 1.2); break; }
+        if (v.state === 'playing'){ v.state = 'retiring'; break; }
+      }
+    }
+  }
+}
+
+/* ---------------- 6. Visualization ---------------- */
+// Each voice is a colored thread: notes are glowing bars at their pitch
+// height, scrolling leftward. Imitation draws a brief arc from teacher to
+// student. Orbs at the right pulse while a voice is singing.
+const canvas = document.getElementById('viz');
+const g2d = canvas.getContext('2d');
+let vizRunning = false;
+
+function resizeCanvas(){
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = canvas.clientWidth * dpr;
+  canvas.height = canvas.clientHeight * dpr;
+  g2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+addEventListener('resize', resizeCanvas);
+
+function midiY(midi, H){ return H - ((midi - 28) / (100 - 28)) * H; }
+
+function drawViz(){
+  if (!vizRunning) return;
+  requestAnimationFrame(drawViz);
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  if (!W || !H) return;
+  const now = app.ctx ? app.ctx.currentTime : 0;
+  const pxPerSec = 46, nowX = W * 0.72;
+
+  // background: dusk tints the sky
+  const grad = g2d.createLinearGradient(0, 0, 0, H);
+  const d = params.dusk;
+  grad.addColorStop(0, `rgb(${18-d*8|0}, ${22-d*10|0}, ${38+d*14|0})`);
+  grad.addColorStop(1, '#0d1017');
+  g2d.fillStyle = grad;
+  g2d.fillRect(0, 0, W, H);
+
+  if (!app.cond) return;
+  const viz = app.cond.viz;
+
+  // prune old events
+  viz.notes = viz.notes.filter(n => n.t1 > now - nowX/pxPerSec - 1);
+  viz.arcs = viz.arcs.filter(a => a.t > now - 3);
+
+  // imitation arcs: teacher -> student
+  for (const a of viz.arcs){
+    const alpha = clamp(1 - (now - a.t)/2.5, 0, 1) * 0.5;
+    if (alpha <= 0) continue;
+    const vf = app.cond.voices[a.from], vt = app.cond.voices[a.to];
+    const y1 = midiY(vf.lastMidi || vf.center(), H), y2 = midiY(vt.lastMidi || vt.center(), H);
+    const x = nowX - (now - a.t)*pxPerSec;
+    g2d.strokeStyle = `rgba(232,228,216,${alpha})`;
+    g2d.lineWidth = 1;
+    g2d.beginPath();
+    g2d.moveTo(x, y1);
+    g2d.quadraticCurveTo(x + 34, (y1+y2)/2, x, y2);
+    g2d.stroke();
+  }
+
+  // note threads
+  for (const n of viz.notes){
+    const x0 = nowX - (now - n.t0)*pxPerSec;
+    const x1 = nowX - (now - n.t1)*pxPerSec;
+    if (x1 < -20 || x0 > W + 20) continue;
+    const y = midiY(n.midi, H);
+    const active = now >= n.t0 && now <= n.t1;
+    g2d.strokeStyle = VOICE_COLORS[n.v];
+    g2d.globalAlpha = active ? 0.95 : clamp(0.16 + n.vel*0.4, 0, 0.6);
+    g2d.lineWidth = active ? 3.5 : 2 + n.vel*1.5;
+    g2d.lineCap = 'round';
+    if (active){ g2d.shadowColor = VOICE_COLORS[n.v]; g2d.shadowBlur = 12; }
+    g2d.beginPath();
+    g2d.moveTo(x0, y);
+    g2d.lineTo(Math.max(x1, x0 + 2), y);
+    g2d.stroke();
+    g2d.shadowBlur = 0;
+  }
+  g2d.globalAlpha = 1;
+
+  // playhead
+  g2d.strokeStyle = 'rgba(232,228,216,0.12)';
+  g2d.lineWidth = 1;
+  g2d.beginPath(); g2d.moveTo(nowX, 0); g2d.lineTo(nowX, H); g2d.stroke();
+
+  // voice orbs at the right margin
+  const activeVoices = app.cond.voices;
+  for (const v of activeVoices){
+    if (v.state === 'idle') continue;
+    const singing = v.soundingUntil > now;
+    const y = midiY(v.lastMidi || v.center(), H);
+    g2d.fillStyle = v.color;
+    g2d.globalAlpha = singing ? 0.9 : 0.3;
+    g2d.beginPath();
+    g2d.arc(W - 16, y, singing ? 5.5 : 3.5, 0, Math.PI*2);
+    g2d.fill();
+  }
+  g2d.globalAlpha = 1;
+}
+
+/* ---------------- 7. UI wiring & bootstrap ---------------- */
+const app = { ctx: null, synth: null, cond: null, playing: false };
+
+// --- build sliders ---
+const knobsEl = document.getElementById('knobs');
+const sliderEls = {};
+for (const [key, name, hint] of CONTROLS){
+  const div = document.createElement('div');
+  div.className = 'knob';
+  div.innerHTML = `<label><span class="name">${name}</span></label>
+    <input type="range" min="0" max="1" step="0.001" value="${params[key]}"
+           aria-label="${name}" title="${hint}">
+    <span class="hint">${hint}</span>`;
+  const input = div.querySelector('input');
+  input.addEventListener('input', () => { setParam(key, parseFloat(input.value)); });
+  knobsEl.appendChild(div);
+  sliderEls[key] = input;
+  paintFill(input);
+}
+function paintFill(input){
+  input.style.setProperty('--fill', (parseFloat(input.value)*100) + '%');
+}
+function setParam(key, val, updateSlider){
+  params[key] = val;
+  if (updateSlider && sliderEls[key]) sliderEls[key].value = val;
+  if (sliderEls[key]) paintFill(sliderEls[key]);
+  if (key === 'dusk' && app.synth) app.synth.setMaterialSends();
+}
+
+// --- material buttons ---
+const matEl = document.getElementById('materials');
+for (const [key, m] of Object.entries(MATERIALS)){
+  const b = document.createElement('button');
+  b.textContent = m.label; b.title = m.hint; b.dataset.mat = key;
+  if (key === params.material) b.classList.add('on');
+  b.addEventListener('click', () => setMaterial(key));
+  matEl.appendChild(b);
+}
+function setMaterial(key){
+  params.material = key;
+  for (const b of matEl.children) b.classList.toggle('on', b.dataset.mat === key);
+  if (app.synth) app.synth.setMaterialSends();
+}
+
+// --- presets & surprise ---
+const presetEl = document.getElementById('presets');
+for (const [name, p] of PRESETS){
+  const b = document.createElement('button');
+  b.textContent = name;
+  b.addEventListener('click', () => applySettings(p));
+  presetEl.appendChild(b);
+}
+document.getElementById('surpriseBtn').addEventListener('click', () => {
+  // curated randomness: sample freely, then veto musically hopeless corners
+  let p;
+  do {
+    p = {
+      conversation: rand(), gravity: rr(0.15, 0.95), weather: rand(),
+      crowd: rr(0.15, 1), mischief: rand(), memory: rand(),
+      pulse: rand(), horizon: rand(), dusk: rand(),
+      material: pick(Object.keys(MATERIALS)),
+    };
+  } while (
+    (p.gravity < 0.3 && p.mischief > 0.75) ||         // pure chaos: veto
+    (p.gravity > 0.85 && p.mischief > 0.8) ||          // fighting itself
+    (p.crowd > 0.8 && p.pulse < 0.15 && p.mischief > 0.6) // dense mud
+  );
+  applySettings(p);
+});
+
+// smoothly animate sliders to a settings object
+let animToken = 0;
+function applySettings(target){
+  if (target.material) setMaterial(target.material);
+  const from = {}, keys = [];
+  for (const [key] of CONTROLS){
+    if (target[key] !== undefined){ from[key] = params[key]; keys.push(key); }
+  }
+  const myToken = ++animToken, t0 = performance.now(), durMs = 900;
+  (function step(){
+    if (myToken !== animToken) return;
+    const u = clamp((performance.now() - t0)/durMs, 0, 1);
+    const e = u*u*(3-2*u); // smoothstep
+    for (const k of keys) setParam(k, lerp(from[k], target[k], e), true);
+    if (u < 1) requestAnimationFrame(step);
+  })();
+}
+
+// --- volume ---
+const volEl = document.getElementById('vol');
+volEl.addEventListener('input', () => { if (app.synth) app.synth.setVolume(parseFloat(volEl.value)); });
+
+// --- start / stop ---
+const playBtn = document.getElementById('playBtn');
+const overlay = document.getElementById('overlay');
+const beginBtn = document.getElementById('beginBtn');
+
+async function begin(){
+  overlay.classList.add('hidden');
+  if (!app.ctx){
+    app.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    app.synth = new Synth(app.ctx);
+    app.synth.setVolume(parseFloat(volEl.value));
+    app.synth.setMaterialSends();
+    app.cond = new Conductor(app.ctx, app.synth);
+    resizeCanvas();
+    vizRunning = true; drawViz();
+    await app.ctx.resume();
+    app.cond.start();
+  } else {
+    await app.ctx.resume();
+    if (!app.cond.timer) app.cond.timer = setInterval(() => app.cond.tick(), 170);
+  }
+  app.playing = true;
+  playBtn.textContent = 'Pause';
+  playBtn.classList.add('playing');
+}
+async function pause(){
+  if (app.ctx){ await app.ctx.suspend(); }
+  if (app.cond && app.cond.timer){ clearInterval(app.cond.timer); app.cond.timer = null; }
+  app.playing = false;
+  playBtn.textContent = 'Listen';
+  playBtn.classList.remove('playing');
+}
+beginBtn.addEventListener('click', begin);
+playBtn.addEventListener('click', () => app.playing ? pause() : begin());
+
+resizeCanvas();
+
+// small debug/testing handle (not used by the UI)
+window.CG = { params, app, level: () => app.synth ? app.synth.level() : 0,
+              stats: () => app.cond ? app.cond.stats : null };
+</script>
+</body>
+</html>
