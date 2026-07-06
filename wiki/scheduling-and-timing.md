@@ -1,7 +1,7 @@
 ---
 title: Scheduling and timing
 tags: [implementation]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: How to schedule notes sample-accurately from JavaScript — the two-clock problem, the lookahead pattern, hidden-tab throttling, tempo maps, latency compensation, and long-session stability.
@@ -55,7 +55,7 @@ Handle the visible↔hidden transition by re-ticking on `visibilitychange` (wide
 
 ## Beats are the source of truth, not seconds
 
-Keep the musical position as an **integer tick counter** (e.g., 480 ticks/quarter, or 16th-note steps for simple engines) and derive clock time through a tempo map. Reasons: doubles make raw `currentTime` precision a non-issue for weeks, but repeatedly adding non-binary fractions (triplet durations, swung offsets, 60/97.3 s beats) accumulates rounding drift relative to the notated grid over hours; integer positions keep bar math, swing, polymeter, and section boundaries exact; and a beat-indexed score is what [expressive-performance](expressive-performance.md) rules and evaluation need anyway. Never store absolute times in `Float32Array`s — float32 resolution at hour-scale timestamps is ~0.5 ms and worsening.
+Keep the musical position as an **integer tick counter** (e.g., 480 ticks/quarter, or 16th-note steps for simple engines) and derive clock time through a tempo map. Reasons: doubles make raw `currentTime` precision a non-issue for weeks, but repeatedly adding non-binary fractions (triplet durations, swung offsets, 60/97.3 s beats) accumulates rounding drift relative to the notated grid over hours; integer positions keep bar math, swing, polymeter, and section boundaries exact; and a beat-indexed score is what [expressive-performance](expressive-performance.md) rules and evaluation need anyway. Never store absolute times in `Float32Array`s — float32 resolution is already ~0.24 ms at the 1-hour mark and grows linearly (~1 ms by 4 hours, ~4 ms by 10 hours).
 
 ```js
 const tempoMap = [ { tick: 0, bpm: 96 }, { tick: 4 * 480 * 16, bpm: 108 } ];   // piecewise constant

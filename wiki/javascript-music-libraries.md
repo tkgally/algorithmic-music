@@ -1,7 +1,7 @@
 ---
 title: JavaScript music libraries
 tags: [implementation]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: A survey of Tone.js, Tonal, Magenta.js, Strudel/Gibber, scribbletune, WebPd/RNBO/Faust, Elementary, and Meyda — mined for design lessons a dependency-free engine should steal, plus the case for and against the no-dependency constraint.

@@ -1,7 +1,7 @@
 ---
 title: Audio worklets and performance
 tags: [implementation]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: When node graphs stop being enough — the AudioWorklet model, file:// loading workarounds, real-time performance budgets, autoplay and mobile constraints, and leak-free long sessions.
@@ -13,7 +13,7 @@ Most of this project's engines can and should be plain node graphs, but a few ne
 
 ## The AudioWorklet model
 
-Two halves: an `AudioWorkletProcessor` subclass registered inside a module that runs on the **audio rendering thread**, and an `AudioWorkletNode` created on the main thread that plugs into the graph like any node. The processor's `process(inputs, outputs, parameters)` is called synchronously per render quantum (128 frames today — read `outputs[0][0].length`, do not hardcode; see the `renderSizeHint` note in [web-audio-fundamentals](web-audio-fundamentals.md)). Returning `true` keeps the processor alive; `false` lets it be collected once sources stop. `static get parameterDescriptors()` declares real `AudioParam`s: in `process`, each arrives as a `Float32Array` of length 128 (a-rate, automated) or length 1 (constant this quantum) — branch on `.length`. Each side has a `port` (`MessagePort`) for everything that is not audio-rate: configuration, note events, seeds, metering readbacks. This design replaced the deprecated `ScriptProcessorNode`, which ran DSP on the main thread and glitched whenever the UI breathed.
+Two halves: an `AudioWorkletProcessor` subclass registered inside a module that runs on the **audio rendering thread**, and an `AudioWorkletNode` created on the main thread that plugs into the graph like any node. The processor's `process(inputs, outputs, parameters)` is called synchronously per render quantum (128 frames today — read `outputs[0][0].length`, do not hardcode; see the `renderSizeHint` note in [web-audio-fundamentals](web-audio-fundamentals.md)). Returning `true` keeps the processor alive; the spec treats `false` as only a hint that the browser *may* garbage-collect it, but Chrome takes it literally and always tears the node down immediately — so return `false` only when a voice is genuinely done, and default to `true` when unsure. `static get parameterDescriptors()` declares real `AudioParam`s: in `process`, each arrives as a `Float32Array` of length 128 (a-rate, automated) or length 1 (constant this quantum) — branch on `.length`. Each side has a `port` (`MessagePort`) for everything that is not audio-rate: configuration, note events, seeds, metering readbacks. This design replaced the deprecated `ScriptProcessorNode`, which ran DSP on the main thread and glitched whenever the UI breathed.
 
 ```js
 const processorSource = `
@@ -61,7 +61,7 @@ const filt = new AudioWorkletNode(ctx, "one-pole", { processorOptions: { seed: 1
 
 2. **`data:` URL** (`"data:text/javascript;base64," + btoa(processorSource)`) — same idea, no object-URL lifecycle, slightly worse debuggability.
 
-Both are widely used and tracked in the standards discussion of worklet module loading (WebAudio/web-audio-api-v2 #109, which also floats `addModule(Blob)` directly). Status as of mid-2026: Blob-URL `addModule` is dependable in Chromium and Firefox including from `file://`; WebKit/Safari has historically been inconsistent here — **test Safari explicitly at implementation time and keep a node-graph fallback**. A strict Content-Security-Policy can also block blob/data scripts, which matters if pages are ever served with headers (GitHub Pages is permissive; raw `file://` has no CSP). Remember `addModule` is per-context: call it again for every `OfflineAudioContext` used in evaluation renders.
+Both are widely used and tracked in the standards discussion of worklet module loading (WebAudio/web-audio-api-v2 #109, which floats `addModule(Blob)` directly rather than a string-to-URL workaround, and separately notes a page's own Content-Security-Policy can block blob/data scripts — relevant if pages are ever served with headers, since GitHub Pages is permissive but a strict CSP is not guaranteed everywhere). Cross-browser Blob/data-URL `addModule` support from `file://` is not settled by any single citable source as of this writing — treat Chromium and Firefox as the likely-dependable cases and WebKit/Safari as the specific risk, but **verify all three empirically at implementation time and keep a node-graph fallback regardless of the result** (tracked as an open question below). Remember `addModule` is per-context: call it again for every `OfflineAudioContext` used in evaluation renders.
 
 ## The real-time budget
 
@@ -86,7 +86,7 @@ playButton.addEventListener("click", async () => {
 });
 ```
 
-Chrome additionally auto-allows sites with high Media Engagement Index — never rely on it. `navigator.getAutoplayPolicy("audiocontext")` reports the policy where implemented (Firefox; not universal — feature-detect). UI conventions that follow: an explicit Play affordance on first load (also the honest choice for headphone users), keyboard-triggerable for accessibility, and never auto-starting sound on page load even where a quirk allows it. After the first gesture, `resume()` succeeds thereafter; keep a `statechange` listener and re-`resume()` on `visibilitychange`/`focus` if playing, which doubles as the iOS recovery path below.
+Chrome additionally auto-allows sites with high Media Engagement Index (desktop only) — never rely on it. `navigator.getAutoplayPolicy("audiocontext")` reports the policy where implemented (Firefox; not universal — feature-detect). UI conventions that follow: an explicit Play affordance on first load (also the honest choice for headphone users), keyboard-triggerable for accessibility, and never auto-starting sound on page load even where a quirk allows it. After the first gesture, `resume()` succeeds thereafter; keep a `statechange` listener and re-`resume()` on `visibilitychange`/`focus` if playing, which doubles as the iOS recovery path below.
 
 ## Mobile constraints
 
@@ -127,7 +127,7 @@ Verification: play for 30–60 minutes (or fast-forward via offline renders), ta
 
 ## Open questions
 
-- Current Safari behavior for Blob-URL `addModule` from `file://` — needs a hardware test; determines whether worklet instruments can be first-class or must stay progressive enhancements.
+- Current Chromium/Firefox/Safari behavior for Blob-URL `addModule` from `file://` — no citable source settles this cross-browser matrix; needs a hardware test on all three, not just Safari, and determines whether worklet instruments can be first-class or must stay progressive enhancements.
 - `AudioRenderCapacity` shipping status and whether it can drive automatic polyphony scaling.
 - Does `navigator.audioSession.type = "playback"` reliably defeat the iOS silent switch for Web-Audio-only pages in 2026 builds?
 

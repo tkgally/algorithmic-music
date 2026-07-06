@@ -74,12 +74,12 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Browser implementation
 
-- [web-audio-fundamentals](web-audio-fundamentals.md) — The audio-graph mental model, AudioContext lifecycle, AudioParam automation and click-safety, the node zoo, envelope patterns, and OfflineAudioContext rendering — the base layer every engine builds on.
-- [scheduling-and-timing](scheduling-and-timing.md) — How to schedule notes sample-accurately from JavaScript — the two-clock problem, the lookahead pattern, hidden-tab throttling, tempo maps, latency compensation, and long-session stability.
-- [synthesis-recipes](synthesis-recipes.md) — Practical node-graph recipes with starting parameters for basses, keys, plucks, mallets, organs, pads, winds, and drums — convincing instruments from oscillators, filters, and noise alone.
-- [effects-and-mixing](effects-and-mixing.md) — Reverb, delay, modulation, saturation, compression, EQ, stereo strategy, gain staging, and loudness targets for fully synthesized mixes, built from stock Web Audio nodes.
-- [audio-worklets-and-performance](audio-worklets-and-performance.md) — When node graphs stop being enough — the AudioWorklet model, file:// loading workarounds, real-time performance budgets, autoplay and mobile constraints, and leak-free long sessions.
-- [javascript-music-libraries](javascript-music-libraries.md) — A survey of Tone.js, Tonal, Magenta.js, Strudel/Gibber, scribbletune, WebPd/RNBO/Faust, Elementary, and Meyda — mined for design lessons a dependency-free engine should steal, plus the case for and against the no-dependency constraint.
+- [web-audio-fundamentals](web-audio-fundamentals.md) ·reviewed — The audio-graph mental model, AudioContext lifecycle, AudioParam automation and click-safety, the node zoo, envelope patterns, and OfflineAudioContext rendering — the base layer every engine builds on.
+- [scheduling-and-timing](scheduling-and-timing.md) ·reviewed — How to schedule notes sample-accurately from JavaScript — the two-clock problem, the lookahead pattern, hidden-tab throttling, tempo maps, latency compensation, and long-session stability.
+- [synthesis-recipes](synthesis-recipes.md) ·reviewed — Practical node-graph recipes with starting parameters for basses, keys, plucks, mallets, organs, pads, winds, and drums — convincing instruments from oscillators, filters, and noise alone.
+- [effects-and-mixing](effects-and-mixing.md) ·reviewed — Reverb, delay, modulation, saturation, compression, EQ, stereo strategy, gain staging, and loudness targets for fully synthesized mixes, built from stock Web Audio nodes.
+- [audio-worklets-and-performance](audio-worklets-and-performance.md) ·reviewed — When node graphs stop being enough — the AudioWorklet model, file:// loading workarounds, real-time performance budgets, autoplay and mobile constraints, and leak-free long sessions.
+- [javascript-music-libraries](javascript-music-libraries.md) ·reviewed — A survey of Tone.js, Tonal, Magenta.js, Strudel/Gibber, scribbletune, WebPd/RNBO/Faust, Elementary, and Meyda — mined for design lessons a dependency-free engine should steal, plus the case for and against the no-dependency constraint.
 
 ## Evaluation and improvement
 

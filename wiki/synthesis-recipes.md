@@ -1,7 +1,7 @@
 ---
 title: Synthesis recipes
 tags: [implementation]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Practical node-graph recipes with starting parameters for basses, keys, plucks, mallets, organs, pads, winds, and drums — convincing instruments from oscillators, filters, and noise alone.
@@ -78,7 +78,7 @@ A bank of sine oscillators at harmonic ratios into one gain each. The Hammond dr
 Excite parallel resonators with a short noise burst or click; each resonator is a high-`Q` bandpass `BiquadFilterNode` (or, for exact decay control, an exponentially-decaying sine oscillator per mode). Mode tables:
 
 - Ideal uniform bar (free ends) — wood block, chime bar, untuned metallophone: f × **1, 2.756, 5.404, 8.933** (Rossing; confirmed across the percussion-acoustics literature).
-- Tuned marimba/vibraphone bars (arched cut): ≈ 1, 4, 10; xylophone ≈ 1, 3, ~9 — the tuned low partials are why they read as pitched.
+- Tuned marimba/vibraphone bars (arched cut): ≈ 1, 4, 10; xylophone ≈ 1, 3, ~6 — the tuned low partials are why they read as pitched.
 - Church bell (five principal partials): hum 0.5, prime 1, tierce 1.2 (the minor third!), quint 1.5, nominal 2 — name the pitch by the *prime/nominal*, keep the 1.2 or it stops being a bell.
 - Q/decay: glockenspiel-bright metals Q ≈ 500–2000 (seconds of ring), woods Q ≈ 30–120 (tens of ms). Decay of mode k should shorten with frequency (scale τ by ~1/fk). Strike position = relative mode gains; softer mallet = excite burst lowpassed harder.
 
