@@ -38,9 +38,9 @@ Project rule: the primary evaluation unit is 5–15 minutes of continuous listen
 
 Repetition changes liking independent of quality. The mere-exposure literature in music mostly finds an inverted-U: liking rises over early exposures, peaks, then declines with overexposure (Berlyne's two-factor account: habituation plus tedium), with the peak arriving later for more complex material — though at least one naturalistic study found liking rising monotonically at all complexity levels, so the shape is contested. See [repetition-and-familiarity](repetition-and-familiarity.md) and [complexity-and-preference](complexity-and-preference.md).
 
-Consequences for a small panel:
+Consequences for a small panel (concretely, per Tom's 2026-07-06 answer: **n=1 today** — just the project owner — growing to **a handful** later, with a redesign consultation before any large-scale round):
 
-- Familiarity inflation: an evaluator hearing engine v12's idiom for the fortieth time is not the listener the music is for. Ratings drift up (idiom becomes familiar) and then down (idiom becomes tiresome) with no change in the engine.
+- Familiarity inflation: an evaluator hearing engine v12's idiom for the fortieth time is not the listener the music is for. Ratings drift up (idiom becomes familiar) and then down (idiom becomes tiresome) with no change in the engine. At n=1 this is acute — the sole listener is also the most exposed one — so lean hard on seeded A/B reproducibility and wash-out gaps.
 - Novelty effect: a new engine version sounds interesting because it is *different*, not because it is better. First-session enthusiasm for a new version is weak evidence.
 - Within-session fatigue: attention and criteria drift over a long rating session. Keep sessions short, randomize presentation order.
 

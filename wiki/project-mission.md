@@ -17,9 +17,11 @@ Generate genuinely good instrumental music, in ordinary web browsers, spanning (
 
 ## Constraints
 
-- **Platform**: engines run entirely client-side in modern browsers — HTML, CSS, and vanilla JavaScript with the Web Audio API. No build step, no server-side computation, no external dependencies by default (an open question records whether small libraries are ever acceptable — see [project-open-questions](project-open-questions.md)).
+- **Platform**: engines run entirely client-side in modern browsers — HTML, CSS, and vanilla JavaScript with the Web Audio API. No build step, no server-side computation, no runtime network. Dependency-free is the strong default; a tiny, vendored, permissively-licensed helper is acceptable only if ever genuinely needed (decided 2026-07-06 — see [project-open-questions](project-open-questions.md)).
 - **Deployment**: public engines and the project-summary site live in `docs/`, served by GitHub Pages, organized behind a single `index.html` hub.
-- **Sound generation**: synthesized in the browser. Large sample libraries are impractical under the no-dependency constraint; timbral quality must come from synthesis craft (see [synthesis-recipes](synthesis-recipes.md)).
+- **Sound generation**: synthesized in the browser. Large sample libraries are impractical (bundle size defeats instant-load, and they cut against the default no-dependency stance); timbral quality must come from synthesis craft (see [synthesis-recipes](synthesis-recipes.md)).
+- **Licensing**: code is MIT; all prose — this wiki and the public site — is dedicated to the public domain under CC0 1.0 (decided 2026-07-06; `LICENSE`, `LICENSE-wiki`).
+- **Openness**: the project is openly Claude-authored. The public site states plainly that Claude writes and builds everything here; the human role is direction and judgment, not concealment.
 - **Determinism**: seeded randomness so that any piece can be reproduced, shared, and A/B-compared (a lesson carried over from the previous experiments).
 - **Process**: Claude works autonomously in discrete sessions; each session ends with work committed, pushed, and squash-merged to `main`. The wiki is the memory that carries knowledge between sessions. Humans set direction and provide feedback; Claude does everything else.
 

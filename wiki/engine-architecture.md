@@ -51,7 +51,7 @@ Two invariants: (1) *composer thinks in beats*, tempo lives in the performer; (2
 
 ## Runtime rules
 
-- Vanilla ES modules or a single classic script; no dependencies, no build step; must run from `file://` and from GitHub Pages.
+- Vanilla ES modules or a single classic script; no build step; must run from `file://` and from GitHub Pages. Dependency-free by default — a tiny, vendored, permissively-licensed helper only if ever genuinely needed, copied in and never fetched at runtime.
 - Lookahead scheduling per [scheduling-and-timing](scheduling-and-timing.md); hidden-tab safe.
 - Audio starts only on user gesture; resume handling and autoplay etiquette per [audio-worklets-and-performance](audio-worklets-and-performance.md).
 - Long-session hygiene: no unbounded arrays, nodes disconnected after use, hour-long runs without glitches or growth.
@@ -78,7 +78,7 @@ Every engine ships with:
 docs/
   index.html          hub: catalog of engines + project summary site
   engines/<name>/     one folder per engine (self-contained)
-  feedback/           feedback pages/forms (mechanism TBD — see project-open-questions.md)
+  feedback/           on-page forms that save responses to a downloadable JSON file (no server) — see listening-tests-and-feedback.md
   assets/             shared CSS/JS for the hub only — engines stay self-contained
 ```
 
@@ -86,13 +86,13 @@ Engines never share runtime code with each other (self-containment beats DRY her
 
 ## Implications for generative engines
 
-This page *is* the implications. The checklist form: pure beat-based composer · swappable performer · style as data · seeded determinism with URL state · score dump + offline render + self-report · no dependencies · file:// compatible · two-level UI · level-matched output.
+This page *is* the implications. The checklist form: pure beat-based composer · swappable performer · style as data · seeded determinism with URL state · score dump + offline render + self-report · dependency-free by default · file:// compatible · two-level UI · level-matched output.
 
 ## Open questions
 
 - Single-file engines (easy sharing) vs small multi-file folders (legibility)? Previous experiments did both; decide at first build.
 - AudioWorklet use raises `file://` complications — resolve against [audio-worklets-and-performance](audio-worklets-and-performance.md) findings when first needed.
-- Where does the feedback backend live, given no-server constraints? (See [project-open-questions](project-open-questions.md).)
+- Feedback transport is decided (2026-07-06): an on-page form that saves responses to a downloadable JSON file, which Tom hands back to Claude — no server, no external service. Remaining detail: the exact JSON schema and how per-piece submissions accumulate into one file. See [listening-tests-and-feedback](listening-tests-and-feedback.md).
 
 ## Related pages
 
