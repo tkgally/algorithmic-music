@@ -1,7 +1,7 @@
 ---
 title: Repetition and familiarity
 tags: [psychology]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Why repetition is a near-universal feature of music, how it and familiarity breed liking (with an overexposure ceiling), and why endlessly novel generative music forfeits the strongest lever on enjoyment.
@@ -13,7 +13,7 @@ Music is astonishingly repetitive — far more than speech or almost any other h
 
 ## Repetition as a quasi-universal
 
-Elizabeth Margulis's *On Repeat* (2014) is the key synthesis. Ethnomusicologist Bruno Nettl lists repetitiveness among the handful of near-universals found in music across cultures and eras; Margulis argues that stable, cross-cultural perceptual tendencies constrain and generate how music uses repetition. Repetition operates at every timescale — the immediate repeat of a note or beat, the looped one- or two-bar groove, the repeated phrase, the returning chorus or theme, the recapitulation. Estimates cited by Margulis suggest that well over 90% of the music people actually hear consists of passages they have heard before, whether within the piece or from prior listens. Repetition is so bound up with musicality that it can act, in her phrase, as a "quasi-magical" agent that turns non-musical material into music.
+Elizabeth Margulis's *On Repeat* (2014) is the key synthesis. Ethnomusicologist Bruno Nettl (1983) lists repetitiveness among the handful of near-universals found in music across cultures and eras ("all cultures make some use of internal repetition and variation in their musical utterances"); Margulis argues that stable, cross-cultural perceptual tendencies constrain and generate how music uses repetition. Repetition operates at every timescale — the immediate repeat of a note or beat, the looped one- or two-bar groove, the repeated phrase, the returning chorus or theme, the recapitulation. David Huron estimates, and Margulis cites approvingly, that well over 90% of the music people actually hear consists of passages they have heard before, whether within the piece or from prior listens. Repetition is so bound up with musicality that it can act, in her phrase, as a "quasi-magical" agent that turns non-musical material into music.
 
 ## The speech-to-song illusion
 
@@ -27,7 +27,7 @@ Margulis argues repetition changes *how* we listen. On re-hearing, attention mov
 
 Zajonc's mere exposure effect is the foundational finding: repeated exposure to a stimulus, even without reinforcement, increases liking for it. In music this is robust — a track that grates on first hearing can become a favorite after several plays. But the relationship is not monotonic. A two-factor account (habituation increasing affect, plus tedium/satiation from overexposure) predicts an **inverted-U**: liking rises with the first several exposures, peaks, then declines with continued repetition. Empirically the peak and its location depend heavily on context:
 
-- **Focused vs. incidental listening**: Schellenberg and colleagues found focused listening produced an inverted-U (liking up after ~2 exposures, down after 8–32), while incidental (background) listening produced roughly linear increases in liking across the same range. This is directly relevant to a project spanning attentive and background use — background music tolerates far more repetition before satiation.
+- **Focused vs. incidental listening**: Schellenberg, Peretz & Vieillard (2008) found focused listening produced an inverted-U (liking up after ~2 exposures, down after 8–32), while incidental (background) listening produced roughly linear increases in liking across the same range. This is directly relevant to a project spanning attentive and background use — background music tolerates far more repetition before satiation.
 - **Compressed vs. spaced**: overexposure within a single session is the main driver of decline; the same number of plays spread over days is more likely to keep increasing liking.
 - **Material**: declines with repetition show up most for monophonic, synthetic, or short stimuli — precisely the kind of thin material a naive generative engine might produce, which raises its satiation risk.
 - **Real-world data**: for newly released tracks, streaming-listen probability follows an inverted-U over exposures; for long-known classics it decays monotonically, consistent with long-past-peak satiation.
@@ -76,8 +76,10 @@ The craft question is not *whether* to repeat but *how much to vary*. Pure verba
 
 ## Sources
 
-- Elizabeth Hellmuth Margulis, *On Repeat: How Music Plays the Mind*, Oxford University Press, 2014 — https://global.oup.com/academic/product/on-repeat-9780199990825 ; essay: https://aeon.co/essays/why-repetition-can-turn-almost-anything-into-music
+- Elizabeth Hellmuth Margulis, *On Repeat: How Music Plays the Mind*, Oxford University Press, 2014 — https://global.oup.com/academic/product/on-repeat-9780199990825 ; essay (cites Huron's >90% estimate): https://aeon.co/essays/why-repetition-can-turn-almost-anything-into-music
+- Bruno Nettl, *The Study of Ethnomusicology: Twenty-Nine Issues and Concepts*, University of Illinois Press, 1983, p. 46 (repetition as a musical near-universal)
 - Diana Deutsch et al., "Illusory transformation from speech to song," J. Acoust. Soc. Am., 2011 — https://deutsch.ucsd.edu/pdf/JASA-2011_129_2245-2252.pdf ; overview: https://en.wikipedia.org/wiki/Speech-to-song_illusion
 - Green, Bavelier et al., "Listen, Learn, Like! Dorsolateral Prefrontal Cortex Involved in the Mere Exposure Effect in Music," 2012 (mere exposure / two-factor satiation) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3324153/
+- Schellenberg, Peretz & Vieillard, "Liking for happy- and sad-sounding music: Effects of exposure," Cognition & Emotion 22(2), 2008 (focused inverted-U vs. incidental linear-increase finding)
 - Madison & Schiölde, "Repeated Listening Increases the Liking for Music Regardless of Its Complexity," Frontiers in Neuroscience, 2017 — https://pmc.ncbi.nlm.nih.gov/articles/PMC5374342/
 - Jakubowski, Finkel, Stewart & Müllensiefen, "Dissecting an Earworm: Melodic Features and Song Popularity Predict Involuntary Musical Imagery," 2017 — https://research.gold.ac.uk/id/eprint/19405/ ; summary: https://www.apa.org/news/press/releases/2016/11/earworms

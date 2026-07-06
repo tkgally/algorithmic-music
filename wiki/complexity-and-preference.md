@@ -1,7 +1,7 @@
 ---
 title: Complexity and preference
 tags: [psychology]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Berlyne's inverted-U (Wundt curve) linking complexity/arousal-potential to liking, how musical complexity is operationalized, the messy and partly-contradictory evidence, and the moderating roles of familiarity, training, and individual differences.
@@ -13,7 +13,7 @@ summary: Berlyne's inverted-U (Wundt curve) linking complexity/arousal-potential
 
 ## Berlyne and the Wundt curve
 
-Daniel Berlyne's experimental aesthetics (1970s) is the source. He proposed that aesthetic preference is governed by a stimulus's **arousal potential**, driven by **collative variables** — properties that require comparison to resolve: **complexity, novelty, surprise, incongruity, uncertainty**. Arousal potential relates to hedonic value (liking) through an **inverted-U**, often called the **Wundt curve**: low arousal potential yields indifference, moderate yields maximum pleasure, high yields aversion. Berlyne modeled this as two overlapping systems — a positive reward response that saturates early and a negative aversion response that kicks in later; their sum is the inverted-U. The practical claim is a preference for **intermediate** complexity/novelty, and the appeal to an engine is obvious: it names a target.
+Daniel Berlyne's experimental aesthetics (1970s) is the source. He proposed that aesthetic preference is governed by a stimulus's **arousal potential**, driven by **collative variables** — properties that require comparison to resolve: Berlyne's fuller list (per Chmiel & Schubert 2017, citing Berlyne 1960/1971) is **complexity, novelty/familiarity, change, conflict, surprisingness, uncertainty, interestingness, and ambiguity**; this page focuses on complexity, novelty, surprise, and uncertainty as the most engine-actionable of the set. Arousal potential relates to hedonic value (liking) through an **inverted-U**, often called the **Wundt curve**: low arousal potential yields indifference, moderate yields maximum pleasure, high yields aversion. Berlyne (1969, p. 1068, quoted in Chmiel & Schubert 2017) modeled this as two overlapping systems — "a reward system that responds to initial increases of stimulus arousal, and an aversion system that gradually becomes activated beyond a critical level of arousal, and that opposes the effect of the reward system"; their sum is the inverted-U. The practical claim is a preference for **intermediate** complexity/novelty, and the appeal to an engine is obvious: it names a target.
 
 ## Operationalizing musical complexity
 
@@ -31,7 +31,7 @@ The inverted-U is widely assumed but inconsistently found. The honest summary is
 
 - **Supporting**: many studies report intermediate-complexity preference; Gold et al. (2019) found an IDyOM-based inverted-U for melody liking; reviews (Chmiel & Schubert, 2017) conclude the inverted-U has meaningful support once arousal potential is properly manipulated and familiarity controlled.
 - **Failing / linear**: other studies find monotonic relationships (liking rises, or falls, roughly linearly with complexity) rather than a peak. Madison & Schiölde (2017), with 28 exposures over ~4 weeks, found liking rose with repeated listening at *all* complexity levels and reported **no inverted-U and no complexity×exposure interaction** — directly contradicting the tidy story. In their data familiarity with the style dwarfed complexity as a predictor.
-- **Artifact of averaging (the strongest challenge)**: Güçlütürk et al. (2016), "decomposing the inverted U-curve," found the aggregate curve is produced by *combining opposite individual functions*. Splitting participants, ~67% showed liking *decreasing* with complexity (r ≈ −0.79) and ~33% showed liking *increasing* with complexity (r ≈ +0.87); a two-linear-groups model beat the quadratic model on fit. Their caution is pointed: averaging across people can conjure "a non-existent average observer." The group-level inverted-U may be, at least sometimes, a statistical mirage over a population that actually splits into complexity-likers and complexity-dislikers.
+- **Artifact of averaging (the strongest challenge)**: Güçlütürk et al. (2016), "decomposing the inverted U-curve," found the aggregate curve is produced by *combining opposite individual functions*. Splitting participants, ~67% showed liking *decreasing* with complexity (r ≈ −0.79) and ~33% showed liking *increasing* with complexity (r ≈ +0.87); a two-linear-groups model beat the quadratic model on fit. (Their stimuli were digitally generated grayscale images, not music, so the finding is imported from visual aesthetics — taken here as informative for the general complexity-preference relationship rather than music-specific evidence.) Their caution is pointed: averaging across people can conjure "a non-existent average observer." The group-level inverted-U may be, at least sometimes, a statistical mirage over a population that actually splits into complexity-likers and complexity-dislikers.
 
 The takeaway is not "the inverted-U is false" but "there is no single universal optimum." Complexity preference is strongly individual and context-dependent, so an engine should treat the optimum as a **tunable parameter with a population distribution**, not a constant.
 
@@ -80,7 +80,7 @@ Colin Martindale challenged Berlyne head-on: the main driver of aesthetic prefer
 
 ## Sources
 
-- Daniel Berlyne, experimental aesthetics / arousal potential and the Wundt curve, reviewed in "Berlyne Revisited: Evidence for the Multifaceted Nature of Hedonic Tone in the Appreciation of Paintings and Music," Frontiers in Human Neuroscience, 2016 — https://www.frontiersin.org/journals/human-neuroscience/articles/10.3389/fnhum.2016.00536/full
+- Daniel Berlyne, arousal potential, collative variables, and the reward/aversion two-system account of the Wundt curve (1969, 1971), as summarized in Chmiel & Schubert 2017 below; also reviewed (general multifaceted-hedonics evidence) in "Berlyne Revisited: Evidence for the Multifaceted Nature of Hedonic Tone in the Appreciation of Paintings and Music," Frontiers in Human Neuroscience, 2016 — https://www.frontiersin.org/journals/human-neuroscience/articles/10.3389/fnhum.2016.00536/full
 - Güçlütürk, Jacobs & van Lier, "Liking versus Complexity: Decomposing the Inverted U-curve," Frontiers in Human Neuroscience, 2016 — https://pmc.ncbi.nlm.nih.gov/articles/PMC4796011/
 - Madison & Schiölde, "Repeated Listening Increases the Liking for Music Regardless of Its Complexity," Frontiers in Neuroscience, 2017 — https://pmc.ncbi.nlm.nih.gov/articles/PMC5374342/
 - Chmiel & Schubert, "Back to the inverted-U for music preference: A review of the literature," Psychology of Music, 2017 — https://anthonychmiel.com/wp-content/uploads/2025/08/Chmiel2017_BackToTheInvertedU.pdf

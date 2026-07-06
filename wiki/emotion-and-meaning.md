@@ -1,7 +1,7 @@
 ---
 title: Emotion and meaning in music
 tags: [psychology]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: How music expresses and induces emotion — perceived vs felt emotion, dimensional vs categorical models, Juslin's BRECVEMA mechanisms and acoustic cue-to-emotion mappings, the enjoyment of sad music, and what "meaning" in music amounts to.
@@ -49,7 +49,7 @@ Contagion works because performers and composers encode emotion in the same acou
 | Fearful | fast, irregular | minor | soft→sudden loud | staccato | — | thin, unstable |
 | Tender / calm | slow | major | soft | legato | medium | soft, warm |
 
-These are probabilistic tendencies, not laws, and they interact (fast + major reads happy; slow + minor reads sad; conflicting cues yield ambiguous or complex affect). Because they are additive and roughly linear, an engine can compose an emotional target by setting each cue toward the target column and expect the perception to follow.
+These are probabilistic tendencies, not laws, and they interact (fast + major reads happy; slow + minor reads sad; conflicting cues yield ambiguous or complex affect). The register and timbre cells for anger and fear are the least settled in the table — different reviews report low vs. high pitch for both, and "thin/unstable" vs. "dark" timbre for fear — so treat those two cells as a plausible simplification rather than consensus. Because the cues overall are additive and roughly linear, an engine can compose an emotional target by setting each cue toward the target column and expect the perception to follow.
 
 ## The enjoyment of sad music
 
@@ -98,5 +98,5 @@ The cue-to-emotion code is partly universal and partly enculturated. Fritz et al
 - Eerola, Friberg & Bresin, "Emotional expression in music: contribution, linearity, and additivity of primary musical cues," Frontiers in Psychology, 2013 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3726864/
 - Taruffi & Koelsch, "The Paradox of Music-Evoked Sadness: An Online Survey," PLOS ONE, 2014 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4203803/
 - Ladinig, Brooks, Hansen, Horn & Huron, "Enjoying sad music: A test of the prolactin theory," 2021, and Huron, "The Prolactin Theory of Sad-Music Enjoyment is Wrong," Empirical Musicology Review, 2023 — https://journals.sagepub.com/doi/10.1177/1029864919890900 ; https://emusicology.org/article/id/4765/
-- Fritz et al., "Universal Recognition of Three Basic Emotions in Music" (Mafa), Current Biology, 2009 (via cross-cultural review) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3762814/
+- Fritz, Jentschke, Gosselin, Sammler, Peretz, Turner, Friederici & Koelsch, "Universal Recognition of Three Basic Emotions in Music" (Mafa), Current Biology 19(7), 2009, pp. 573–576 (primary source); discussed further in Fritz et al., "From Understanding to Appreciating Music Cross-Culturally," PLOS ONE, 2013 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3762814/
 - Leonard B. Meyer, *Emotion and Meaning in Music* (absolutist vs referentialist), 1956 — https://press.uchicago.edu/ucp/books/book/chicago/E/bo28551887.html
