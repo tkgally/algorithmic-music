@@ -1,7 +1,7 @@
 ---
 title: Phrase structure
 tags: [theory]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: The phrase as the basic unit of musical syntax — sentence and period archetypes, cadences as punctuation, hypermeter and the 4/8-bar norm, and why bar-by-bar generation without phrase syntax sounds aimless.
@@ -25,7 +25,7 @@ Below the phrase sit motives and *subphrases* (see [melody](melody.md)); above i
 Cadences are the grammar of arrival. Their relative strength is what lets a listener parse structure. The standard tonal types (Roman numerals; scale degrees as do=1):
 
 - **Perfect Authentic Cadence (PAC)** — V(7)->I, both in root position, melody landing on **do (1)**. The strongest close; a full stop. Reserve for phrase and section *ends*.
-- **Imperfect Authentic Cadence (IAC)** — V->I but weakened: melody ends on **mi (3)** or **sol (5)**, or a chord is inverted. A softer full stop / strong comma.
+- **Imperfect Authentic Cadence (IAC)** — V->I but weakened: melody ends on **mi (3)** (most often) or **sol (5)**, or a chord is inverted. A softer full stop / strong comma.
 - **Half Cadence (HC)** — ends *on* V (does not resolve to I); melody often on **re (2)**, ti, or sol. A colon or question mark — it demands continuation. The characteristic antecedent ending.
 - **Deceptive Cadence (DC)** — V->vi (or another non-tonic); sets up a resolution then dodges it. A powerful way to *extend* a phrase and delay closure.
 - **Plagal Cadence (PC)** — IV->I; the "amen," often a post-cadential confirmation *after* a PAC rather than the main structural close.
@@ -118,6 +118,6 @@ If each bar is chosen only from what came just before, the output has *local* pl
 - "The period," Open Music Theory — https://openmusictheory.github.io/period.html
 - "Classical cadence types," Open Music Theory — https://openmusictheory.github.io/cadenceTypes.html
 - Robert Hutchinson, *Music Theory for the 21st-Century Classroom*, ch. 13 "Phrases in Combination" (sentence, period, elision) — https://human.libretexts.org/Bookshelves/Music/Music_Theory/Music_Theory_for_the_21st-Century_Classroom_(Hutchinson)/13%3A_Phrases_in_Combination
-- "Sentence (music)" (Schoenberg/Caplin; Beethoven Op. 2 No. 1) — https://en.wikipedia.org/wiki/Sentence_(music)
-- William Rothstein, *Phrase Rhythm in Tonal Music* (1989), summarized in JMTP teaching article — https://digitalcollections.lipscomb.edu/cgi/viewcontent.cgi?article=1230&context=jmtp
-- "Form in pop/rock music" (AABA, verse-chorus, strophic, SRDC), Open Music Theory — https://openmusictheory.github.io/popRockForm.html
+- Arnold Schoenberg, *Fundamentals of Musical Composition* (Faber, 1967), p. 40 — the "higher form of construction than the period" characterization; quoted in "Sentence (music)" (Schoenberg/Caplin; Beethoven Op. 2 No. 1 example) — https://en.wikipedia.org/wiki/Sentence_(music)
+- William Rothstein, *Phrase Rhythm in Tonal Music* (1989) — the normative four-bar basic phrase and its expansion/elision/reinterpretation; taught and applied in Ryan McClelland, "Teaching Phrase Rhythm through Minuets from Haydn's String Quartets," *Journal of Music Theory Pedagogy* 20 (2006) — https://digitalcollections.lipscomb.edu/jmtp/vol20/iss1/1/
+- "Form in pop/rock music" (AABA, verse-chorus, strophic), Open Music Theory — https://openmusictheory.github.io/popRockForm.html; SRDC (Walter Everett's term) is covered on the sibling page "Formal containers and module structures" — https://openmusictheory.github.io/popRockForm-containers

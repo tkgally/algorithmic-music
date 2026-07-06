@@ -1,7 +1,7 @@
 ---
 title: Harmony
 tags: [theory]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Functional syntax, root-motion norms, cadences, harmonic rhythm, and corpus statistics (classical and rock) that separate goal-directed progressions from wandering ones, with engine-ready transition tables.
@@ -38,7 +38,7 @@ Woolhouse's interval-cycle model of tonal attraction rank-correlates with Piston
 
 ## What rock and pop corpora show
 
-de Clercq & Temperley (2011) hand-analyzed 100 songs (top 20 per decade, 1950s–90s, from Rolling Stone's "500 Greatest Songs"; inter-analyst agreement >90%). Key numbers (proportions of all chords):
+de Clercq & Temperley (2011) hand-analyzed 100 songs (top 20 per decade, 1950s–90s, from Rolling Stone's "500 Greatest Songs"; inter-analyst agreement 92.4% on relative root, 94.4% on absolute root). Key numbers (proportions of all chords):
 
 | Root | Overall | Pre-tonic (excl. I) | Notes |
 |---|---|---|---|
@@ -52,9 +52,11 @@ de Clercq & Temperley (2011) hand-analyzed 100 songs (top 20 per decade, 1950s�
 | bIII | 0.026 | 0.017 | |
 | iii | 0.019 | 0.005 | |
 
+(The **Overall** column is each chord's share of *all* chords; **Pre-tonic** is its share of the slots immediately before a tonic, excluding I — different denominators, so the two columns are not meant to reconcile.)
+
 Findings that matter for engine design:
 
-- IV is the most common chord after I and is especially common immediately before I. Pre-tonic and post-tonic distributions have the same top three (IV, V, bVII) — rock harmony is closer to a context-free preference hierarchy than to classical directed syntax.
+- IV is the most common chord after I and is especially common immediately before I. Pre-tonic and post-tonic distributions have the same top three (IV, V, bVII) — post-tonic IV .356, V .240, bVII .159, vi .102 — so rock harmony is closer to a context-free preference hierarchy than to classical directed syntax.
 - Root motions are directionally symmetric in rock: ascending perfect fourths (2,266 instances) ≈ descending perfect fourths (2,220); seconds and thirds likewise balanced. The classical strong/weak asymmetry does not hold. Chord frequency instead falls off smoothly with circle-of-fifths distance from I.
 - Trigram data: when V is the pre-tonic chord, the chord before it is overwhelmingly IV — so IV–V–I survives as a schema even in a flat syntax.
 - Temperley's follow-up on a 200-song corpus found V–I still the most common sectional cadence (~32% of songs) with IV–I plagal closes second (~18.5%), and argues classical functional categories "fail immediately" for rock (Temperley 2011, MTO).
@@ -89,7 +91,7 @@ Practical norms: state the model, repeat it one to two times (rarely more), then
 
 ## Loop harmony and the Axis family
 
-Most post-1990 pop is loop-based: a 4-chord, 4- or 8-bar cycle repeats through whole sections with no cadence in the classical sense. The dominant family is the "Axis" progression I–V–vi–IV and its rotations (V–vi–IV–I, vi–IV–I–V "sensitive female" ordering, IV–I–V–vi); Wikipedia documents 300+ hit songs on it, popularized by Axis of Awesome's "Four Chords" medley (2008). Other staples: doo-wop I–vi–IV–V, 12-bar blues, two-chord shuttles (e.g., i–bVII). In loops, goal-direction is deliberately traded for hypnotic circularity; interest must come from melody, arrangement, and sectional contrast instead ([form-and-structure.md](form-and-structure.md), [melody.md](melody.md)). Loop rotations matter: the same four chords starting on vi read as melancholic, starting on I as affirmative — the loop's first and last slots carry tonal weight.
+Most post-1990 pop is loop-based: a 4-chord, 4- or 8-bar cycle repeats through whole sections with no cadence in the classical sense. The dominant family is the "Axis" progression I–V–vi–IV and its rotations (V–vi–IV–I, vi–IV–I–V "sensitive female" ordering, IV–I–V–vi); Wikipedia lists ~200 songs using it (a partial list of 204 entries; it gives no aggregate total), popularized by Axis of Awesome's "Four Chords" medley (2008). Other staples: doo-wop I–vi–IV–V, 12-bar blues, two-chord shuttles (e.g., i–bVII). In loops, goal-direction is deliberately traded for hypnotic circularity; interest must come from melody, arrangement, and sectional contrast instead ([form-and-structure.md](form-and-structure.md), [melody.md](melody.md)). Loop rotations matter: the same four chords starting on vi read as melancholic, starting on I as affirmative — the loop's first and last slots carry tonal weight.
 
 ## Color and departure: mixture, secondary dominants, modulation
 

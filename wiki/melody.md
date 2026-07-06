@@ -1,7 +1,7 @@
 ---
 title: Melody
 tags: [theory]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: What separates a melody from a note stream — contour, step/leap statistics, tessitura, motivic repetition, galant schemata, and hooks — with the numbers an engine needs to generate lines that sound sung rather than sampled.
@@ -13,11 +13,11 @@ A melody is not a sequence of pitches; it is a *shaped* sequence that a listener
 
 ## Contour: the arch bias
 
-Contour — the up/down shape independent of exact intervals — is the most memorable and most cross-culturally robust feature of a melody. Huron's analysis of ~6,000 Western European folksong phrases (the Essen collection) found that the single most common phrase shape is a **convex arch**: rising then falling, an inverted U. He reduced each phrase to first pitch, mean of interior pitches, and last pitch, yielding nine contour classes (ascending, descending, arch, and combinations); the arch and descending types dominate, and phrases very rarely begin and end at registral extremes.
+Contour — the up/down shape independent of exact intervals — is the most memorable and most cross-culturally robust feature of a melody. Huron's analysis of Western European folksongs (the Essen collection, ~6,251 melodies) found that the single most common phrase shape is a **convex arch**: rising then falling, an inverted U (his classic averaged curve pools 6,364 seven-note phrases). He reduced each phrase to first pitch, mean of interior pitches, and last pitch, yielding nine contour classes (ascending, descending, arch, and combinations); the arch and descending types dominate, and phrases very rarely begin and end at registral extremes.
 
 Tierney, Russo & Patel (2011) argue this arch bias plus a general **descending tendency** across a phrase are not stylistic choices but *motor constraints* shared with birdsong: subglottal air pressure rises then falls over a breath, and pitch tends to fall as breath runs out. This matters for the project because it means the arch is a near-universal default, not a Western idiom — a good starting prior for melody in almost any genre.
 
-Caveat: recent work (Savage and colleagues, "Melodic contour does not cluster," 2026) argues contour varies *continuously* and does not fall into clean discrete types — so treat the nine classes as a descriptive vocabulary, not natural categories. For generation, bias toward arch/descending shapes without hard-coding class boundaries.
+Caveat: recent work (Cornelissen and colleagues, "Melodic contour does not cluster," 2026) argues contour varies *continuously* and does not fall into clean discrete types — so treat the nine classes as a descriptive vocabulary, not natural categories. For generation, bias toward arch/descending shapes without hard-coding class boundaries.
 
 ## Step vs leap, and what happens after a leap
 
@@ -25,7 +25,7 @@ Successive pitches in melodies are overwhelmingly **proximal**: most melodic int
 
 Two related asymmetries:
 - **Large intervals tend to ascend; small intervals tend to descend** (Vos & Troost 1989), replicated by Huron across many cultures. Leaps up, steps down is a good default.
-- **Leaps are usually followed by a change of direction.** von Hippel & Huron (2000) found roughly 70%+ of large leaps are followed by a reversal. This is the phenomenon Meyer (1956) called **gap-fill** (a leap opens a "gap" that stepwise motion then fills in the opposite direction) and that Narmour's **Implication-Realization** model formalizes as: small intervals imply continuation in the same direction; large intervals imply reversal.
+- **Leaps are usually followed by a change of direction.** von Hippel & Huron (2000) found that roughly 72% of large leaps (in Western classical melodies) are followed by a reversal. This is the phenomenon Meyer (1956) called **gap-fill** (a leap opens a "gap" that stepwise motion then fills in the opposite direction) and that Narmour's **Implication-Realization** model formalizes as: small intervals imply continuation in the same direction; large intervals imply reversal.
 
 The important reinterpretation for engine design: von Hippel & Huron show the *actual* statistical regularity in music is **regression to the mean** — pitches at the extremes of a melody's range tend to be followed by pitches nearer the center — and post-skip reversal is largely a *byproduct*, because leaps tend to land at tessitura extremes, from which the only way back is to reverse. Listeners, however, appear to internalize the simpler heuristic "big leap -> reverse" regardless of absolute pitch height (von Hippel 2002). So an engine can get most of the perceptual payoff cheaply: after any leap of a fourth or more, strongly bias the next motion toward a step in the opposite direction, and additionally pull pitches back toward the center of the current range whenever they stray to an extreme.
 
@@ -69,7 +69,7 @@ The generalizable point: across cultures, melody is governed by *phrase-level gr
 
 - **Generate contour first, pitches second.** Choose an arch or descending phrase shape as a target envelope (arch as default prior), then fill pitches to track it. This alone lifts output above random walk.
 - **Interval budget per phrase:** aim for a strong majority of steps/small intervals (seconds and thirds) and a small minority of leaps (fourth+); reserve each leap as a deliberate, accented event rather than a frequent transition.
-- **Post-leap rule:** after any leap >= a fourth, bias the next note toward a *step in the opposite direction* with high probability (target ~70%+, matching von Hippel & Huron). Independently, apply a **regression-to-the-mean** pull: when a pitch reaches the top/bottom ~15-20% of the active range, weight the next motion back toward register center.
+- **Post-leap rule:** after any leap >= a fourth, bias the next note toward a *step in the opposite direction* with high probability (target ~0.7, in line with von Hippel & Huron's observed ~72%). Independently, apply a **regression-to-the-mean** pull: when a pitch reaches the top/bottom ~15-20% of the active range, weight the next motion back toward register center.
 - **Default motion asymmetry:** leaps up, steps down (Vos & Troost).
 - **Bound the range:** keep phrases within ~an octave and whole melodies within ~an octave-to-twelfth around a tracked register center.
 - **One apex per phrase, one per section.** Place a single clear high point; make the section's global apex land near a structural climax (see [form-and-structure](form-and-structure.md) and [tension-and-release](tension-and-release.md)).
@@ -96,9 +96,11 @@ The generalizable point: across cultures, melody is governed by *phrase-level gr
 
 ## Sources
 
-- Marcus Pearce & Daniel Müllensiefen, review of David Huron, *Sweet Anticipation: Music and the Psychology of Expectation* (MIT Press, 2006) — https://www.marcus-pearce.com/assets/papers/huron06-review.pdf (pitch proximity, regression to the mean vs post-skip reversal, uniqueness markers)
-- Paul von Hippel & David Huron, "Why do skips precede reversals? The effect of tessitura on melodic structure," *Music Perception* 18(1), 2000 — https://www.researchgate.net/publication/224982434_Why_Do_Skips_Precede_Reversals_The_Effect_of_Tessitura_on_Melodic_Structure
-- David Huron, "The melodic arch in Western folksongs," *Computing in Musicology* 10, 1996 (arch/contour statistics; discussed and critiqued in "Melodic contour does not cluster," 2026) — https://arxiv.org/abs/2604.13119
+- Marcus Pearce & Daniel Müllensiefen, review of David Huron, *Sweet Anticipation: Music and the Psychology of Expectation* (MIT Press, 2006) — https://www.marcus-pearce.com/assets/papers/huron06-review.pdf (pitch proximity, regression to the mean vs post-skip reversal, uniqueness markers; also summarizes Vos & Troost)
+- Paul von Hippel & David Huron, "Why do skips precede reversals? The effect of tessitura on melodic structure," *Music Perception* 18(1): 59–85, 2000 (~72% of large leaps reverse; regression to the mean) — https://www.researchgate.net/publication/224982434_Why_Do_Skips_Precede_Reversals_The_Effect_of_Tessitura_on_Melodic_Structure (login-walled; primary journal cite above)
+- Piet G. Vos & Jim M. Troost, "Ascending and descending melodic intervals: Statistical findings and their perceptual relevance," *Music Perception* 6(4): 383–396, 1989 (large intervals ascend, small descend).
+- David Huron, "The melodic arch in Western folksongs," *Computing in Musicology* 10: 3–23, 1996 (arch/contour statistics; ~6,251-melody European Essen subset).
+- Bas Cornelissen, Willem Zuidema, John Ashley Burgoyne & Henkjan Honing, "Melodic contour does not cluster: Reconsidering contour typology," 2026 — https://arxiv.org/abs/2604.13119 (argues contour varies continuously; critiques the nine-class reduction).
 - Robert Gjerdingen, *Music in the Galant Style* (Oxford, 2007), summarized — https://en.wikipedia.org/wiki/Galant_Schemata
-- Eugene Narmour, Implication-Realization model, summarized — https://arxiv.org/pdf/2510.27530
-- Adam Tierney, Frank Russo & Aniruddh Patel, "The motor origins of human and avian song structure," *PNAS* 108(37), 2011 — https://www.pnas.org/doi/10.1073/pnas.1103882108
+- Eugene Narmour, *The Analysis and Cognition of Basic Melodic Structures: The Implication-Realization Model* (Univ. of Chicago Press, 1990) — the canonical I-R reference.
+- Adam Tierney, Frank Russo & Aniruddh Patel, "The motor origins of human and avian song structure," *PNAS* 108(37): 15510–15515, 2011 — https://www.pnas.org/doi/10.1073/pnas.1103882108

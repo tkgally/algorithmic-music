@@ -1,7 +1,7 @@
 ---
 title: Tension and release
 tags: [theory, psychology]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Tension is the currency of musical motion — the measurable rise and fall that makes music go somewhere. Covers the parameters that drive it, the Farbood and Lerdahl-Krumhansl models with their empirical fits, and how to budget tension across a piece.
@@ -20,7 +20,7 @@ Perceived tension is continuous and time-varying: listeners can move a slider in
 Evidence (Farbood 2012; Granot & Eitan 2011; Lerdahl & Krumhansl 2007; Huron 2006) converges on a set of largely independent contributors:
 
 - **Loudness / dynamics** — the strongest and most consistent single driver. Rising loudness raises tension; it dominates most multi-parameter models.
-- **Registral height / pitch height** — higher pitch = more tension; rising melodic motion raises it, falling releases it. The second most influential parameter after loudness in several studies.
+- **Registral height / pitch height** — rising melodic motion raises tension, falling releases it; higher register generally reads as more tense, though the absolute-register effect is messier than the directional one (Granot & Eitan found very *low* registers can also feel tense, especially for nonmusicians). The second most influential parameter after loudness in several studies.
 - **Note density / onset frequency / tempo** — faster events and faster tempo generally raise arousal-tension (though onset frequency's effect is smaller and context-dependent; sometimes weakly negative in models once loudness is accounted for).
 - **Dissonance / harmonic roughness** — sensory dissonance (beating between partials) and harmonic instability raise tension; consonance releases it. See [harmony](harmony.md), [auditory-perception-basics](auditory-perception-basics.md).
 - **Harmonic distance from the tonic** — chords farther from the tonic in tonal pitch space raise tension; return toward the tonic releases it. This is the core of Lerdahl's model.
@@ -50,7 +50,7 @@ Fred Lerdahl's tonal tension theory, tested empirically by Lerdahl & Krumhansl (
 
 Tested on tonal and chromatic excerpts (e.g. a Bach chorale, a Chopin E-major prelude, chromatic passages), the model's predictions correlate well with listeners' continuous tension judgments. Two caveats for engine builders:
 
-1. The full model is **hard to compute** — it needs a hierarchical prolongational analysis with no automated procedure, and uses hand-tabulated space distances. Downstream work uses simplified proxies (e.g. a *tonal interval space* where a chord-progression tension model weighted **dissonance ~0.40, hierarchical tension ~0.25, tonal distance ~0.20, voice-leading ~0.19**, achieving r ~= 0.75, R^2 ~= 0.56 against listener curves).
+1. The full model is **hard to compute** — it needs a hierarchical prolongational analysis with no automated procedure, and uses hand-tabulated space distances. Downstream work uses simplified proxies (e.g. a *tonal interval space* where a chord-progression tension model combined **hierarchical tension (weight ~0.32), sensory dissonance (~0.30), voice-leading distance (~0.27), and tonal distance (~0.16)**, achieving r ~= 0.75, R^2 ~= 0.56 against listener curves — note hierarchical tension, not raw dissonance, carries the largest weight here).
 2. **Tonal tension alone is a weak predictor of overall perceived tension.** The recent TenseMusic model (2024) found that once loudness, pitch height, and roughness are included, computed *tonal* tension adds little (small weight), with cross-validated overall correlations around **r = .59-.61** and 68-71% of pieces reaching r > .5. This echoes the form-perception finding ([form-and-structure](form-and-structure.md)) that abstract tonal relations are less perceptually potent than surface features. Practically: **do not rely on harmony alone to create tension — drive loudness, register, density, and roughness too.**
 
 ## Predictability-based accounts
@@ -106,9 +106,9 @@ Think of a piece as spending and recovering a **tension budget** over time:
 
 ## Sources
 
-- Morwaread Farbood, "A Parametric, Temporal Model of Musical Tension," *Music Perception* 29(4): 387-428, 2012 (multi-parameter slope model; r = .60-.93), as characterized in the TenseMusic paper below — https://pmc.ncbi.nlm.nih.gov/articles/PMC10798497/
-- Fred Lerdahl & Carol Krumhansl, "Modeling Tonal Tension," *Music Perception* 24(4): 329-366, 2007 — https://online.ucpress.edu/mp/article/24/4/329/62481/Modeling-Tonal-Tension
-- A. Aljanaki et al., "TenseMusic: An automatic prediction model for musical tension," *PLOS ONE*, 2024 (loudness dominates; tonal tension weak; cross-val r ~= .59-.61) — https://pmc.ncbi.nlm.nih.gov/articles/PMC10798497/
-- "A Computational Model of Tonal Tension Profile of Chord Progressions in the Tonal Interval Space" (feature weights; r ~= 0.75, R^2 ~= 0.56) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7712964/
+- Morwaread Farbood, "A Parametric, Temporal Model of Musical Tension," *Music Perception* 29(4): 387-428, 2012, DOI 10.1525/mp.2012.29.4.387 (multi-parameter slope model). The r = .60-.93 range is as characterized in the TenseMusic paper below — https://pmc.ncbi.nlm.nih.gov/articles/PMC10798497/
+- Fred Lerdahl & Carol Krumhansl, "Modeling Tonal Tension," *Music Perception* 24(4): 329-366, 2007 — open-access PDF: https://fred-lerdahl.squarespace.com/s/Modeling-Tonal-Tension.pdf
+- A. Aljanaki et al., "TenseMusic: An automatic prediction model for musical tension," *PLOS ONE*, 2024 (loudness dominates; tonal tension weak once loudness/pitch/roughness included; cross-val r ~= .59-.61; 68-71% of pieces r > .5) — https://pmc.ncbi.nlm.nih.gov/articles/PMC10798497/
+- Manuel Navarro-Cáceres et al., "A Computational Model of Tonal Tension Profile of Chord Progressions in the Tonal Interval Space," *Entropy* 22(11): 1291, 2020 (feature weights hierarchical ~0.32 / dissonance ~0.30 / voice-leading ~0.27 / tonal distance ~0.16; r ~= 0.75, R^2 ~= 0.56) — https://pmc.ncbi.nlm.nih.gov/articles/PMC7712964/
 - David Huron, *Sweet Anticipation* (2006), ITPRA tension response — reviewed by Pearce & Müllensiefen — https://www.marcus-pearce.com/assets/papers/huron06-review.pdf
-- Roni Granot & Zohar Eitan, dynamic tension parameters (dynamics most influential, then pitch register), *Music Perception* 2011, as cited in the TenseMusic paper — https://pmc.ncbi.nlm.nih.gov/articles/PMC10798497/
+- Roni Granot & Zohar Eitan, "Musical Tension and the Interaction of Dynamic Auditory Parameters," *Music Perception* 28(3): 219-246, 2011, DOI 10.1525/mp.2011.28.3.219 (loudness change the primary tension determinant, then pitch register/direction; lower register can read as more tense).
