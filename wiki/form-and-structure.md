@@ -1,7 +1,7 @@
 ---
 title: Form and structure
 tags: [theory]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Whole-piece architecture — binary, ternary, rondo, variations, verse-chorus, arch, moment and process forms — built on repetition-with-return, plus the sobering evidence that listeners perceive far less large-scale tonal structure than theory assumes.
@@ -95,7 +95,7 @@ A **medley** simply concatenates distinct materials (A, then B, then C, unrelate
 ## Sources
 
 - Nicholas Cook, "The Perception of Large-Scale Tonal Closure," *Music Perception* 5(2), 1987 — https://online.ucpress.edu/mp/article/5/2/197/93875/The-Perception-of-Large-Scale-Tonal-Closure
-- Elizabeth West Marvin & Alexander Brinkman, "The Effect of Modulation and Formal Manipulation on Perception of Tonic Closure by Expert Listeners," *Music Perception* 16(4): 389-408, 1999 (36 expert listeners; above-chance but modest, expertise-dependent detection of non-tonic closure) — https://www.esm.rochester.edu/directory/marvin-elizabeth/
+- Elizabeth West Marvin & Alexander Brinkman, "The Effect of Modulation and Formal Manipulation on Perception of Tonic Closure by Expert Listeners," *Music Perception* 16(4): 389-408, 1999 (UC Press; expert listeners detect non-tonic closure above chance, but the effect is modest and expertise-dependent). Full bibliographic citation; the article is in *Music Perception* vol. 16 (the faculty-directory link in the draft was not the article itself).
 - James Hepokoski & Warren Darcy, *Elements of Sonata Theory* (rotational form), summarized — https://en.wikipedia.org/wiki/Sonata_theory
 - "Moment form" (Stockhausen; Kramer's moment time), summarized — https://en.wikipedia.org/wiki/Moment_form
 - Steve Reich, "Music as a Gradual Process" (1968) — https://www.bussigel.com/systemsforplay/wp-content/uploads/2014/02/Reich_Gradual-Process.pdf
