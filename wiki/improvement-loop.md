@@ -51,7 +51,7 @@ The loop's third input (besides metrics and feedback) is reference analysis: sta
 
 ## Open questions
 
-- Feedback transport under the no-server constraint: GitHub Issues API? a Google Form per engine? mailto? — needs Tom's preference ([project-open-questions](project-open-questions.md)).
+- Feedback transport is settled (2026-07-06): an on-page form that saves responses to a downloadable JSON file, which Tom hands back to Claude — no server, no external service ([listening-tests-and-feedback](listening-tests-and-feedback.md)). Early on, Tom is the sole evaluator; a handful of volunteers may join later.
 - How to weight Tom's feedback vs other evaluators' if they disagree (proposal: Tom is the tie-breaker and taste-owner; others map the disagreement space).
 - Whether/how Claude can "listen" better: feature-based descriptions of renders are planned; genuine audio understanding may become available to future models — revisit periodically.
 

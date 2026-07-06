@@ -3,6 +3,14 @@
 Append-only chronological record of wiki operations, newest first. Entry format per [conventions](conventions.md):
 `## [YYYY-MM-DD] op | Title` where op ∈ session · create · update · ingest · lint · query · findings.
 
+## [2026-07-06] session | Session 002 — answered open questions, propagated decisions
+
+Tom answered all eight bootstrap questions in [project-open-questions](project-open-questions.md); this session moved them to "Answered" (with per-item propagation notes) and threaded the decisions through the wiki and process docs. No new content pages; a propagation + policy-settling session. Full narrative: `logs/sessions/002-2026-07-06.md`.
+
+## [2026-07-06] update | Propagate Tom's 8 answers across wiki + process docs
+
+Edited [project-open-questions](project-open-questions.md) (8 → Answered), [project-mission](project-mission.md), [project-roadmap](project-roadmap.md), [conventions](conventions.md), [engine-architecture](engine-architecture.md), [listening-tests-and-feedback](listening-tests-and-feedback.md), [improvement-loop](improvement-loop.md), [evaluation-challenges](evaluation-challenges.md), [indian-classical-music](indian-classical-music.md), [gamelan](gamelan.md), [index](index.md). Key changes: strictly-vanilla becomes a strong *default* (tiny vendored permissive helper allowed if genuinely needed); feedback = on-page form → downloadable JSON (no server); launch shortlist swaps gamelan for an Indian classical + pop engine (new coverage gap: Indian popular/film music); daily site (Phase 4) refreshes when >24 h stale; evaluator pool Tom-only for now; sources any language, wiki English with glosses. Licensing settled outside the wiki: `LICENSE` (MIT, code) + `LICENSE-wiki` (CC0, prose); noted in [conventions](conventions.md), [project-mission](project-mission.md), [project-roadmap](project-roadmap.md).
+
 ## [2026-07-06] lint | Initial link and frontmatter check
 
 Wrote `experiments/tools/wiki-lint.mjs` (link targets, frontmatter keys, required sections, orphans; `--index` mode dumps frontmatter for index building). Full wiki passes: 60 pages, no broken links, no orphans, frontmatter conformant.

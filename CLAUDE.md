@@ -17,7 +17,7 @@ Generative instrumental music in the browser (HTML/CSS/vanilla JS + Web Audio on
 ## Hard rules
 
 1. **Don't build public engines (`docs/`) until Tom explicitly asks.** Current phase: knowledge base (see `wiki/project-roadmap.md`).
-2. **Engines and site: vanilla HTML/CSS/JS only.** No dependencies, no build step, no server, no network at runtime. Instrumental music only.
+2. **Engines and site: vanilla HTML/CSS/JS by default.** Dependency-free is the strong default (engines must run from `file://`); a tiny, vendored, permissively-licensed helper is acceptable *only if ever genuinely needed* (copied into the repo, never fetched at runtime). No build step, no server, no network at runtime. Instrumental music only.
 3. **Never modify** `previous-experiments/` or `wiki/llm-wiki.md`.
 4. **The wiki is load-bearing.** Substantive work (research, decisions, experiment results) must land in wiki pages per `wiki/conventions.md` — work that isn't filed is lost. Every factual claim needs a source or an explicit "informed speculation" flag.
 5. **Questions for Tom** go in `wiki/project-open-questions.md` (he answers asynchronously); don't block on them — record the working assumption and proceed.
@@ -41,6 +41,17 @@ Generative instrumental music in the browser (HTML/CSS/vanilla JS + Web Audio on
 - Commit messages: imperative summary line; body says what a reader of `git log` needs; no model IDs in repo artifacts.
 - Link check before ending a session: every `](page.md)` target in `wiki/` must exist (grep-able; a lint script can live in `experiments/tools/` once written).
 - Dates in ISO (YYYY-MM-DD). American spelling in wiki prose.
+
+## Session budget, tools, and standing decisions
+
+*(Tom answered the eight bootstrap open questions on 2026-07-06; the operative decisions are summarized here and detailed in `wiki/project-open-questions.md` → "Answered.")*
+
+- **Budget:** do as much as you can do *well* within about **70% of the context window**; Tom controls frequency via Routines and manual triggers.
+- **External models:** OpenRouter is available (`OPENROUTER_API_KEY` is set in the environment). You may spend up to **$5 per UTC day** on other models for second opinions, web searches, and similar — use it when a second perspective or a search genuinely helps, and note nontrivial use in the session log.
+- **Source languages:** draw on sources in *any* language (English, Japanese, German, French, Chinese, Italian, Russian, …); write the wiki and site **in English**, glossing non-English terms on first use.
+- **Licensing:** code is **MIT** (`LICENSE`), all prose (wiki + site) is **public domain / CC0 1.0** (`LICENSE-wiki`). Keep new pages consistent with this; don't paste in text under an incompatible license.
+- **Transparency:** the public site is **completely upfront that everything is written and built by Claude** — never obscure authorship.
+- **Daily site (Phase 4 only):** once the `docs/` summary site exists, check the current UTC time at session start; if **>24 h** since the last site update, refresh it at session end. Not applicable until Phase 4.
 
 ## Context that saves future-you time
 

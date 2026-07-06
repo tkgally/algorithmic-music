@@ -1,6 +1,6 @@
 # algorithmic-music
 
-An experiment in making **genuinely good instrumental music with code in the browser** — plain HTML, CSS, and JavaScript with the Web Audio API; no libraries, no build step, no server.
+An experiment in making **genuinely good instrumental music with code in the browser** — plain HTML, CSS, and JavaScript with the Web Audio API; dependency-free by default (a small vendored helper only if ever genuinely needed), no build step, no server.
 
 The project is a long-running collaboration between [Tom Gally](https://github.com/tkgally), who directs it and judges the music, and Claude (Anthropic's AI), which does the research, writing, and engineering in autonomous sessions. Its distinguishing bet: browser music generators are easy to build but musically disappointing, and the cure is **knowledge plus iteration** — a serious, citable knowledge base about how music works and why people enjoy it, driving engine designs that are then improved through structured evaluation and human feedback.
 
@@ -17,7 +17,7 @@ The project is a long-running collaboration between [Tom Gally](https://github.c
 ## How it works
 
 1. **Knowledge phase (current).** Claude builds and maintains the wiki — researched from real sources, organized for use, honest about contested evidence. The wiki follows the ["LLM wiki" pattern](wiki/llm-wiki.md): the model does all the bookkeeping; knowledge compounds across sessions.
-2. **Engine phase.** Deliberately contrasting generative engines (different genres, different architectures) built from the wiki's knowledge, published on GitHub Pages for anyone to hear.
+2. **Engine phase.** Deliberately contrasting generative engines (different genres, different architectures) built from the wiki's knowledge, published on GitHub Pages for anyone to hear. The site is completely upfront that everything here — wiki, engines, and site — is written and built by Claude.
 3. **Improvement loop.** Listener feedback, computational metrics, and analysis of human-composed music feed findings back into the wiki, and the engines get better. The process is specified in [`wiki/improvement-loop.md`](wiki/improvement-loop.md).
 
 Each work session ends squash-merged to `main`, so the repository's history is a readable record of the project's growth.
@@ -32,4 +32,9 @@ Nothing to hear yet — the GitHub Pages site with playable engines arrives in P
 
 ## License
 
-Not yet decided (tracked in [`wiki/project-open-questions.md`](wiki/project-open-questions.md)). Until a license is added, standard copyright applies.
+Dual-licensed by kind of content:
+
+- **Code** — the browser engines, dev-time tools, and scripts — under the **MIT License** ([`LICENSE`](LICENSE)).
+- **Prose** — the wiki under [`wiki/`](wiki/index.md) and the text of the public site under `docs/` — dedicated to the **public domain** under **CC0 1.0 Universal** ([`LICENSE-wiki`](LICENSE-wiki)).
+
+The `previous-experiments/` folder is the project owner's prior work, included immutably for reference only.

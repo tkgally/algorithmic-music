@@ -95,4 +95,4 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Known coverage gaps (planned pages)
 
-Recorded so gaps stay visible; grow or shrink this list as sessions progress. Latin American traditions (son, samba, tango, Andean musics) · European folk and dance musics · Arabic maqam as its own page (currently one section in tuning-and-scales) · glossary of terms · music representation/notation systems · `wiki/sources/` source notes for cornerstone books and papers (directory currently empty).
+Recorded so gaps stay visible; grow or shrink this list as sessions progress. Latin American traditions (son, samba, tango, Andean musics) · European folk and dance musics · Arabic maqam as its own page (currently one section in tuning-and-scales) · **Indian popular/film music** (filmi/Bollywood and regional pop — a launch-engine priority per [project-roadmap](project-roadmap.md); only Indian *classical* is covered so far) · glossary of terms · music representation/notation systems · `wiki/sources/` source notes for cornerstone books and papers (directory currently empty).

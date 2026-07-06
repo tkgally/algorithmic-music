@@ -11,6 +11,8 @@ summary: Raga as grammar-constrained melodic improvisation over a fixed drone wi
 
 The two Indian classical traditions — Hindustani (north) and Carnatic (south) — are the world's most developed systems of grammar-constrained melodic improvisation. A performance is not a composition being executed; it is a raga (a melodic grammar far richer than a scale) being explored in real time, over an unchanging drone, inside a cyclic meter, along a form of gradual revelation and intensification. Every one of those components is algorithmically legible, which makes this tradition a primary model for any engine that wants to generate long, coherent, non-repetitive melody without harmony.
 
+*Project note (2026-07-06): this tradition is a **launch-engine priority** — the first-engines shortlist now swaps the gamelan-architecture engine for an **Indian classical + pop** engine, because Tom may have an India-based collaborator to evaluate both idioms ([project-roadmap](project-roadmap.md)). Caveat: this page covers Indian **classical** music only; **Indian popular/film music** (filmi/Bollywood and regional pop) is a declared [coverage gap](index.md) to fill before that engine is built.*
+
 ## Raga: a grammar, not a scale
 
 A raga is "a melodic framework for improvisation and composition" (Britannica): a tone set plus rules about how tones move, which phrases identify the raga, and what mood it projects. Several hundred ragas are in active use. The load-bearing components:

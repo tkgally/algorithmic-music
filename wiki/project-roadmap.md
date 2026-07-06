@@ -30,7 +30,7 @@ Exit signal: Tom reads the wiki and says "build engines" — or asks for somethi
 
 ## Phase 2 — First public engines (gated on Tom)
 
-3–5 deliberately contrasting engines in `docs/engines/`, one style-committed each (candidates, to be chosen with Tom: a phrase/cadence-driven tonal engine; a gamelan-architecture engine; an ambient/process engine as the strong-baseline control; a groove-forward engine; an adaptive/interactive engine). Hub `docs/index.html`; every engine instrumented per [engine-architecture](engine-architecture.md); feedback affordances live from day one ([listening-tests-and-feedback](listening-tests-and-feedback.md)); GitHub Pages enabled by Tom (repo Settings → Pages → deploy from `main`/`docs/` — one-time human step).
+3–5 deliberately contrasting engines in `docs/engines/`, one style-committed each. Shortlist chosen with Tom (2026-07-06): a phrase/cadence-driven **tonal-classical** engine; an **Indian classical + pop** engine (Tom may have an India-based collaborator to judge both idioms — note the coverage gap: the wiki covers Indian *classical* but not yet Indian *popular/film* music); an **ambient/process** engine as the strong-baseline control; a **groove/lo-fi** engine; an **adaptive/interactive** engine. Hub `docs/index.html`; every engine instrumented per [engine-architecture](engine-architecture.md); feedback affordances live from day one — an on-page form that saves results to a downloadable JSON file (no server; Tom hands the JSON back to Claude), per [listening-tests-and-feedback](listening-tests-and-feedback.md); GitHub Pages enabled by Tom (repo Settings → Pages → deploy from `main`/`docs/` — one-time human step).
 
 ## Phase 3 — The improvement loop at full speed
 
@@ -38,13 +38,14 @@ Run [improvement-loop](improvement-loop.md): versioned changes, A/B seeds, feedb
 
 ## Phase 4 — Public project site + daily updates
 
-A summary site in `docs/` (project state, engine catalog, listening highlights, wiki tour) refreshed daily. Mechanism candidates: a scheduled Claude session via the trigger system, or GitHub Actions regenerating from repo state — decide with Tom ([project-open-questions](project-open-questions.md)). Continues indefinitely alongside Phase 3.
+A summary site in `docs/` (project state, engine catalog, listening highlights, wiki tour), refreshed at least daily and **completely upfront that it is written and built by Claude**. Mechanism (decided with Tom, 2026-07-06): each session checks the current UTC time at start and, if **more than 24 hours** have passed since the last site update, refreshes the site before ending — so freshness rides on the session cadence Tom sets (Routines + manual triggers) rather than a separate scheduler. (Implementation note: store the last-update timestamp in repo state — e.g., `logs/status.md` or a small site-meta file — so the check is unambiguous.) Continues indefinitely alongside Phase 3.
 
 ## Standing principles across phases
 
 - Every session ends merged to `main` (see CLAUDE.md workflow) — no long-lived branches, no stranded work.
 - The wiki is never "done"; every phase feeds it. A session that built engines but recorded no knowledge failed at the more important half of its job.
 - Scope stays instrumental-music-in-browser; adjacent temptations (audio ML, servers, DAW features) are declined per [project-mission](project-mission.md) non-goals.
+- Licensing is settled (2026-07-06): code is MIT (`LICENSE`), all prose — wiki and site — is public-domain CC0 1.0 (`LICENSE-wiki`).
 
 ## Related pages
 
