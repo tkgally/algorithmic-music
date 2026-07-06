@@ -1,7 +1,7 @@
 ---
 title: Machine learning and music generation
 tags: [algorithms]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Survey of ML music generation (symbolic and audio), what it teaches this project, and why the engines here remain rule/knowledge-based — with the browser-feasibility facts for revisiting that choice.
@@ -13,7 +13,7 @@ Machine learning dominates music generation research and industry since the late
 
 ## The two families
 
-**Symbolic models** generate notes/events: folk-rnn (LSTM over ABC notation folk tunes — notably idiomatic within its narrow style); MusicVAE (hierarchical latent space over melodies/trios, meaningful interpolation); Music Transformer (long-range structure via attention; convincing piano continuations); Coconet (Bach chorale infilling); pop-song systems (e.g., "Pop Music Transformer"/REMI representations emphasizing beat-position tokens). Lessons transferable to this project: representation matters enormously (beat-position and bar-aware encodings outperform raw event streams — mirroring this project's beats-first [engine-architecture](engine-architecture.md)); narrow stylistic scope beats general mush ([style-and-genre-overview](style-and-genre-overview.md)); long-range structure remains the hard problem even for transformers — exactly the failure this project attacks with explicit planning ([generative-music-design-patterns](generative-music-design-patterns.md) P1–P3).
+**Symbolic models** generate notes/events: folk-rnn (LSTM over ABC-notation folk tunes — notably idiomatic within its narrow style); MusicVAE (hierarchical latent space over melodies/trios, whose hierarchical decoder avoids posterior collapse and yields meaningful interpolation); Music Transformer (long-range structure via *relative* attention; convincing minute-long piano continuations); Coconet (Bach-chorale infilling via blocked Gibbs sampling over a convolutional NADE — the model behind Google's 2019 Bach Doodle); pop-song systems (e.g., "Pop Music Transformer"/REMI representations emphasizing beat-position tokens). Lessons transferable to this project: representation matters enormously (beat-position and bar-aware encodings outperform raw event streams — mirroring this project's beats-first [engine-architecture](engine-architecture.md)); narrow stylistic scope beats general mush ([style-and-genre-overview](style-and-genre-overview.md)); long-range structure remains the hard problem even for transformers — exactly the failure this project attacks with explicit planning ([generative-music-design-patterns](generative-music-design-patterns.md) P1–P3).
 
 **Audio models** generate waveforms: Jukebox (2020, raw-audio VQ-VAE, striking but incoherent long-range), then diffusion and token-based systems culminating in the commercial Suno/Udio generation (2023–), which produce full produced songs. Their reception is instructive for evaluation: fluent surface, popular uptake, and persistent critiques of sameness and "slop" — see [what-makes-music-good](what-makes-music-good.md). Legally contested training practices (label lawsuits against Suno/Udio filed 2024) also inform this project's caution about corpus use ([corpus-analysis](corpus-analysis.md)).
 
@@ -44,4 +44,11 @@ Machine learning dominates music generation research and industry since the late
 
 ## Sources
 
-- Author knowledge (cutoff early 2026) of: folk-rnn (Sturm et al.), MusicVAE (Roberts et al. 2018), Music Transformer (Huang et al. 2018), Coconet (Huang et al. 2017), Jukebox (Dhariwal et al. 2020), Magenta.js documentation, RIAA/label suits vs Suno & Udio (2024, ongoing). A future session should verify current state and add URLs — flagged as this page's main lint debt.
+- Sturm, B. L., Santos, J. F., Ben-Tal, O. & Korshunova, I. "Music transcription modelling and composition using deep learning" (folk-rnn). *Proc. 1st Conf. on Computer Simulation of Musical Creativity* (2016). https://arxiv.org/abs/1604.08723
+- Roberts, A., Engel, J., Raffel, C., Hawthorne, C. & Eck, D. "A Hierarchical Latent Vector Model for Learning Long-Term Structure in Music" (MusicVAE). *ICML 2018*. https://arxiv.org/abs/1803.05428
+- Huang, C.-Z. A. et al. "Music Transformer: Generating Music with Long-Term Structure." arXiv 2018 (*ICLR 2019*). https://arxiv.org/abs/1809.04281
+- Huang, C.-Z. A., Cooijmans, T., Roberts, A., Courville, A. & Eck, D. "Counterpoint by Convolution" (Coconet). *ISMIR 2017*; arXiv:1903.07227 (2019). https://arxiv.org/abs/1903.07227 — Bach Doodle write-up: https://magenta.withgoogle.com/coconet
+- Huang, Y.-S. & Yang, Y.-H. "Pop Music Transformer: Beat-based Modeling and Generation of Expressive Pop Piano Compositions" (REMI). *ACM Multimedia 2020*. https://arxiv.org/abs/2002.00212
+- Dhariwal, P., Jun, H., Payne, C., Kim, J. W., Radford, A. & Sutskever, I. "Jukebox: A Generative Model for Music." arXiv 2020. https://arxiv.org/abs/2005.00341
+- Yang, L.-C. & Lerch, A. "On the evaluation of generative models in music." *Neural Computing and Applications* 32 (2020), 4773–4784. https://doi.org/10.1007/s00521-018-3849-7
+- RIAA. "Record Companies Bring Landmark Cases for Responsible AI Against Suno and Udio…" Press release, 2024-06-24 (suits by Sony Music, UMG, and Warner in D. Mass. and SDNY). https://www.riaa.com/record-companies-bring-landmark-cases-for-responsible-ai-againstsuno-and-udio-in-boston-and-new-york-federal-courts-respectively/

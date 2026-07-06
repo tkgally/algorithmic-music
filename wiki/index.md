@@ -65,12 +65,12 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Algorithmic composition
 
-- [algorithmic-composition-history](algorithmic-composition-history.md) — A thousand years of algorithmic composition, from Guido's vowel mapping and dice games through Illiac, Xenakis, Cope, and Iamus to browser generative music — and what actually produced convincing results.
-- [markov-and-statistical-models](markov-and-statistical-models.md) — How Markov chains, variable-order models, and HMMs generate music, why they wander and plagiarize, and the constraint and hierarchy fixes that make them usable.
-- [grammars-and-rewriting-systems](grammars-and-rewriting-systems.md) — Generative grammars, GTTM, Schenkerian elaboration, Steedman's jazz grammar, and L-systems as engines of hierarchical musical structure — the strongest known lever on long-range coherence.
-- [constraint-and-rule-based-methods](constraint-and-rule-based-methods.md) — Composition as constraint satisfaction and rule-guided search — CHORAL, Schottstaedt's penalty counterpoint, modern CP systems, and search strategies that run well in vanilla JavaScript.
-- [stochastic-chaos-and-automata](stochastic-chaos-and-automata.md) — Randomness, 1/f noise, chaos, cellular automata, and swarms as musical raw material — what each demonstrably contributes, and why every one of them needs musical constraints layered on top.
-- [machine-learning-music](machine-learning-music.md) — Survey of ML music generation (symbolic and audio), what it teaches this project, and why the engines here remain rule/knowledge-based — with the browser-feasibility facts for revisiting that choice.
+- [algorithmic-composition-history](algorithmic-composition-history.md) ·reviewed — A thousand years of algorithmic composition, from Guido's vowel mapping and dice games through Illiac, Xenakis, Cope, and Iamus to browser generative music — and what actually produced convincing results.
+- [markov-and-statistical-models](markov-and-statistical-models.md) ·reviewed — How Markov chains, variable-order models, and HMMs generate music, why they wander and plagiarize, and the constraint and hierarchy fixes that make them usable.
+- [grammars-and-rewriting-systems](grammars-and-rewriting-systems.md) ·reviewed — Generative grammars, GTTM, Schenkerian elaboration, Steedman's jazz grammar, and L-systems as engines of hierarchical musical structure — the strongest known lever on long-range coherence.
+- [constraint-and-rule-based-methods](constraint-and-rule-based-methods.md) ·reviewed — Composition as constraint satisfaction and rule-guided search — CHORAL, Schottstaedt's penalty counterpoint, modern CP systems, and search strategies that run well in vanilla JavaScript.
+- [stochastic-chaos-and-automata](stochastic-chaos-and-automata.md) ·reviewed — Randomness, 1/f noise, chaos, cellular automata, and swarms as musical raw material — what each demonstrably contributes, and why every one of them needs musical constraints layered on top.
+- [machine-learning-music](machine-learning-music.md) ·reviewed — Survey of ML music generation (symbolic and audio), what it teaches this project, and why the engines here remain rule/knowledge-based — with the browser-feasibility facts for revisiting that choice.
 
 ## Browser implementation
 

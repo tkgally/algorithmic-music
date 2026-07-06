@@ -1,7 +1,7 @@
 ---
 title: Markov and statistical models
 tags: [algorithms]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: How Markov chains, variable-order models, and HMMs generate music, why they wander and plagiarize, and the constraint and hierarchy fixes that make them usable.
@@ -85,7 +85,7 @@ The previous engine's `DEG_NEXT` (weighted next-degree table over 7 scale degree
 
 - Fernández, J. D. & Vico, F. "AI Methods in Algorithmic Composition: A Comprehensive Survey." *JAIR* 48 (2013), §3.3. https://arxiv.org/abs/1402.0585
 - Pachet, F. & Roy, P. "Markov constraints: steerable generation of Markov sequences." *Constraints* 16(2) (2011). https://link.springer.com/article/10.1007/s10601-010-9101-4
-- Papadopoulos, A., Roy, P. & Pachet, F. "Avoiding Plagiarism in Markov Sequence Generation." *AAAI 2014*. https://ojs.aaai.org/index.php/AAAI/article/view/9130
-- Pearce, M. & Wiggins, G. — IDyOM: variable-order PPM, multiple-viewpoint model of melodic expectation (2004–2012). Overview: https://arxiv.org/abs/1709.03629 (application summary) and https://www.marcus-pearce.com/idyom/
+- Papadopoulos, A., Roy, P. & Pachet, F. "Avoiding Plagiarism in Markov Sequence Generation." *AAAI 2014*. https://ojs.aaai.org/index.php/AAAI/article/view/9126
+- Pearce, M. & Wiggins, G. — IDyOM: variable-order PPM, multiple-viewpoint model of melodic expectation (2004–2012). Authoritative review: Pearce, M. T. "Statistical learning and probabilistic prediction in music cognition: mechanisms of stylistic enculturation." *Annals NY Acad. Sci.* 1423(1) (2018), 378–395. https://doi.org/10.1111/nyas.13654 — model home: https://www.marcus-pearce.com/idyom/
 - Simon, I., Morris, D. & Basu, S. "MySong: Automatic Accompaniment Generation for Vocal Melodies." *CHI 2008*. https://www.microsoft.com/en-us/research/publication/mysong-automatic-accompaniment-generation-for-vocal-melodies/
 - Ames, C. "The Markov Process as a Compositional Model: A Survey and Tutorial." *Leonardo* 22(2) (1989). https://www.jstor.org/stable/1575226

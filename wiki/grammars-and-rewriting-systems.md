@@ -1,7 +1,7 @@
 ---
 title: Grammars and rewriting systems
 tags: [algorithms]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Generative grammars, GTTM, Schenkerian elaboration, Steedman's jazz grammar, and L-systems as engines of hierarchical musical structure — the strongest known lever on long-range coherence.
@@ -13,7 +13,7 @@ A grammar generates music top-down: high-level symbols (piece, section, phrase) 
 
 ## Formal grammars applied to music
 
-Applying Chomsky-style rewriting to music dates to the early 1970s (Lidov & Gabura 1973 for rhythm; Rader 1974's hand-built probabilistic melody grammar; Baroni & Jacoboni 1978's Bach-chorale melody grammar). Fernández & Vico (2013) survey the field and note two persistent findings: nearly all workable systems use regular or context-free grammars (context-sensitive ones have never been made practical beyond toys), and the two central design problems are (a) where rules come from — hand-written from theory, inferred from a corpus, or evolved — and (b) the **mapping problem**: what the symbols denote (notes, chords, melodic segments, or — more interestingly — using the *derivation tree itself* to shape the piece, as in Jones's 1980 "space grammars"). Rules are typically layered: one (sub)grammar for form, one for phrases, one for surface figures. Stochastic grammars attach probabilities to competing productions, which is where Markov-style weighting re-enters ([markov-and-statistical-models.md](markov-and-statistical-models.md)).
+Applying Chomsky-style rewriting to music dates to the early 1970s (Lidov & Gabura 1973's melody-writing formal-language model; Rader 1974's hand-built probabilistic melody grammar; Baroni & Jacoboni 1978's Bach-chorale melody grammar). Fernández & Vico (2013) survey the field and note two persistent findings: nearly all workable systems use regular or context-free grammars (context-sensitive ones have never been made practical beyond toys), and the two central design problems are (a) where rules come from — hand-written from theory, inferred from a corpus, or evolved — and (b) the **mapping problem**: what the symbols denote (notes, chords, melodic segments, or — more interestingly — using the *derivation tree itself* to shape the piece, as in Jones's 1980 "space grammars"). Rules are typically layered: one (sub)grammar for form, one for phrases, one for surface figures. Stochastic grammars attach probabilities to competing productions, which is where Markov-style weighting re-enters ([markov-and-statistical-models.md](markov-and-statistical-models.md)).
 
 ## GTTM: the analytical grammar of tonal listening
 
@@ -84,8 +84,8 @@ The LLM shift: the main historical con — authoring cost — is largely gone. A
 - Lerdahl, F. & Jackendoff, R. *A Generative Theory of Tonal Music.* MIT Press, 1983. Overview: https://en.wikipedia.org/wiki/Generative_theory_of_tonal_music
 - Hamanaka, M., Hirata, K. & Tojo, S. "Implementing 'A Generative Theory of Tonal Music'." *Journal of New Music Research* 35(4) (2006). https://www.tandfonline.com/doi/full/10.1080/09298210701563238
 - Hamanaka, M., Hirata, K. & Tojo, S. "σGTTM III: Learning-Based Time-Span Tree Generator Based on PCFG." *CMMR* (2016). https://link.springer.com/chapter/10.1007/978-3-319-46282-0_25
-- Steedman, M. "A Generative Grammar for Jazz Chord Sequences." *Music Perception* 2(1) (1984). Discussed in Rohrmeier et al., "Principles of structure building in music, language and animal song" (2018): https://arxiv.org/abs/1901.05180
+- Steedman, M. J. "A Generative Grammar for Jazz Chord Sequences." *Music Perception* 2(1) (1984), 52–77. https://doi.org/10.2307/40285282 (PDF: https://homepages.inf.ed.ac.uk/steedman/papers/music/40285282.pdf)
 - Marsden, A. "Schenkerian Analysis by Computer: A Proof of Concept." *Journal of New Music Research* 39(3) (2010). https://www.tandfonline.com/doi/abs/10.1080/09298215.2010.503898
 - Zou, K. et al. "WuYun: Exploring hierarchical skeleton-guided melody generation." (2023). https://arxiv.org/abs/2301.04488
-- Worth, P. & Stepney, S. "Growing Music: Musical Interpretations of L-Systems." *EvoWorkshops* (2005). https://link.springer.com/chapter/10.1007/978-3-540-32003-6_55
+- Worth, P. & Stepney, S. "Growing Music: Musical Interpretations of L-Systems." *EvoWorkshops* (2005). https://link.springer.com/chapter/10.1007/978-3-540-32003-6_56
 - Tsushima, H. et al. "Generative Statistical Models with Self-Emergent Grammar of Chord Sequences." (2017). https://arxiv.org/abs/1708.02255

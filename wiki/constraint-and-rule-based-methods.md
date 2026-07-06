@@ -1,7 +1,7 @@
 ---
 title: Constraint and rule-based methods
 tags: [algorithms]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Composition as constraint satisfaction and rule-guided search — CHORAL, Schottstaedt's penalty counterpoint, modern CP systems, and search strategies that run well in vanilla JavaScript.
@@ -23,7 +23,7 @@ CHORAL (Ebcioğlu 1988) harmonizes chorale melodies in Bach's style with **~350 
 - **Three rule types**: production rules (generate candidates), constraints (absolute prohibitions that prune), and **heuristics** (preferences that rank surviving candidates — "prefer the smoothest bass"). The heuristic layer is what lifts output from "legal" to "musical."
 - **Generate-and-test with intelligent backtracking** over this rule base; Ebcioğlu judged results at the level of a talented music student.
 
-The replication lesson: 350 is the right order of magnitude. Systems with 20 rules produce legal-but-dead output (Tsang & Aitken's 20-rule harmonizer was both inefficient and unimpressive — Fernández & Vico 2013); style lives in the long tail of small preferences.
+The replication lesson: 350 is the right order of magnitude. Too few rules tends toward legal-but-dead output; Tsang & Aitken's 20-rule harmonizer was, in Fernández & Vico's (2013) assessment, "grossly inefficient" — needing up to 70 MB to harmonize an 11-note phrase — and never approached CHORAL's idiomatic quality. Style lives in the long tail of small preferences.
 
 ## Schottstaedt: penalty-based species counterpoint
 
@@ -34,7 +34,7 @@ Schottstaedt's automatic species counterpoint program (CCRMA report STAN-M-19, 1
 The CP-for-music line matured into general systems, surveyed comprehensively by Anders & Miranda (2011): PWConstraints and Situation (PatchWork/OpenMusic), score-PMC for polyphony, PWMC for rhythm+pitch (Sandred 2010), and **Strasheela** (Anders 2007), designed so users define their own theories — its showcase re-implemented Schoenberg's harmony textbook to generate progressions from the rules alone (Anders & Miranda 2009, per Fernández & Vico 2013). Two implementation patterns deserve note:
 
 - **OMClouds** (Truchet et al. 2003) translates constraints into cost functions and runs adaptive tabu (local) search instead of tree search — tolerant of over-constrained problems (returns the best imperfect solution rather than failing), at the price of completeness. For an engine that must always emit *something*, this failure behavior is the right one.
-- **MorpheuS** (Herremans & Chew 2017) generates piano pieces by variable neighborhood search optimizing pitches to (a) match a target tension profile (spiral-array model) and (b) preserve repeated-pattern structure detected from a template piece — long-range structure imposed as constraints on an optimizer, no corpus training at generation time. It is the strongest recent demonstration that "constraint + metaheuristic + explicit tension plan" scales past exercises to whole affect-shaped pieces ([tension-and-release.md](tension-and-release.md)).
+- **MorpheuS** (Herremans & Chew 2017) generates polyphonic (piano) pieces by variable neighborhood search optimizing pitches to (a) match a target tension profile (spiral-array model) and (b) preserve repeated-pattern structure detected from a template piece — long-range structure imposed as constraints on an optimizer, no corpus training at generation time. It is the strongest recent demonstration that "constraint + metaheuristic + explicit tension plan" scales past exercises to whole affect-shaped pieces ([tension-and-release.md](tension-and-release.md)).
 
 ## Hard vs. soft constraints, weighted rules, cost functions
 
@@ -94,5 +94,5 @@ Rule systems bifurcate: **emulation** (CHORAL, Schottstaedt, Löthe — rules tr
 - Ebcioğlu, K. "An Expert System for Harmonizing Four-Part Chorales." *Computer Music Journal* 12(3) (1988); expanded in *J. Logic Programming* 8 (1990). Summarized in Fernández & Vico 2013.
 - Schottstaedt, W. "Automatic Species Counterpoint." CCRMA Tech. Report STAN-M-19, Stanford (1984). https://ccrma.stanford.edu/files/papers/stanm19.pdf
 - Fernández, J. D. & Vico, F. "AI Methods in Algorithmic Composition: A Comprehensive Survey." *JAIR* 48 (2013), §3.2. https://arxiv.org/abs/1402.0585
-- Herremans, D. & Chew, E. "MorpheuS: Generating Structured Music with Constrained Patterns and Tension." *IEEE Trans. Affective Computing* (2017). https://arxiv.org/abs/1812.04832
+- Herremans, D. & Chew, E. "MorpheuS: Generating Structured Music with Constrained Patterns and Tension." *IEEE Trans. Affective Computing* 10(4):510–523 (2019; arXiv 2018). https://doi.org/10.1109/TAFFC.2017.2737984 (arXiv: https://arxiv.org/abs/1812.04832)
 - Biles, J. A. "GenJam: A Genetic Algorithm for Generating Jazz Solos." *ICMC* (1994); fitness-bottleneck discussion per Fernández & Vico 2013, §3.5.

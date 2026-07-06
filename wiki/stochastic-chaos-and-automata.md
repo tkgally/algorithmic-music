@@ -1,7 +1,7 @@
 ---
 title: Stochastic processes, chaos, and automata
 tags: [algorithms]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Randomness, 1/f noise, chaos, cellular automata, and swarms as musical raw material — what each demonstrably contributes, and why every one of them needs musical constraints layered on top.
@@ -29,7 +29,7 @@ The claims, in decreasing order of solidity:
 
 1. **Voss & Clarke (1975/1978):** loudness and pitch *fluctuation spectra* of music (and speech) approximate 1/f at low frequencies (<~1 Hz) across genres; and melodies generated from 1/f sources were judged more pleasing/musical than white (1/f⁰) or brown (1/f²) equivalents by listeners from novices to professionals (Voss & Clarke 1978). The generation result has replicated well informally and grounds the standard reading: 1/f sits between boring and chaotic, correlated at every timescale — self-similar interest (Fernández & Vico 2013).
 2. **Later scrutiny of the analysis claim:** Voss & Clarke's spectra came from hours-long radio recordings — many pieces plus announcer speech concatenated — so the measured 1/f may partly be an artifact of mixing; single works do not show it cleanly (Nettheim 1992's critique, as summarized by Fernández & Vico 2013). Modern careful measurement (Nelias & Geisel 2024, ~450 years of compositions) finds pitch series follow power-law correlations **only up to a cutoff** of roughly 4–100 quarter notes depending on the piece, with a plateau (no correlation) beyond — long-range correlation, yes; scale-free 1/f across whole works, no.
-3. **Rhythm:** Levitin, Chordia & Menon (2012, PNAS) analyzed rhythm spectra in ~2,000 movements of Western classical music and found 1/f^β power laws (β varying ~0.5–1) with **composer-specific exponents** — reportedly Beethoven among the most predictable rhythmically, Mozart among the least — suggesting spectral exponent works as a stylistic signature rather than one universal constant.
+3. **Rhythm:** Levitin, Chordia & Menon (2012, PNAS) analyzed rhythm spectra in 1,788 movements of Western classical music (558 compositions, 40 composers) and found 1/f^β power laws (β varying ~0.5–1) with **composer-specific exponents** — reportedly Beethoven among the most predictable rhythmically, Mozart among the least — suggesting spectral exponent works as a stylistic signature rather than one universal constant.
 4. **Overclaim zone:** "music is fractal," golden-section form analyses, and number-sequence sonifications. Evidence for deliberate or perceptually meaningful self-similar *form* is weak and contested (Edwards 2011 notes the long-running debate over how conscious proportional schemes ever were); treat as numerology unless a specific measurable claim is on the table.
 
 Practical upshot: 1/f is a *defensible default texture for fluctuation parameters* — Voss's algorithm (sum of several held-and-resampled random sources, resampled at octave-spaced rates) is ~10 lines of JS and gives pink control signals for dynamics, tempo drift, density, and ornament rate. For pitch it beats white and brown walks but still needs tonal/phrase syntax on top; and per Nelias & Geisel, real music's correlations *reset* at phrase/section scale — an argument for generating correlated streams per phrase rather than one infinite stream ([rhythm-and-meter.md](rhythm-and-meter.md), [complexity-and-preference.md](complexity-and-preference.md)).
@@ -78,7 +78,7 @@ Every subsection ends the same way, and the survey literature says it explicitly
 
 ## Sources
 
-- Voss, R. F. & Clarke, J. "'1/f noise' in music: Music from 1/f noise." *J. Acoustical Society of America* 63(1) (1978). https://pubs.aip.org/asa/jasa/article/63/1/258/765970
+- Voss, R. F. & Clarke, J. "'1/f noise' in music: Music from 1/f noise." *J. Acoustical Society of America* 63(1) (1978). https://pubs.aip.org/asa/jasa/article/63/1/258/690683
 - Levitin, D., Chordia, P. & Menon, V. "Musical rhythm spectra from Bach to Joplin obey a 1/f power law." *PNAS* 109(10) (2012). https://www.pnas.org/doi/10.1073/pnas.1113828109
 - Nelias, C. & Geisel, T. "Stochastic properties of musical time series." (2024). https://pmc.ncbi.nlm.nih.gov/articles/PMC11519375/
 - Fernández, J. D. & Vico, F. "AI Methods in Algorithmic Composition: A Comprehensive Survey." *JAIR* 48 (2013), §3.6 (incl. Nettheim 1992 critique, CAMUS, WolframTones). https://arxiv.org/abs/1402.0585

@@ -1,7 +1,7 @@
 ---
 title: History of algorithmic composition
 tags: [algorithms]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: A thousand years of algorithmic composition, from Guido's vowel mapping and dice games through Illiac, Xenakis, Cope, and Iamus to browser generative music — and what actually produced convincing results.
@@ -41,7 +41,7 @@ CHORAL (Ebcioğlu 1988) harmonized Bach chorales with ~350 hand-written first-or
 
 ## Cope's EMI/Emmy and the controversy
 
-David Cope's Experiments in Musical Intelligence (begun 1981; ~20,000 lines of Lisp by 2001) works by **recombinance**: analyze a corpus by one composer, segment it into beat-scale units, extract recurring "signatures" and functional labels, then recombine units under an augmented-transition-network grammar so that voice leading and signature placement stay idiomatic (Fernández & Vico 2013; Wikipedia, "Experiments in Musical Intelligence"). In a 1997 University of Oregon event, an audience hearing pianist-performed Bach, a human imitation (Steve Larson), and an EMI piece identified EMI's as the real Bach; Douglas Hofstadter, who lectured widely on Emmy, called it deeply unsettling and "the most thought-provoking project in artificial intelligence" he had encountered (Cope, ed., *Virtual Music*, 2001) — his worry being that if surface style is this mechanizable, style may carry less of music's meaning than believed. Skeptics (e.g., Wiggins 2008, on Cope's later Emily Howell methodology) note the difficulty of evaluating claims when corpus, curation, and cherry-picking are opaque (Fernández & Vico 2013). Lessons: (1) recombination of real music at phrase scale is the historically most convincing route to style emulation; (2) it needs a corpus, which our no-network constraint mostly denies us; (3) selection/curation can silently do much of the work — our [evaluation-challenges.md](evaluation-challenges.md) problem.
+David Cope's Experiments in Musical Intelligence (begun 1981; ~20,000 lines of Lisp by 2001) works by **recombinance**: analyze a corpus by one composer, segment it into beat-scale units, extract recurring "signatures" and functional labels, then recombine units under an augmented-transition-network grammar so that voice leading and signature placement stay idiomatic (Fernández & Vico 2013; Wikipedia, "Experiments in Musical Intelligence"). In a 1997 University of Oregon event, an audience hearing pianist-performed Bach, a human imitation (Steve Larson), and an EMI piece identified EMI's as the real Bach; Douglas Hofstadter, who lectured widely on Emmy, found it deeply unsettling: "EMI forces us to look at great works of art and wonder where they came from and how deep they really are. Nothing I've seen in artificial intelligence has done this so well" (Hofstadter, "Staring Emmy Straight in the Eye — and Doing My Best Not to Flinch," in Cope, ed., *Virtual Music*, 2001) — his worry being that if surface style is this mechanizable, style may carry less of music's meaning than believed. Skeptics (e.g., Wiggins 2008, on Cope's later Emily Howell methodology) note the difficulty of evaluating claims when corpus, curation, and cherry-picking are opaque (Fernández & Vico 2013). Lessons: (1) recombination of real music at phrase scale is the historically most convincing route to style emulation; (2) it needs a corpus, which our no-network constraint mostly denies us; (3) selection/curation can silently do much of the work — our [evaluation-challenges.md](evaluation-challenges.md) problem.
 
 ## Lewis's Voyager
 
@@ -100,10 +100,10 @@ Brian Eno named "generative music" and located its precedents in process pieces:
 - Wikipedia, "Musikalisches Würfelspiel" (accessed 2026-07-06). https://en.wikipedia.org/wiki/Musikalisches_W%C3%BCrfelspiel
 - Wikipedia, "Illiac Suite" (accessed 2026-07-06). https://en.wikipedia.org/wiki/Illiac_Suite
 - Wikipedia, "Experiments in Musical Intelligence" (accessed 2026-07-06). https://en.wikipedia.org/wiki/Experiments_in_Musical_Intelligence
-- Lewis, G. E. "Too Many Notes: Computers, Complexity and Culture in Voyager." *Leonardo Music Journal* 10 (2000). https://direct.mit.edu/lmj/article/doi/10.1162/096112100570585/63300/
+- Lewis, G. E. "Too Many Notes: Computers, Complexity and Culture in Voyager." *Leonardo Music Journal* 10 (2000), 33–39. https://doi.org/10.1162/096112100570585 (open-access PDF: https://eamusic.dartmouth.edu/~larry/algoCompClass/readings/george%20lewis/lewis.too_many_notes.pdf)
 - Eno, B. "Generative Music." Talk, San Francisco, 1996-06-08, transcript. https://www.inmotionmagazine.com/eno1.html
 - Wikipedia, "Dynamic stochastic synthesis" (accessed 2026-07-06). https://en.wikipedia.org/wiki/Dynamic_stochastic_synthesis
 - Wikipedia, "Herbert Brün" (accessed 2026-07-06). https://en.wikipedia.org/wiki/Herbert_Br%C3%BCn
 - Eno, B. & Chilvers, P. Bloom (app page). https://www.generativemusic.com/bloom.html
 - Bainter, A. Generative.fm. https://generative.fm
-- Cope, D. (ed.). *Virtual Music: Computer Synthesis of Musical Style.* MIT Press, 2001 (Hofstadter essays; not fetched — attribution from secondary accounts above).
+- Cope, D. (ed.). *Virtual Music: Computer Synthesis of Musical Style.* MIT Press, 2001 — incl. Hofstadter, "Staring Emmy Straight in the Eye — and Doing My Best Not to Flinch," pp. 33–82 (book not fetched; Hofstadter quote as widely reported from this essay).
