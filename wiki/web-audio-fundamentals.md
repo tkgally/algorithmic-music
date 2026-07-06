@@ -1,7 +1,7 @@
 ---
 title: Web Audio fundamentals
 tags: [implementation]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: The audio-graph mental model, AudioContext lifecycle, AudioParam automation and click-safety, the node zoo, envelope patterns, and OfflineAudioContext rendering — the base layer every engine builds on.

@@ -1,7 +1,7 @@
 ---
 title: Effects and mixing
 tags: [implementation]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: Reverb, delay, modulation, saturation, compression, EQ, stereo strategy, gain staging, and loudness targets for fully synthesized mixes, built from stock Web Audio nodes.
@@ -13,10 +13,11 @@ Raw synthesized voices sound like a demo; a shared effects-and-mixing layer is w
 
 ## Reverb 1: convolution with synthesized impulse responses
 
-The best quality-per-line-of-code: a `ConvolverNode` fed a procedurally generated IR — exponentially decaying noise whose brightness darkens along the tail (real rooms absorb highs faster). No sample files needed:
+The best quality-per-line-of-code: a `ConvolverNode` fed a procedurally generated IR — decaying noise whose brightness darkens along the tail (real rooms absorb highs faster). No sample files needed:
 
 ```js
 function makeIR(ctx, rng, seconds = 2.2, decayPow = 2.6, damp = 0.25) {
+  // decaying noise (power-law envelope, not literally exponential)
   const n = Math.ceil(ctx.sampleRate * seconds);
   const buf = ctx.createBuffer(2, n, ctx.sampleRate);
   for (let ch = 0; ch < 2; ch++) {
@@ -37,7 +38,7 @@ Key moves: **independent noise per channel** decorrelates left/right, which *is*
 
 ## Reverb 2: algorithmic (Schroeder/Freeverb) and FDNs
 
-Schroeder's classic: parallel feedback comb filters (build the echo density envelope) into series allpasses (smear echoes without coloring). Freeverb, the reference public-domain implementation, uses per channel **eight lowpass-feedback combs** — delays 1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617 samples at 44.1 kHz — into **four series allpasses** (556, 441, 341, 225 samples, coefficient 0.5), right channel offset by **+23 samples** ("stereospread"); feedback ≈ 0.84 with a one-pole "damp" lowpass ≈ 0.2 in each comb loop. All of this maps directly to `DelayNode + BiquadFilterNode + GainNode` loops (convert samples → seconds via `ctx.sampleRate`; all these delays exceed the 128-frame cycle clamp, so node graphs work). Worth building when reverb parameters must *move* (decay/damping automation, which a static convolver cannot do) — otherwise convolution wins on cost. Feedback delay networks (FDNs) generalize this — N delays cross-coupled through an orthogonal (e.g., Hadamard) matrix — smoother and more tunable, but at Web Audio node granularity a 4×4 FDN is ~30 nodes; consider a worklet if pursuing it ([audio-worklets-and-performance](audio-worklets-and-performance.md)).
+Schroeder's classic: parallel feedback comb filters (build the echo density envelope) into series allpasses (smear echoes without coloring). Freeverb, the reference public-domain implementation, uses per channel **eight lowpass-feedback combs** — delays 1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617 samples at 44.1 kHz — into **four series allpasses** (556, 441, 341, 225 samples, coefficient 0.5), right channel offset by **+23 samples** ("stereospread"); the original Jezar reference defaults are feedback ≈ 0.84 with a one-pole "damp" lowpass ≈ 0.2 in each comb loop (the STK C++ port cited below changes its own defaults to feedback ≈ 0.91 / damp ≈ 0.1 — start from either and tune by ear). All of this maps directly to `DelayNode + BiquadFilterNode + GainNode` loops (convert samples → seconds via `ctx.sampleRate`; all these delays exceed the 128-frame cycle clamp, so node graphs work). Worth building when reverb parameters must *move* (decay/damping automation, which a static convolver cannot do) — otherwise convolution wins on cost. Feedback delay networks (FDNs) generalize this — N delays cross-coupled through an orthogonal (e.g., Hadamard) matrix — smoother and more tunable, but at Web Audio node granularity a 4×4 FDN is ~30 nodes; consider a worklet if pursuing it ([audio-worklets-and-performance](audio-worklets-and-performance.md)).
 
 ## Delays
 
@@ -86,7 +87,7 @@ Per-bus `BiquadFilterNode`s, few and broad:
 
 Web Audio processes in float32 — **no clipping between nodes** regardless of level; only the destination's conversion to hardware clamps at ±1. So a single master trim can rescue internal hotness, *but* level still matters at every nonlinear stage (waveshaper, compressor, and the drive-dependent character of both). Practice: peak buses around −12 to −6 dBFS, master chain = sum → gentle glue compressor → saturation (optional) → limiter → destination, leaving the limiter idle in normal operation.
 
-Loudness targets: streaming services normalize to roughly **−14 LUFS integrated** (Spotify: −14, with −19 "quiet" and −11 "loud" premium modes; true peak ≤ −1 dBTP recommended); EBU R128 broadcast sits at −23. A background-music engine should *undershoot* deliberately — the previous experiments landed near −22 dBFS RMS by design. Approximating LUFS in JS (ITU-R BS.1770): K-weight the signal (a ~+4 dB high-shelf above ~1.5 kHz plus a low-frequency roll-off — two biquads approximate it), mean-square over 400 ms blocks with 75% overlap, gate blocks below −70 LUFS absolute and −10 LU relative, then `LUFS = −0.691 + 10·log10(mean of gated block powers)`. Run it over `OfflineAudioContext` renders in the evaluation loop ([computational-music-metrics](computational-music-metrics.md)) rather than live; exact filter coefficients are in BS.1770 — validate the approximation once against a reference meter.
+Loudness targets: streaming services normalize to roughly **−14 LUFS integrated** (Spotify: −14, with −19 "quiet" and −11 "loud" premium modes; true peak ≤ −1 dBTP recommended); EBU R128 broadcast sits at −23. A background-music engine should *undershoot* deliberately — the previous experiments landed near −22 dBFS RMS by design. Approximating LUFS in JS (ITU-R BS.1770): K-weight the signal (a ~+4 dB high-shelf with its corner roughly 1.5–2 kHz plus a low-frequency roll-off — two biquads approximate it), mean-square over 400 ms blocks with 75% overlap, gate blocks below −70 LUFS absolute and −10 LU relative, then `LUFS = −0.691 + 10·log10(mean of gated block powers)`. Run it over `OfflineAudioContext` renders in the evaluation loop ([computational-music-metrics](computational-music-metrics.md)) rather than live; exact filter coefficients are in BS.1770 — validate the approximation once against a reference meter.
 
 **Mix while quiet:** balance decisions made at the actual target listening level (quiet!) survive; decisions made loud do not, per the equal-loudness effect above. Also level-match any A/B comparison (±1.5 dB) or the louder option wins by default.
 
