@@ -1,7 +1,7 @@
 ---
 title: Musical expectation
 tags: [psychology]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: How listeners predict what comes next in music, why violations and confirmations of those predictions generate affect, and the computational models (IDyOM, predictive coding) that quantify surprise and uncertainty.
@@ -17,7 +17,7 @@ Leonard Meyer's *Emotion and Meaning in Music* (1956) is the founding text. Draw
 
 ## Narmour: implication-realization
 
-Eugene Narmour's implication-realization (I-R) model reworked Meyer into a bottom-up, note-to-note system of Gestalt-derived expectations, largely for melody. Its core claim: a small interval *implies* continuation in the same direction (a "process"), while a large interval (a "skip") *implies* a change of direction and a return toward the register just left (a "reversal"), often described as gap-fill. Narmour formalized this as two schemas: A+A→A (repetition breeds expected repetition) and A+B→C (change breeds expected further change). These bottom-up implications are claimed to be relatively innate and cross-cultural, and they operate alongside top-down schematic knowledge. Empirical tests support proximity and gap-fill but treat the fuller archetype taxonomy more skeptically; much of what I-R predicts is now better captured statistically (below).
+Eugene Narmour's implication-realization (I-R) model reworked Meyer into a bottom-up, note-to-note system of Gestalt-derived expectations, largely for melody. Its core claim: a small interval *implies* continuation in the same direction (a "process"), while a large interval (a "skip") *implies* a change of direction and a return toward the register just left (a "reversal"), often described as gap-fill. Narmour formalized this as two schemas: A+A→A (repetition breeds expected repetition) and A+B→C (change breeds expected further change) — see Narmour's original monograph, below. These bottom-up implications are claimed to be relatively innate and cross-cultural, and they operate alongside top-down schematic knowledge. Rohrmeier & Cross (2013) found empirical support for the proximity, registral-direction, and registral-return (≈ gap-fill) principles, but not for intervallic difference or closure, and note that a simplified two-principle model loses little explanatory power versus Narmour's fuller archetype taxonomy; much of what I-R predicts is now better captured statistically (below).
 
 ## Huron: the ITPRA theory
 
@@ -44,11 +44,11 @@ Marcus Pearce's IDyOM (Information Dynamics of Music) is the leading computation
 - **Information content (IC)** = −log2 p(event | context): the *surprise* of the event that actually occurred. High IC = unexpected.
 - **Entropy** (H) = expected IC over all possible continuations: the *uncertainty* of the prediction before the event. High H = the model was unsure what would come next.
 
-IDyOM combines a **long-term model** (schematic expectations learned from a training corpus) with a **short-term model** (dynamic expectations learned within the current piece, e.g. picking up a repeated motif). Its IC values correlate well with human surprise ratings, with reaction-time and pupil measures, and with neural responses (the mismatch negativity and later components). IC and entropy are distinct and both matter — a point the reward studies below exploit.
+IDyOM combines a **long-term model** (schematic expectations learned from a training corpus) with a **short-term model** (dynamic expectations learned within the current piece, e.g. picking up a repeated motif). Hansen & Pearce (2014) found IDyOM's IC values correlate with human unexpectedness ratings (r ≈ 0.7, higher for musicians); the broader IDyOM literature they draw on separately reports IC and entropy tracking reaction-time and pupil measures and neural responses (the mismatch negativity and later ERP components). IC and entropy are distinct and both matter — a point the reward studies below exploit.
 
 ## Predictive coding accounts
 
-Vuust, Koelsch, and others frame all of this as predictive processing: the brain maintains a hierarchical generative model of the auditory stream, propagates predictions downward, and passes *prediction errors* upward to update the model. Crucially, prediction errors are **precision-weighted** — their influence is scaled by how confident (certain) the prediction was. In low-uncertainty contexts a violation produces a large, sharp error signal; in high-uncertainty contexts the same violation is discounted. This gives a mechanistic reason why *both* the surprise of an event and the uncertainty of its context determine the response, and it predicts that stable, confident contexts make violations hit harder.
+Vuust, Koelsch, and others frame all of this as predictive processing: the brain maintains a hierarchical generative model of the auditory stream, propagates predictions downward, and passes *prediction errors* upward to update the model. Crucially, prediction errors are **precision-weighted** — their influence is scaled by how confident (certain) the prediction was. In low-uncertainty contexts a violation produces a large, sharp error signal; in high-uncertainty contexts the same violation is discounted. Hsu, Waszak & Hämäläinen (2019) demonstrated exactly this precision-weighting pattern experimentally with non-musical tone sequences (high-precision contexts showed larger, sharper prediction-error responses; low-precision contexts showed the response discounted or absent) — general auditory evidence for a mechanism the music-specific predictive-coding literature (Koelsch, Vuust & Friston 2019) applies to musical expectation. This gives a mechanistic reason why *both* the surprise of an event and the uncertainty of its context determine the response, and it predicts that stable, confident contexts make violations hit harder.
 
 ## Uncertainty × surprise and the pleasure peak
 
@@ -97,8 +97,10 @@ A composer plays these against each other; delayed gratification (withholding th
 
 - Leonard B. Meyer, *Emotion and Meaning in Music*, University of Chicago Press, 1956 — https://press.uchicago.edu/ucp/books/book/chicago/E/bo28551887.html
 - David Huron, *Sweet Anticipation: Music and the Psychology of Expectation*, MIT Press, 2006 (via Pearce's review) — https://www.doc.gold.ac.uk/~mas03dm/papers/huron06-review.pdf
-- Rohrmeier & Cross et al., "Artificial Grammar Learning of Melody Is Constrained by Melodic Inconsistency: Narmour's Principles Affect Melodic Learning," 2013 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3706544/
+- Eugene Narmour, *The Analysis and Cognition of Basic Melodic Structures: The Implication-Realization Model*, University of Chicago Press, 1990 (I-R schema notation) — https://en.wikipedia.org/wiki/Implication-realization_model
+- Rohrmeier & Cross, "Artificial Grammar Learning of Melody Is Constrained by Melodic Inconsistency: Narmour's Principles Affect Melodic Learning," 2013 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3706544/
 - Hansen & Pearce, "Predictive uncertainty in auditory sequence processing" (IDyOM), 2014 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4171990/
-- "Prior Precision Modulates the Minimization of Auditory Prediction Error" (predictive coding, Vuust/Koelsch tradition), 2019 — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6385564/
+- Hsu, Waszak & Hämäläinen, "Prior Precision Modulates the Minimization of Auditory Prediction Error," Frontiers in Human Neuroscience, 2019 (non-musical precision-weighting evidence) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6385564/
+- Koelsch, Vuust & Friston, "Predictive Processes and the Peculiar Case of Music," Trends in Cognitive Sciences 23(1), 2019 (music-specific predictive-coding framework) — https://doi.org/10.1016/j.tics.2018.10.006
 - Cheung et al., "Uncertainty and Surprise Jointly Predict Musical Pleasure...," Current Biology 29(23), 2019 — https://doi.org/10.1016/j.cub.2019.09.067
 - Gold, Pearce, Mas-Herrero, Dagher & Zatorre, "Predictability and Uncertainty in the Pleasure of Music: A Reward for Learning?," J. Neurosci., 2019 — https://pmc.ncbi.nlm.nih.gov/articles/PMC6867811/

@@ -1,7 +1,7 @@
 ---
 title: Pleasure and reward
 tags: [psychology]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-06
 summary: The neuroscience of why music feels good — chills/frisson and their structural triggers, dopaminergic reward (Salimpoor, Blood & Zatorre), the anticipation engine, specific musical anhedonia showing music reward is dissociable, and aesthetic emotions beyond chills.
@@ -17,7 +17,7 @@ The clearest handle on musical pleasure is the "chill" (frisson): a shiver, goos
 
 ## Structural triggers of chills
 
-Crucially for an engine, chills are not random — they cluster at identifiable structural moments. Sloboda's foundational questionnaire study (1991) and later work by Grewe, Panksepp, and others converge on a list of triggers:
+Crucially for an engine, chills are not random — they cluster at identifiable structural moments. Sloboda's foundational questionnaire study (1991) and later acoustic-correlate work by Guhn, Hamm & Zentner (2007) and Grewe, Nagel, Kopiez & Altenmüller (2007) converge on a list of triggers:
 
 - **Sudden dynamic or textural change** — an unexpected swell, a new instrument or voice entering, a drop, a sudden thickening or thinning of texture.
 - **New or unprepared harmony** — a harmonic move the listener did not see coming; enharmonic changes; expressive dissonance and its resolution.
@@ -41,7 +41,7 @@ Two studies by Salimpoor, Zatorre, and colleagues sharpened the picture:
 
 ## Specific musical anhedonia: reward is dissociable
 
-Does music reward really stand on its own, or is it a side-effect of general reward or of arousal? Mas-Herrero and colleagues answered with **specific musical anhedonia**: a minority of people (on the order of ~5%) get little or no pleasure from music despite (a) intact music *perception* (they can tell sad from happy, detect wrong notes) and (b) intact reward responses to *other* things (money, food). Their subdued response is specific to music — reduced physiological reactivity and reduced nucleus-accumbens engagement to music, but normal responses to a monetary task. Individual differences are measured with the **Barcelona Music Reward Questionnaire (BMRQ)**, which finds a wide, roughly five-factor spread of musical hedonia across the population. The upshot: musical reward is a genuine, dissociable trait, not reducible to general reward or arousal — and it varies enormously between people, which any evaluation of "good music" must account for.
+Does music reward really stand on its own, or is it a side-effect of general reward or of arousal? Mas-Herrero and colleagues answered with **specific musical anhedonia**: a minority of people (estimates in the literature range roughly **3–10%**, depending on the BMRQ cutoff used) get little or no pleasure from music despite (a) intact music *perception* (they can tell sad from happy, detect wrong notes) and (b) intact reward responses to *other* things (money, food). Their subdued response is specific to music — reduced physiological reactivity and reduced nucleus-accumbens engagement to music, but normal responses to a monetary task. Individual differences are measured with the **Barcelona Music Reward Questionnaire (BMRQ)**, which finds a wide, roughly five-factor spread of musical hedonia across the population. The upshot: musical reward is a genuine, dissociable trait, not reducible to general reward or arousal — and it varies enormously between people, which any evaluation of "good music" must account for.
 
 ## Anticipation is the engine
 
@@ -90,5 +90,7 @@ Pleasure is not fixed per piece; it moves with exposure. As covered in [repetiti
 - Salimpoor, Benovoy, Larcher, Dagher & Zatorre, "Anatomically distinct dopamine release during anticipation and experience of peak emotion to music," Nature Neuroscience, 2011 — https://doi.org/10.1038/nn.2726
 - Salimpoor et al., "Interactions Between the Nucleus Accumbens and Auditory Cortices Predict Music Reward Value," Science, 2013 — https://doi.org/10.1126/science.1231059
 - Mas-Herrero, Zatorre, Rodriguez-Fornells & Marco-Pallarés, "Dissociation between Musical and Monetary Reward Responses in Specific Musical Anhedonia," Current Biology, 2014 (BMRQ) — https://doi.org/10.1016/j.cub.2014.01.068 ; validation: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4806630/
-- Mori & Iwanaga, "Two types of peak emotional responses to music: The psychophysiology of chills and tears," 2017 (confirms Sloboda 1991 structural triggers) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5384201/
+- Mori & Iwanaga, "Two types of peak emotional responses to music: The psychophysiology of chills and tears," 2017 (distinct physiological signatures for chills vs. tears/being-moved) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5384201/
+- Guhn, Hamm & Zentner, "Physiological and musico-acoustic correlates of the chill response," Music Perception 24(5), 2007 (structural/acoustic chill triggers)
+- Grewe, Nagel, Kopiez & Altenmüller, "Listening to music as a re-creative process: Physiological, psychological, and psychoacoustical correlates of chills and strong emotions," Music Perception 24(3), 2007 (structural chill triggers)
 - Gold et al., "Predictability and Uncertainty in the Pleasure of Music," J. Neurosci., 2019 — https://pmc.ncbi.nlm.nih.gov/articles/PMC6867811/
