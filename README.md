@@ -1,1 +1,1 @@
-# algorithmic-music-1
+# algorithmic-music
