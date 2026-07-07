@@ -1,9 +1,9 @@
 ---
 title: Rhythm and meter
 tags: [theory]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: How listeners infer a metrical grid from onsets, how syncopation and swing are measured, and how timelines, Euclidean rhythms, polyrhythm, and additive meters give rhythm an identity beyond a quantized grid.
 ---
 
@@ -26,13 +26,13 @@ The **tactus** is the pulse level listeners tap and clap to — the reference be
 
 ## Pulse salience and tempo ranges
 
-Van Noorden & Moelants (1999) modeled tapping data with a **damped harmonic oscillator** whose resonance peaks near **2 Hz (≈120 BPM)**; tempi near this resonance feel most natural and elicit the strongest spontaneous movement. Preferred perceived tempo spans roughly **80–160 BPM**, centered around 100–120 (Moelants 2002). Sensorimotor synchronization (Repp 2005, reviewing the tapping literature) has hard limits: people cannot reliably synchronize to inter-onset intervals (IOIs) shorter than **~100–200 ms** (the tactus cannot be faster than ~5–6 events/s) or longer than **~1.8–2 s**; beyond ~2 s the sense of a connected pulse dissolves. Taps also **precede** the beat by a **negative mean asynchrony** of tens of milliseconds (smaller for trained musicians). Implication: put the tactus in the 500–750 ms range (80–120 BPM) for default listenability, reserve faster surface activity for subdivisions of that tactus, and do not expect a felt beat above ~300 BPM or below ~33 BPM.
+Van Noorden & Moelants (1999) modeled tapping data with a **damped harmonic oscillator** whose resonance peaks near **2 Hz (≈120 BPM)**; tempi near this resonance feel most natural and elicit the strongest spontaneous movement. Preferred perceived tempo spans roughly **80–160 BPM**; Moelants (2002) revises the older ~100 BPM estimate upward, arguing the center sits closer to **120–130 BPM**. Sensorimotor synchronization (Repp 2005, reviewing the tapping literature) has hard limits: people cannot reliably synchronize to inter-onset intervals (IOIs) shorter than **~100–200 ms** (the tactus cannot be faster than ~5–10 events/s) or longer than **~1.8–2 s**; beyond ~2 s the sense of a connected pulse dissolves. Taps also **precede** the beat by a **negative mean asynchrony** of tens of milliseconds (smaller for trained musicians). Implication: put the tactus in the 500–750 ms range (80–120 BPM) for default listenability, reserve faster surface activity for subdivisions of that tactus, and do not expect a felt beat above ~300 BPM or below ~33 BPM.
 
 ## Syncopation and how to measure it
 
 Syncopation is an onset on a metrically weak position where the following stronger position is *not* articulated — the surface pulls against the grid without dislodging it. The **Longuet-Higgins & Lee (1984)** model quantifies this. Assign each metrical position a weight equal to its level: for a 4/4 bar at sixteenth resolution, the downbeat is 0, the half-bar −1, the quarter beats −2, the eighths −3, the sixteenths −4 (deeper = more negative). A syncopation occurs when a note (or its tie) at a weaker position is followed by a **rest or tied continuation** at a stronger position; its score is the **difference of the two weights** (stronger position weight minus the onset's weight). Total syncopation is the sum over the bar. Higher = more syncopated.
 
-Fitch & Rosenfeld (2007) validated this against tapping: syncopation predicts perceived complexity and reproduction difficulty, and at **high syncopation levels listeners show "pulse reversals"** — they re-anchor the beat onto the syncopated onsets, i.e. the meter flips. This is the ceiling an engine must respect: past a threshold, syncopation stops being spice and becomes a different (or absent) meter.
+Fitch & Rosenfeld (2007) validated this against tapping: syncopation predicts perceived complexity and reproduction difficulty, and at **high syncopation levels listeners "reset"** — their own term for re-anchoring the tapped beat onto the syncopated onsets, i.e. the meter flips (the correlation between syncopation index and resetting was strong, r=.78). This is the ceiling an engine must respect: past a threshold, syncopation stops being spice and becomes a different (or absent) meter.
 
 The LHL model handles a single monophonic line. **Witek et al. (2014)** extended it with **instrumental weights** for a drum kit so that syncopation is also counted *between instruments* — e.g. a snare on a weak position followed by an unarticulated strong position where the bass drum "should" fall. This polyphonic syncopation index is the one to use for drum programming; it underlies the groove inverted-U (see [groove-and-embodiment.md](groove-and-embodiment.md)). Senn and colleagues have since shown these weight-based models predict listener syncopation ratings reasonably but imperfectly, and that exact weight schemes need tuning per style.
 
@@ -71,7 +71,7 @@ Rest is a rhythmic device, not absence: a silence on a strong beat (backbeat dis
 
 - **Build a metrical grid explicitly** as a weight vector, not just a list of slots. For 4/4 at sixteenth resolution use LHL weights per position (downbeat 0, beat 3 = −1, beats 2&4 = −2, offbeat eighths = −3, sixteenths = −4). Every generation and evaluation decision (accent, syncopation, note placement) references this vector.
 - **Default tactus 500–750 ms (80–120 BPM).** Keep the felt beat in this band; put density in subdivisions of it. Never place the tactus faster than ~100 ms IOI or slower than ~2 s.
-- **Target medium syncopation.** Compute the Witek/LHL polyphonic syncopation score and aim for the middle of the range (the inverted-U peak, see [groove-and-embodiment.md](groove-and-embodiment.md)) — roughly, a few weak-position onsets per bar whose following strong position is a rest, but keep the downbeat and one backbeat articulated so the meter does not flip (avoid Fitch & Rosenfeld pulse reversal).
+- **Target medium syncopation.** Compute the Witek/LHL polyphonic syncopation score and aim for the middle of the range (the inverted-U peak, see [groove-and-embodiment.md](groove-and-embodiment.md)) — roughly, a few weak-position onsets per bar whose following strong position is a rest, but keep the downbeat and one backbeat articulated so the meter does not flip (avoid Fitch & Rosenfeld's "resetting").
 - **Swing = tempo-dependent long–short, not fixed 2:1.** Implement swing as an offbeat delay of ~80–110 ms held roughly constant across medium/fast tempos (ratio ~3.3:1 at 90 BPM narrowing toward ~1.5:1 at 200 BPM), not a fixed ratio. This is a scheduling detail; see [scheduling-and-timing.md](scheduling-and-timing.md).
 - **Give each groove a timeline.** Pick one asymmetric ostinato (son clave, a 12-pulse bell, a Euclidean E(k,n) candidate) as the cycle's identity and reference every other voice to it, instead of independently subdividing. Rotate Euclidean outputs to the culturally/aesthetically correct phase; do not assume the raw algorithm output is the usable pattern.
 - **Quantize to integer-ratio categories, then shade.** Generate durations from small integer ratios (favor binary subdivisions for accessibility, reserve 3- and 5-groupings for deliberate complexity), and treat expressive timing as small deviations *within* a category — not as new grid resolutions.
@@ -82,7 +82,7 @@ Rest is a rhythmic device, not absence: a silence on a strong beat (backbeat dis
 
 - Best per-style LHL/Witek weight schemes: published weights are tuned to funk drum-breaks; do they transfer to swing, Afrobeat, or gamelan colotomy? (See [gamelan.md](gamelan.md), [indian-classical-music.md](indian-classical-music.md).)
 - How to choose the correct rotation of a Euclidean pattern automatically, without a culture-specific lookup.
-- Where exactly the syncopation "pulse-reversal" threshold sits as a function of tempo and how many anchoring strong-beat onsets are needed to prevent it.
+- Where exactly the syncopation "resetting" threshold (Fitch & Rosenfeld's term for the meter flip) sits as a function of tempo and how many anchoring strong-beat onsets are needed to prevent it.
 
 ## Related pages
 
