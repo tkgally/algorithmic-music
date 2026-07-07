@@ -1,9 +1,9 @@
 ---
 title: Gamelan
 tags: [genre]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Javanese and Balinese gamelan as human-made algorithmic music — colotomic gong cycles, a core melody elaborated at fixed density ratios, paired-detuned non-equal tunings, and interlocking figuration.
 ---
 
@@ -58,7 +58,7 @@ Independently of irama, tempo proper (*laya*) can be fast, medium, or slow. So a
 
 - **Slendro**: five tones per octave, *roughly* but deliberately not exactly equidistant; interval sizes vary between gamelans, and "no two gamelan sets will have exactly the same tuning" (Wikipedia, Slendro).
 - **Pelog**: seven unequal tones per octave, of which five-tone subsets are used in practice; Balinese gong kebyar uses *pelog selisir* (tones 1,2,3,5,6).
-- **Ombak** ("wave"): Balinese instruments come in detuned pairs — the lower *pengumbang* and higher *pengisep* — e.g., 220 Hz against 228 Hz on paired gangsa, producing a deliberate beating that gives the ensemble its shimmering pulsation; large gongs also carry a slow built-in beat of a few Hz. Beating rate is a tuned aesthetic parameter, not an accident.
+- **Ombak** ("wave"): Balinese instruments come in detuned pairs — the lower *pengumbang* and higher *pengisep* — producing a deliberate beating that gives the ensemble its shimmering pulsation; documented beat rates run around 8 Hz for gong kebyar and roughly 5–7 Hz for gender wayang (the exact Hz offset between a given pair depends on the specific ensemble's tuning, which is not standardized). Beating rate is a tuned aesthetic parameter, not an accident.
 - Sethares argues gamelan scales and the inharmonic spectra of bars and gongs are co-adapted: consonance for these timbres genuinely peaks near gamelan intervals, not near Western ones. Tuning and timbre must be designed together.
 
 ## Pathet: the modal layer
@@ -67,7 +67,7 @@ Independently of irama, tempo proper (*laya*) can be fast, medium, or slow. So a
 
 ## Kotekan: interlocking figuration (Bali)
 
-Balinese *kotekan* splits a rapid figuration line between two parts: *polos* (mostly on-beat) and *sangsih* (mostly off-beat), each rhythmically incomplete, sounding together as one line "that often sounds faster than any single human could possibly play" (Wikipedia, Kotekan). Varieties include nyog cag (strict alternation), kotekan telu (built on three shared pitches), and kotekan empat (four pitches, no sharing). The composite runs at 4–8× the density of the core melody (*pokok*). This is the same interlocking principle found in [west-african-rhythm](west-african-rhythm.md) (amadinda, mbira) — two simple parts, one emergent surface.
+Balinese *kotekan* splits a rapid figuration line between two parts: *polos* (mostly on-beat) and *sangsih* (mostly off-beat), each rhythmically incomplete, sounding together as one line "that often sounds faster than any single human could possibly play" (Wikipedia, Kotekan). Varieties include nyog cag (strict alternation), kotekan telu (built on three shared pitches), and kotekan empat (four pitches, no sharing). The composite runs at four or eight times the density of the core melody (*pokok*) — two discrete multipliers, not a continuous range. This is the same interlocking principle found in [west-african-rhythm](west-african-rhythm.md) (amadinda, mbira) — two simple parts, one emergent surface.
 
 ## Implications for generative engines
 
