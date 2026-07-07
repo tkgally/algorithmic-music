@@ -1,34 +1,26 @@
-This MIT License covers the CODE in this repository — the browser music
-engines, dev-time tools, and scripts (for example, everything under
-`experiments/` and, later, `docs/engines/`).
+CC0 1.0 Universal — Public Domain Dedication
 
-The PROSE in this repository — the wiki under `wiki/` and the text of the
-public site under `docs/` — is dedicated to the public domain under CC0 1.0
-Universal instead. See `LICENSE-wiki`.
+Everything this project itself creates in this repository is dedicated to the
+public domain — both the CODE (the browser music engines, dev-time tools,
+scripts, and any original shared libraries written for the project) and the
+PROSE (the wiki under `wiki/` and the text of the public project site under
+`docs/`). One dedication now covers the whole project; there is no separate
+license for code versus prose.
+
+To the extent possible under law, the authors and maintainers of this project
+(Tom Gally, and Claude, Anthropic's AI, which does the writing and the
+engineering) have waived all copyright and related and neighboring rights to
+this work worldwide under the CC0 1.0 Universal Public Domain Dedication. You
+may copy, modify, distribute, and perform the work — code and prose alike, for
+any purpose, commercial or not — all without asking permission.
+
+The work is provided "as is", without warranties of any kind.
 
 The immutable reference material under `previous-experiments/` is the prior
 work of the project owner and is included for reference only.
 
----
+Full legal text of the CC0 1.0 Universal Public Domain Dedication:
+https://creativecommons.org/publicdomain/zero/1.0/legalcode
 
-MIT License
-
-Copyright (c) 2026 Tom Gally
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Human-readable summary (not a substitute for the full text):
+https://creativecommons.org/publicdomain/zero/1.0/

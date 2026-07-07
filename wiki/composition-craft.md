@@ -1,9 +1,9 @@
 ---
 title: Composition craft
 tags: [craft]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Recurring advice from composers and treatises across three centuries — economy of material, unity vs. variety, constraint as fuel, revision, trajectory, orchestration clarity, silence — distilled into a working checklist an engine can apply.
 ---
 
@@ -16,7 +16,7 @@ Composers have left three centuries of practical testimony about how good pieces
 The single most repeated piece of craft advice is to generate a whole piece from one or two small ideas rather than a parade of new ones.
 
 - Beethoven's sketchbooks are the canonical evidence. He sketched continuously across his career, carried ideas for years, and in his middle period based entire movements on material stated in the opening bars (the "germ motive" practice). Reported by Louis Schlösser (an 1885 reminiscence, so treat the wording cautiously): "I carry my thoughts about me for a long time, sometimes a very long time, before I set them down."
-- Schoenberg named the general technique developing variation: each new phrase is a variation of the basic motive, changing less-important features while preserving the more-important ones, so the piece grows instead of merely continuing. In his essay "Bach" (1950, in *Style and Idea*) he claims variation of "a basic unit produces all the thematic formulations which provide for fluency, contrasts, variety, logic and unity." He held Brahms to be the technique's most advanced practitioner.
+- Schoenberg named the general technique developing variation: each new phrase is a variation of the basic motive, changing less-important features while preserving the more-important ones, so the piece grows instead of merely continuing. In his essay "Bach" (1950, in *Style and Idea*) he claims that "variation of the features of a basic unit produces all the thematic formulations which provide for fluency, contrasts, variety, logic and unity." He held Brahms to be the technique's most advanced practitioner.
 - The flip side of economy is deletion. Brahms, in George Henschel's 1876 journal (published 1907): "It is not hard to compose, but it is wonderfully hard to let the superfluous notes fall under the table."
 
 Engine translation: a piece should own a small motive inventory (one to three cells) and derive nearly everything by transformation — transpose, invert, augment, re-harmonize, fragment — rather than sampling fresh material per phrase. See [melody.md](melody.md) and [phrase-structure.md](phrase-structure.md).
@@ -50,7 +50,7 @@ Craft teaching treats a piece as a directed journey, not a texture. Alan Belkin'
 
 ## Orchestration wisdom
 
-Rimsky-Korsakov's *Principles of Orchestration* (posthumous, 1912) is the standard craft source, with maxims that generalize beyond the orchestra to any synthesized texture:
+Rimsky-Korsakov's *Principles of Orchestration* (posthumous; edited by Steinberg, completed 1912, first published 1913) is the standard craft source, with maxims that generalize beyond the orchestra to any synthesized texture:
 
 - "To orchestrate is to create, and this is something which cannot be taught" — tone color is part of the composition, not a coat of paint applied afterward. Conceive material with its timbre.
 - "In the orchestra there is no such thing as ugly quality of tone" — problems are problems of combination and register, not of instruments.
@@ -64,7 +64,7 @@ Both workflows have distinguished defenders and neither won. Rameau derived melo
 
 ## Silence and space
 
-Debussy, to Ernest Chausson while composing *Pelléas* (September 1893): "Quite spontaneously I've made use of a means of expression that seems to me quite special, which is silence — don't laugh!" (The floating aphorism "music is the space between the notes," attributed variously to Debussy and Mozart, is unverifiable — treat as apocryphal.) The practical rule appears in every orchestration and arranging text: rests articulate phrases, silence before an event magnifies it, and continuous full texture numbs the ear. Generated music fails here constantly — engines tend to emit sound at uniform density. Budget silence like a resource: phrase gaps, dropped voices, a genuine general pause before a structural arrival.
+Debussy, to Ernest Chausson while composing *Pelléas* (2 October 1893): "Quite spontaneously I've made use of a means of expression that seems to me quite special, which is silence — don't laugh!" (The floating aphorism "music is the space between the notes," attributed variously to Debussy and Mozart, is unverifiable — treat as apocryphal.) The practical rule appears in every orchestration and arranging text: rests articulate phrases, silence before an event magnifies it, and continuous full texture numbs the ear. Generated music fails here constantly — engines tend to emit sound at uniform density. Budget silence like a resource: phrase gaps, dropped voices, a genuine general pause before a structural arrival.
 
 ## A composer's working checklist
 
@@ -117,8 +117,8 @@ Synthesized from the sources above; phrased so an engine (or a session reviewing
 - C.P.E. Bach, *Essay on the True Art of Playing Keyboard Instruments*, 1753, trans. W. J. Mitchell 1949, I.3 §13 — https://en.wikiquote.org/wiki/Carl_Philipp_Emanuel_Bach ; influence: https://en.wikipedia.org/wiki/Carl_Philipp_Emanuel_Bach
 - Jean-Philippe Rameau, *Traité de l'harmonie*, 1722 — https://en.wikipedia.org/wiki/Trait%C3%A9_de_l%27harmonie_r%C3%A9duite_%C3%A0_ses_principes_naturels
 - Johann Joseph Fux, *Gradus ad Parnassum*, 1725 — https://en.wikipedia.org/wiki/Gradus_ad_Parnassum
-- Nikolai Rimsky-Korsakov, *Principles of Orchestration*, 1912, Project Gutenberg #33900 — https://www.gutenberg.org/files/33900/33900-h/33900-h.htm
+- Nikolai Rimsky-Korsakov, *Principles of Orchestration* (ed. Maximilian Steinberg; editing completed 1912, first published 1913; Agate trans. 1922), Project Gutenberg #33900 — https://www.gutenberg.org/files/33900/33900-h/33900-h.htm ; publication year per Britannica — https://www.britannica.com/topic/Principles-of-Orchestration
 - Alan Belkin, *Musical Composition: Craft and Art* and free pedagogical guides — https://alanbelkinmusic.com/
 - ETH Library, "Béla Bartók – the golden ratio in music" (Lendvai claim; Bartók's silence) — https://library.ethz.ch/en/collections-and-archives/platforms/virtual-exhibitions/fibonacci-un-ponte-sul-mediterraneo/reception-of-fibonacci-numbers-and-the-golden-ratio/bela-bartok-the-golden-ratio-in-music.html
 - Jonathan Kramer, "The Fibonacci Series in Twentieth-Century Music," *Journal of Music Theory* 17(1), 1973 (critique of Lendvai; print).
-- "Debussy's Pelléas et Mélisande: a guide" (Chausson letter, Sept 1893), BBC Music Magazine — https://www.classical-music.com/articles/story-debussys-pell-et-m-lisande
+- Claude Debussy, letter to Ernest Chausson, 2 October 1893, on using silence while composing *Pelléas* (quotation as commonly translated); letter dated in "The Chausson Year: 1893" (Cambridge, *Claude Debussy*) — https://www.cambridge.org/core/books/abs/claude-debussy/chausson-year-1893/C387684120088212E546778D967082DA

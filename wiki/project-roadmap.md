@@ -3,7 +3,7 @@ title: Project roadmap
 tags: [project]
 status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: The phased plan — wiki building now, engines when Tom gives the go, then feedback-driven improvement and the public project site.
 ---
 
@@ -25,6 +25,7 @@ The wiki grows from seeded to genuinely comprehensive. Recurring session work:
 - **Fill declared gaps**: pages the seed round deferred (e.g., Latin American traditions, folk/dance musics of Europe, Arabic maqam as its own page, music notation/representation history, glossary) — maintain the gap list in [index](index.md).
 - **Corpus groundwork** (dev-time only): identify and legally vet corpora, write first extraction scripts, record first reference tables ([corpus-analysis](corpus-analysis.md)).
 - **Internal prototypes are allowed** (not public, not in `docs/`): tiny testbeds under `experiments/` to validate implementation-page claims (scheduling, synthesis recipes, offline render metrics). These are lab equipment, not products; findings feed the wiki.
+- **Shared-library groundwork** (dev-time design; no public engine code until Phase 2): research and design the project's own **original, first-party libraries** — the reusable core (theory, scheduling, seeded RNG, synthesis voices, analysis) that engines will vendor rather than import from outside projects. See [shared-libraries](shared-libraries.md). This is the preferred way to meet shared needs (decided 2026-07-07); prototypes prove the designs in `experiments/`.
 
 Exit signal: Tom reads the wiki and says "build engines" — or asks for something else entirely.
 
@@ -45,7 +46,7 @@ A summary site in `docs/` (project state, engine catalog, listening highlights, 
 - Every session ends merged to `main` (see CLAUDE.md workflow) — no long-lived branches, no stranded work.
 - The wiki is never "done"; every phase feeds it. A session that built engines but recorded no knowledge failed at the more important half of its job.
 - Scope stays instrumental-music-in-browser; adjacent temptations (audio ML, servers, DAW features) are declined per [project-mission](project-mission.md) non-goals.
-- Licensing is settled (2026-07-06): code is MIT (`LICENSE`), all prose — wiki and site — is public-domain CC0 1.0 (`LICENSE-wiki`).
+- Licensing is settled (2026-07-06; revised 2026-07-07): everything the project creates — code and all prose (wiki and site) — is dedicated to the public domain under CC0 1.0 (`LICENSE`).
 
 ## Related pages
 

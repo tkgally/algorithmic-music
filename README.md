@@ -1,6 +1,6 @@
 # algorithmic-music
 
-An experiment in making **genuinely good instrumental music with code in the browser** — plain HTML, CSS, and JavaScript with the Web Audio API; dependency-free by default (a small vendored helper only if ever genuinely needed), no build step, no server.
+An experiment in making **genuinely good instrumental music with code in the browser** — plain HTML, CSS, and JavaScript with the Web Audio API; dependency-free by default (if shared functionality is ever needed, the project writes its own original libraries rather than pulling in outside code), no build step, no server.
 
 The project is a long-running collaboration between [Tom Gally](https://github.com/tkgally), who directs it and judges the music, and Claude (Anthropic's AI), which does the research, writing, and engineering in autonomous sessions. Its distinguishing bet: browser music generators are easy to build but musically disappointing, and the cure is **knowledge plus iteration** — a serious, citable knowledge base about how music works and why people enjoy it, driving engine designs that are then improved through structured evaluation and human feedback.
 
@@ -32,9 +32,6 @@ Nothing to hear yet — the GitHub Pages site with playable engines arrives in P
 
 ## License
 
-Dual-licensed by kind of content:
-
-- **Code** — the browser engines, dev-time tools, and scripts — under the **MIT License** ([`LICENSE`](LICENSE)).
-- **Prose** — the wiki under [`wiki/`](wiki/index.md) and the text of the public site under `docs/` — dedicated to the **public domain** under **CC0 1.0 Universal** ([`LICENSE-wiki`](LICENSE-wiki)).
+Everything this project creates — **code** (the browser engines, dev-time tools, scripts, and any original shared libraries) and **prose** (the wiki under [`wiki/`](wiki/index.md) and the text of the public site under `docs/`) — is dedicated to the **public domain** under **CC0 1.0 Universal** ([`LICENSE`](LICENSE)). Copy, modify, and reuse any of it, for any purpose, without asking.
 
 The `previous-experiments/` folder is the project owner's prior work, included immutably for reference only.

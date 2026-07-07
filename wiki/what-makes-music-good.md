@@ -1,9 +1,9 @@
 ---
 title: What makes music good
 tags: [craft, evaluation]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Competing standards for judging music — formalism, expression theories, Meyer's expectation-based meaning, craft-teacher criteria, listener-centered functional value — plus what the 2024–2026 AI-music discourse and attribution-bias studies imply for evaluating generated output.
 ---
 
@@ -17,7 +17,7 @@ Eduard Hanslick's *Vom Musikalisch-Schönen* (1854) is the founding document of 
 
 ## Expression and arousal theories
 
-The opposing family holds that music is good when it expresses or arouses emotion: Tolstoy and Collingwood cast art as transmission of felt emotion from artist to audience; arousalists locate value in the listener's evoked response. Pure transmission theories have an obvious problem for algorithmic music (no artist emotion exists to transmit), but they survive in public intuitions — see the AI discourse below, where "the machine felt nothing" functions as a verdict. Arousal versions are empirically tractable: whether listeners actually feel something is measurable (see [emotion-and-meaning.md](emotion-and-meaning.md) and [pleasure-and-reward.md](pleasure-and-reward.md)).
+The opposing family holds that music is good when it expresses or arouses emotion: Tolstoy cast art as the transmission of felt emotion from artist to audience, and Collingwood as the artist's expression and clarification of emotion (not the relay of a pre-formed feeling); arousalists locate value in the listener's evoked response. Pure transmission theories have an obvious problem for algorithmic music (no artist emotion exists to transmit), but they survive in public intuitions — see the AI discourse below, where "the machine felt nothing" functions as a verdict. Arousal versions are empirically tractable: whether listeners actually feel something is measurable (see [emotion-and-meaning.md](emotion-and-meaning.md) and [pleasure-and-reward.md](pleasure-and-reward.md)).
 
 ## Meyer: meaning as managed expectation within a style
 
@@ -41,7 +41,7 @@ The Suno/Udio era made "is generated music good?" a public argument. Key data po
 
 - Volume vs. demand: Deezer reported in April 2026 that ~75,000 fully AI-generated tracks arrive daily — about 44% of all uploads (up from ~10% in January 2025) — yet AI tracks draw only 1–3% of streams, and up to 85% of those streams were fraudulent (bot-driven royalty farming) in 2025. The market is flooded with supply nobody asked for; this is the concrete referent of the "slop" epithet.
 - The Velvet Sundown (June–July 2025): a Suno-made "band" with fake members reached ~1M+ monthly Spotify listeners via playlist placement before being exposed, then rebranded as "an ongoing artistic provocation." The episode fixed the discourse's terms: deception, disclosure, and platform responsibility, more than sound quality — listeners had not flagged the music itself.
-- The "soulless" critique, stated best by Nick Cave (Red Hand Files #218, January 2023, on ChatGPT lyrics in his style): a great song emerges from human suffering and self-risk; "algorithms don't feel. Data doesn't suffer." He calls the imitation "a grotesque mockery of what it is to be human." Generalized by critics: what generated music lacks is risk, biography, stakes, and specificity — nothing was at stake for anyone in its making, and it is statistically generic rather than particular. Berklee commentary on the Velvet Sundown adds the pragmatic observations that ghost-written and functional music long predate AI, that "sonic quality is the clearest clue" for spotting current AI output, and that the economic threat to working artists is the sharpest real grievance (training data, royalty dilution).
+- The "soulless" critique, stated best by Nick Cave (Red Hand Files #218, January 2023, on ChatGPT lyrics in his style): a great song emerges from human suffering and self-risk; "algorithms don't feel. Data doesn't suffer." He calls the imitation "a grotesque mockery of what it is to be human." Generalized by critics: what generated music lacks is risk, biography, stakes, and specificity — nothing was at stake for anyone in its making, and it is statistically generic rather than particular. Berklee commentary on the Velvet Sundown adds the pragmatic observations that ghost-written and functional music long predate AI, that "sonic quality is the clearest clue" for spotting current AI output, and that the economic threat to working artists is a central real grievance (training data, royalty dilution).
 
 Note what the critique targets: provenance and intention, not measurable acoustic properties. That is exactly where a small, transparent, rule-based project differs from prompt-to-track services — this project can exhibit its intentions (motives, plans, constraints) even though it cannot suffer.
 
@@ -81,7 +81,8 @@ Implication: expect an attribution penalty of roughly a quarter to half a standa
 ## Sources
 
 - "The Philosophy of Music," *Stanford Encyclopedia of Philosophy* (Hanslick, expression/arousal, Kivy, Scruton) — https://plato.stanford.edu/entries/music/
-- A. Wilfing et al., "Eduard Hanslick's 'On the Musically Beautiful': A New Translation" (translation debate over *tönend bewegte Formen*), *Musicologica Austriaca* — https://www.musau.org/parts/neue-article-page/view/61
+- Nicole Grimes, review of *Eduard Hanslick's "On the Musically Beautiful": A New Translation* (Rothfarb & Landerer trans.; the translation debate over *tönend bewegte Formen*), *Musicologica Austriaca* (2019) — https://www.musau.org/parts/neue-article-page/view/61
+- Alan Belkin, *Musical Composition: Craft and Art* and free pedagogical guides — https://alanbelkinmusic.com/
 - Leonard B. Meyer, *Emotion and Meaning in Music*, University of Chicago Press, 1956 — https://press.uchicago.edu/ucp/books/book/chicago/E/bo28551887.html
 - Roger Scruton, *The Aesthetics of Music*, Oxford University Press, 1997 (as discussed in the SEP entry above).
 - Bellaiche et al., "Humans versus AI: whether and why we prefer human-created compared to AI-created artwork," *Cogn. Research* 8:42, 2023 — https://pmc.ncbi.nlm.nih.gov/articles/PMC10319694/

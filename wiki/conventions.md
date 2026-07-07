@@ -3,7 +3,7 @@ title: Wiki conventions
 tags: [meta]
 status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: The schema for this wiki — file naming, page structure, frontmatter, linking, citation, and maintenance rules that every session must follow.
 ---
 
@@ -54,7 +54,7 @@ Every content page has:
 - Audience: future Claude sessions first, Tom second, other humans third. Write so a fresh session with no conversation history can act on the page.
 - Dense, plain, concrete. No filler ("it is important to note"), no hype. Hedge honestly where evidence is weak or contested — psychology-of-music findings often are; say so.
 - Write the wiki in English; American spelling. Sources may be in **any** language (English, Japanese, German, French, Chinese, Italian, Russian, …) — cite them as they are and **gloss** non-English terms on first use (e.g., *ma* [間, "negative space"], *jo-ha-kyū* [序破急, "slow–break–fast"]). Note names in scientific pitch notation (C4 = middle C, MIDI 60).
-- Never copy source text at length. Summarize in your own words; quote at most a sentence or two, attributed. (This also keeps the wiki cleanly public-domain: its prose is dedicated to the public domain under CC0 1.0 — see `LICENSE-wiki` — so never paste in text under an incompatible license.)
+- Never copy source text at length. Summarize in your own words; quote at most a sentence or two, attributed. (This also keeps the wiki cleanly public-domain: the whole project — prose and code alike — is dedicated to the public domain under CC0 1.0, see `LICENSE`, so never paste in text or code under an incompatible license.)
 - When two sources disagree, record the disagreement — that is more valuable than a false consensus.
 - Prefer linking over repeating: if another page covers something, link to it and add only what is new here.
 - Page length: roughly 60–250 lines. If a page outgrows that, split it and leave a summary + link behind.
