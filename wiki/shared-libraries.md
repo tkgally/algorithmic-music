@@ -66,6 +66,20 @@ The first three (`theory`, `transport`, `rng`) are the foundation: the composer 
 
 None of this is public engine code — it is dev-time design and prototyping, allowed in Phase 1. The libraries become real code when the first engine is built (Phase 2, gated on Tom).
 
+## Prototype status (2026-07-07)
+
+The two cheapest foundation modules are prototyped and validated headless in `experiments/lib/` — see [findings-shared-lib-foundation](findings-shared-lib-foundation.md) for the full results:
+
+- **`rng`** (`experiments/lib/rng.js`) — seeded PRNG (mulberry32), named independent streams, the distributions (uniform, weighted, Gaussian, 1/f pink noise), and Euclidean rhythm (Bjorklund). Euclidean output proven maximally even for all E(k,n), 1 ≤ k ≤ n ≤ 32; determinism and named-stream independence tested.
+- **`transport`** (`experiments/lib/transport.js`) — `MusicClock` (beats↔seconds) and a lookahead `Scheduler` with injected clock/timer so the same code is headless-testable in Node and drives a real `AudioContext` in the browser.
+
+`node experiments/tests/run.js` runs 25 passing assertions. Two things the prototype settled:
+
+- **Format = dual-format (UMD-lite) classic scripts, not ES modules.** A vendored library must load from `file://`; a classic `<script src>` does, but a cross-file ES-module `import` is CORS-blocked under `file://`. So each module is one file that works as both a Node `require` and a browser global (`window.AM.*`). This resolves the granularity/format open question below.
+- **Injected dependencies** (pass the `AudioContext`/timing source in; no globals) is the standing pattern for the Web-Audio libraries, and is what makes them testable.
+
+Still open before an engine depends on these: the `theory` module (the third foundation piece), and validating the audio layer's *real* timing with an OfflineAudioContext render-and-measure harness (queue item 7) — the Node suite proves the logic, not the audio.
+
 ## Implications for generative engines
 
 - The [engine-architecture](engine-architecture.md) pipeline maps cleanly onto these libraries: **Planner/Composer** use `theory` + `rng` (+ `pattern`); **Performer** + **Synthesizer** use `transport` + `synth` + `fx`; the **improvement loop** uses `analysis`. An engine is then mostly *style* (data) plus glue, with the hard infrastructure vendored in.
@@ -76,12 +90,13 @@ None of this is public engine code — it is dev-time design and prototyping, al
 ## Open questions
 
 - **Where does the canonical source live?** A dev-time `lib/` at the repo root, a `docs/lib/` promoted at Phase 2, or authored inside the first engine and extracted once a second engine needs it? Decide at first engine build; leaning toward extract-on-second-use to avoid speculative abstraction.
-- **Granularity.** One "std" library or several small modules? Leaning several small, hand-tree-shakeable modules so an engine vendors only what it uses.
+- **Granularity.** One "std" library or several small modules? *Resolved toward several small modules* by the 2026-07-07 prototype ([findings-shared-lib-foundation](findings-shared-lib-foundation.md)): each is one dual-format (UMD-lite) file that an engine vendors by copy and loads with a classic `<script src>` (the file://-safe format).
 - **Shared vs specialized.** How much synthesis is genuinely shareable when a lo-fi engine and a classical engine want very different timbres? Working answer: shared primitives (`synth`'s voice factories, envelopes) with engine-specific presets and voices layered on top.
 - **Oracle practice.** Formalize keeping Tonal (and similar) as dev-only test oracles — recorded here so a future session does not mistake an oracle for a shipped dependency.
 
 ## Related pages
 
+- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) — the 2026-07-07 prototype of `rng` + `transport` and its validation
 - [javascript-music-libraries](javascript-music-libraries.md) — the third-party survey these lessons are mined from
 - [engine-architecture](engine-architecture.md) — the module pipeline these libraries populate
 - [scheduling-and-timing](scheduling-and-timing.md), [synthesis-recipes](synthesis-recipes.md), [effects-and-mixing](effects-and-mixing.md), [web-audio-fundamentals](web-audio-fundamentals.md) — implementation sources for `transport`, `synth`, `fx`

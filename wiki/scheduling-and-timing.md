@@ -134,6 +134,7 @@ Multi-hour sessions surface slow failure modes:
 - [expressive-performance](expressive-performance.md) — tempo curves and micro-timing this machinery must support
 - [groove-and-embodiment](groove-and-embodiment.md) — why milliseconds of onset error are audible
 - [previous-experiments-lessons](previous-experiments-lessons.md) — the 6 s/12 s pattern in past engines
+- [shared-libraries](shared-libraries.md), [findings-shared-lib-foundation](findings-shared-lib-foundation.md) — the first-party `transport` library this page specifies, now prototyped and headless-tested
 
 ## Sources
 

@@ -1,9 +1,9 @@
 ---
 title: Computational music metrics
 tags: [evaluation]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Symbolic and in-browser audio metrics for scoring engine output automatically — feature sets, reference-distribution comparisons, tension-curve checks, and why metrics are diagnostics, not objectives.
 ---
 
@@ -102,7 +102,8 @@ Embedding-based distribution metrics (Fréchet Audio Distance, MMD, CLAP-similar
 - Yang, L.-C. & Lerch, A. "On the evaluation of generative models in music." Neural Computing and Applications 32, 2020. https://link.springer.com/article/10.1007/s00521-018-3849-7
 - mgeval toolkit (Yang & Lerch's feature implementation). https://github.com/RichardYang40148/mgeval
 - "Survey on the Evaluation of Generative Models in Music." arXiv:2506.05104, 2025 (feature tables, FAD caveats, Goodhart warning, missing form metrics). https://arxiv.org/abs/2506.05104
-- Foote, J. "Visualizing Music and Audio using Self-Similarity." ACM Multimedia, 1999; summarized with the novelty-kernel method in arXiv:2309.02243. https://arxiv.org/pdf/2309.02243
+- Foote, J. "Visualizing Music and Audio using Self-Similarity." ACM Multimedia, 1999 — introduced the self-similarity matrix.
+- Foote, J. "Automatic Audio Segmentation Using a Measure of Audio Novelty." Proc. IEEE ICME, 2000 — introduced the novelty kernel (a checkerboard kernel correlated along the SSM diagonal to propose section boundaries; the page's "novelty kernel" is from this paper, not the 1999 one). Both methods are summarized in arXiv:2309.02243. https://arxiv.org/pdf/2309.02243
 - Herremans, D. & Chew, E. "MorpheuS: generating structured music with constrained patterns and tension" (spiral-array tension: cloud diameter, cloud momentum, tensile strain). arXiv:1812.04832. https://arxiv.org/pdf/1812.04832
 - ITU-R Recommendation BS.1770-5, "Algorithms to measure audio programme loudness and true-peak audio level," 2023. https://www.itu.int/rec/R-REC-BS.1770/en
 - "Benchmarking Music Generation Models and Metrics via Human Preference Studies." arXiv:2506.19085, 2025 (metric-vs-preference correlations). https://arxiv.org/html/2506.19085

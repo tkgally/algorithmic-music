@@ -1,9 +1,9 @@
 ---
 title: Corpus analysis
 tags: [evaluation, algorithms]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Human-composed corpora as reference distributions — the major symbolic datasets, what statistics to extract, licensing care, and a dev-time workflow that bakes distilled tables into the wiki.
 ---
 
@@ -15,7 +15,7 @@ The engines need to know what human music statistically looks like: which interv
 
 | Corpus | Contents | Size | Format | Notes for this project |
 |---|---|---|---|---|
-| Essen Folksong Collection | Monophonic folk melodies, mostly German-area plus Chinese and others, begun by Helmut Schaffrath | ~10,000 melodies in current form (commonly cited subsets: ~4,900 German+Chinese) | EsAC (also converted to **kern, ABC; bundled in music21) | Rare treasure: human-marked phrase boundaries → phrase-length and cadence norms |
+| Essen Folksong Collection | Monophonic folk melodies, mostly German-area plus Chinese and others, begun by Helmut Schaffrath | ~4,900 in the standard German+Chinese research subset (2,682 German + 2,241 Chinese); the Germanic core is ~6,200 and the full EsAC database (later additions + instrumental melodies) is reported on the order of ~20,000 | EsAC (also converted to **kern, ABC; bundled in music21) | Rare treasure: human-marked phrase boundaries → phrase-length and cadence norms |
 | KernScores / Humdrum | Bach chorales (the 371-chorale Riemenschneider set), classical keyboard, quartets, Renaissance polyphony (CCARH) | Thousands of scores | Humdrum **kern (plain text, parseable with a small script) | Chorales = the standard voice-leading and functional-harmony reference |
 | music21 corpus | Offline bundle: Bach (400+ works), Palestrina masses, Monteverdi madrigals, Haydn/Mozart/Beethoven quartets, Essen subset, O'Neill's Irish tunes, Aird's Airs | Hundreds of MB | Mixed (kern, MusicXML, ABC) via Python API | One dev-time dependency that covers most classical/folk needs |
 | Hooktheory / TheoryTab | Crowd-sourced analyses of pop songs: melody + chords encoded functionally (scale degrees, Roman numerals relative to key) | ~22k song segments / ~13k songs (as used in Donahue et al. 2022); an 11k lead-sheet derivative (HLSD) exists | Proprietary web/API; research derivatives | The pop-harmony transition reference; annotations relative-to-key = directly usable tables |
@@ -89,7 +89,7 @@ Runtime is HTML/JS in the browser with no corpus access; therefore:
 - MAESTRO dataset (Magenta): ~200 h, 1,276 performances, ~3 ms alignment, CC BY-NC-SA 4.0. https://magenta.withgoogle.com/datasets/maestro
 - Raffel, C. The Lakh MIDI Dataset: 176,581 files, 45,129 matched; caveats and licensing. https://colinraffel.com/projects/lmd/
 - The Session data dumps (Irish traditional tunes, weekly exports). https://github.com/adactio/TheSession-data
-- Essen Folksong Collection / EsAC home (Schaffrath; collection description). http://www.esac-data.org/ — size and composition figures cross-checked against the folk-song classification study arXiv:1904.11074. https://arxiv.org/pdf/1904.11074
+- Essen Folksong Collection / EsAC home (Schaffrath; collection description). http://www.esac-data.org/ (intermittently unreachable, 2026-07-07). The ~4,900 German+Chinese research subset and its 2,682/2,241 split are confirmed in the folk-song classification study arXiv:1904.11074 ("4923 melodies … 2682 from the German and 2241 from the Chinese"); that paper does **not** support a ~10,000 total (an earlier draft's figure, since removed). Larger totals (Germanic core ~6,200; full EsAC database ~20,000) come from secondary EsAC/musicology descriptions and vary by which additions are counted. https://arxiv.org/pdf/1904.11074
 - Donahue, C. et al. "Melody transcription via generative pre-training" (HookTheory dataset: ~22k segments, ~13k songs, functional encoding). arXiv:2212.01884. https://arxiv.org/pdf/2212.01884
 - "Automatic Melody Harmonization with Triad Chords: A Comparative Study" (HLSD: 11,329 lead sheets from TheoryTab). arXiv:2001.02360. https://arxiv.org/pdf/2001.02360
 - KernScores / CCARH Humdrum collections. https://kern.humdrum.org/ (site intermittently unreachable during research 2026-07-06; contents cross-checked via the music21 corpus docs above)
