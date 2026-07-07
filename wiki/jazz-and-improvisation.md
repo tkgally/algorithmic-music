@@ -1,9 +1,9 @@
 ---
 title: Jazz and improvisation
 tags: [genre]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Jazz as the best-documented case of real-time rule-governed music generation by humans — harmony, form, swing timing, rhythm-section rules, and formula-based improvisation, extracted as engine rules.
 ---
 
@@ -16,7 +16,7 @@ Jazz matters to this project for a reason beyond its musical value: it is the be
 - **ii–V–I** is the fundamental progression cell: Dm7–G7–Cmaj7 in C. Tunes are largely chains of ii–V–I units in various keys, plus turnarounds (I–vi–ii–V or iii–vi–ii–V) that cycle back to a section start.
 - **Guide tones** — the 3rd and 7th of each chord — define its quality and drive voice leading: the 7th of each chord resolves down a half step to the 3rd of the next (Dm7's C → G7's B; G7's F → Cmaj7's E). A two-voice guide-tone line through a whole form is a minimal but genre-defining skeleton for both comping and melody.
 - **Shell voicings**: root + 3rd + 7th (or root + 7th) — the minimum that states the harmony; historically the early-bop pianist's left hand.
-- **Rootless voicings** (Bill Evans-era left hand, ubiquitous since the late 1950s): omit the root (the bass has it) and stack 3–5–7–9 ("Type A," 3rd on the bottom) or 7–9–3–5 ("Type B," 7th on the bottom); the 5th is often replaced by the 13th. Types A and B alternate through a ii–V–I so the voicing barely moves. Register rule: keep them near middle C — roughly C3–C5 — or they turn muddy (low) or thin (high).
+- **Rootless voicings** (Bill Evans-era left hand, ubiquitous since the late 1950s): omit the root (the bass has it) and stack 3–5–7–9 ("Type A," 3rd on the bottom) or 7–9–3–5 ("Type B," 7th on the bottom); the 5th is often replaced by the 13th. Types A and B alternate through a ii–V–I so the voicing barely moves. Register rule (common jazz-piano pedagogical guidance, not itself in the cited source): keep them near middle C — roughly C3–C5 — to avoid muddiness (low) or thinness (high).
 - **Extensions and alterations**: 9ths, 11ths, 13ths are normal color; dominant chords accept b9, #9, #11, b13, especially when resolving. Rule of thumb: the more altered the dominant, the stronger the pull to resolution.
 - **Tritone substitution**: replace V7 with the dominant seventh a tritone away (G7 → Db7) — they share the same guide-tone tritone (B/F), and the bass gains a chromatic descent (D–Db–C).
 - **Blues harmony** coexists with functional harmony: dominant 7ths on I and IV are stable, blue notes (b3, b5, b7) sit on top of major-key changes without "resolving."
@@ -48,9 +48,9 @@ Friberg and Sundström measured ride-cymbal timing from recordings of four canon
 The romantic picture of improvisation as unconstrained invention is false, and the scholarship is unusually specific about what replaces it:
 
 - **Berliner, Thinking in Jazz (1994)** — 15+ years of fieldwork, interviews with 50+ musicians: improvisers spend years acquiring a vocabulary of licks, phrases, and models from records and mentors ("Getting Your Vocabulary Straight" is a central chapter), then recombine and transform it; "the lifetime of preparation... behind the skilled improviser's every idea."
-- **Owens (1974)** catalogued Charlie Parker's improvising as roughly 100 recurring melodic formulas (from 4-note fragments to multi-bar phrases), organized by key; a widely cited core list of 64 motives. The two most frequent — M.1A, an ascending (often minor-7th) arpeggio triplet, and M.2A, an inverted mordent plus descending interval — each appear about once every 8–9 measures across his recorded solos. Parker's genius lay in the fluency, variation, and placement of the vocabulary, not in per-note novelty.
-- **Love (2012)** shows the level above formulas: across 156 blues choruses (1944–53), Parker's phrase plans fall into five chorus-level schemata (4/4/4, 8/4, 4/8, 6/6, through-composed) and his lines follow a small set of scale-degree paths keyed to zones of the 12-bar form (e.g., descents to scale degree 1 in bars 1–7; standardized approaches to the ii–V in bars 8–11). "The real work of producing such improvisations happens... in the practice room."
-- **Frieler et al. (2017)** confirm computationally, across ~250 Parker solos, that recurring patterns pervade the corpus, with phrase beginnings more chromatic and endings more diatonic.
+- **Owens (1974)** catalogued Charlie Parker's improvising as roughly 100 recurring melodic formulas (from 4-note fragments to multi-bar phrases), organized by key; a widely cited core list of 64 motives, drawn from about 250 transcriptions across nearly all of Parker's recordings. The two most frequent — M.1A, an ascending arpeggio played as a triplet, and M.2A, an inverted mordent plus descending interval — each appear about once every 8–9 measures across his recorded solos. Parker's genius lay in the fluency, variation, and placement of the vocabulary, not in per-note novelty.
+- **Love (2012)** shows the level above formulas: across 156 blues choruses drawn from 39 recorded performances (1944–53), Parker's phrase plans fall into five chorus-level schemata (4/4/4, 8/4, 4/8, 6/6, through-composed) and his lines follow a small set of scale-degree paths keyed to zones of the 12-bar form (e.g., descents to scale degree 1 in bars 1–7; standardized approaches to the ii–V in bars 8–11). "The real work of producing such improvisations happens... in the practice room."
+- **Frieler et al. (2017)** confirm computationally, across a smaller corpus of 56 Parker solo transcriptions (from the Omnibook, coded in **kern), that recurring patterns pervade the corpus, with phrase beginnings more chromatic than phrase endings (20.4% vs. 5.0%).
 - **Johnson-Laird (2002)** supplies the computational framing: theories of creativity should be computable. Devising good chord sequences is computationally heavy (needs working memory / notation), so it happens offline — the changes are precomputed and shared. Real-time melody generation must minimize working-memory load, so it works like a constrained ("neo-Lamarckian") generator: constraints strong enough that everything generated is already plausible, no separate evaluate-and-reject stage. He also argues pure formula-concatenation is insufficient — rules generate novel material that formulas season.
 
 The synthesis: precomputed harmonic form + memorized formula library + constrained real-time melodic grammar + schemata for phrase placement. That is an engine architecture, discovered by humans.
