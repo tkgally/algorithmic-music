@@ -1,9 +1,9 @@
 ---
 title: Style and genre overview
 tags: [genre, theory]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Style as a probabilistic constraint system that listeners learn statistically; why an engine must commit to a genre, what minimally signals one, and how to encode styles as reusable packs.
 ---
 
@@ -41,11 +41,11 @@ Two or three tokens usually suffice: a swung rim-click at ~75 BPM + a Rhodes maj
 
 ## Musical category vs social category
 
-Genre is also a social object, not only an acoustic one. Sociologists (Jennifer Lena; David Brackett) show that genre labels track communities, industries, and scenes as much as sound; Brackett argues genre-identity relations arise "through the repetition of social practices," not from any natural boundary. Franco Fabbri framed genres as sets of socially agreed conventions. Consequences for this project: genre boundaries are fuzzy and contested, labels shift over time, and an engine should treat a "genre" as a operational bundle of musical constraints rather than a fact of nature. We care about the reproducible acoustic/structural regularities; the label is a convenience.
+Genre is also a social object, not only an acoustic one. Sociologists (Jennifer Lena; David Brackett) show that genre labels track communities, industries, and scenes as much as sound; Brackett, drawing on a Derridean frame of "citation and iteration," argues genre identity is constituted through the repetition of social and performative practices, not any natural or acoustic boundary. Franco Fabbri framed genres as sets of socially agreed conventions. Consequences for this project: genre boundaries are fuzzy and contested, labels shift over time, and an engine should treat a "genre" as a operational bundle of musical constraints rather than a fact of nature. We care about the reproducible acoustic/structural regularities; the label is a convenience.
 
 ## Coherence, crossover, and pastiche
 
-**Stylistic coherence** means staying inside one constraint set long enough that its expectations become satisfiable — the source of a piece feeling "together." **Crossover and fusion** succeed when they recombine *coherent subsystems* (borrow a rhythmic feel from one style, a harmonic vocabulary from another) deliberately, not when constraints are mixed at random; incoherent mixing reads as confused or amateurish. **Pastiche** — reproducing a style's surface without its logic — is the characteristic failure of averaged generation. Modeling only the statistical center of a corpus yields output that is recognizably in-genre yet generic and inert, and near-perfect imitation with none of the human deviation can read as hollow or uncanny (the "uncanny valley of style"). How much of this is measurable versus aesthetic judgment is genuinely open; treat confident claims here with caution. See [generative-music-failure-modes](generative-music-failure-modes.md).
+**Stylistic coherence** means staying inside one constraint set long enough that its expectations become satisfiable — the source of a piece feeling "together." **Crossover and fusion** succeed when they recombine *coherent subsystems* (borrow a rhythmic feel from one style, a harmonic vocabulary from another) deliberately, not when constraints are mixed at random; incoherent mixing reads as confused or amateurish. **Pastiche** — reproducing a style's surface without its logic — is the characteristic failure of averaged generation. Modeling only the statistical center of a corpus yields output that is recognizably in-genre yet generic and inert, and near-perfect imitation with none of the human deviation can read as hollow or uncanny (the "uncanny valley of style"). How much of this is measurable versus aesthetic judgment is genuinely open; treat confident claims here with caution. A 2025 listener study is a reminder that the valley is partly in the listener, not only the audio: attitudes toward AI were the strongest predictor of how much people enjoyed AI-attributed music, with disclosed composer identity and personality traits acting as moderators (Stammer, Strauss & Knees 2025) — so an engine's perceived authenticity depends on framing and disclosure, not just on how well the pastiche is executed. See [generative-music-failure-modes](generative-music-failure-modes.md).
 
 ## The genre pages
 
@@ -86,7 +86,7 @@ Genre is also a social object, not only an acoustic one. Sociologists (Jennifer 
 
 ## Sources
 
-- Leonard B. Meyer, *Style and Music: Theory, History, and Ideology* (1989), University of Chicago Press — book overview: https://press.uchicago.edu/ucp/books/book/chicago/S/bo3645275.html
+- Leonard B. Meyer, *Style and Music: Theory, History, and Ideology* (University of Pennsylvania Press, 1989; paperback reissue, University of Chicago Press) — Chicago Press edition page: https://press.uchicago.edu/ucp/books/book/chicago/S/bo3645275.html
 - Marcus T. Pearce & Martin Rohrmeier, "Statistical learning and probabilistic prediction in music cognition: mechanisms of stylistic enculturation," *Annals of the NY Academy of Sciences* (2018) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6849749/
 - Jennifer C. Lena & Richard A. Peterson, "Classification as Culture: Types and Trajectories of Music Genres," *American Sociological Review* (2008) — https://journals.sagepub.com/doi/10.1177/000312240807300501
 - David Brackett, *Categorizing Sound: Genre and Twentieth-Century Popular Music* (2016), review — https://journals.library.columbia.edu/index.php/currentmusicology/article/view/5377

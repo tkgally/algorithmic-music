@@ -17,7 +17,7 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 - [generative-music-failure-modes](generative-music-failure-modes.md) — A diagnostic taxonomy of the ways algorithmically generated music goes wrong, with causes and pointers to remedies — the checklist every engine is tested against.
 - [generative-music-design-patterns](generative-music-design-patterns.md) — A catalog of architectural and compositional patterns for building generative engines — the constructive counterpart to the failure-mode taxonomy.
 - [engine-architecture](engine-architecture.md) — The reference architecture for this project's browser engines — module boundaries, data schemas, determinism rules, UI and deployment conventions, and testability requirements.
-- [style-and-genre-overview](style-and-genre-overview.md) — Style as a probabilistic constraint system that listeners learn statistically; why an engine must commit to a genre, what minimally signals one, and how to encode styles as reusable packs.
+- [style-and-genre-overview](style-and-genre-overview.md) ·reviewed — Style as a probabilistic constraint system that listeners learn statistically; why an engine must commit to a genre, what minimally signals one, and how to encode styles as reusable packs.
 
 ## Music theory and structure
 
@@ -45,11 +45,11 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Genres and traditions
 
-- [western-classical-tradition](western-classical-tradition.md) — Era-by-era generative principles of Western art music — Baroque, Classical, Romantic, Impressionist, and 20th-century styles — with concrete emulation rules an engine can implement.
-- [jazz-and-improvisation](jazz-and-improvisation.md) — Jazz as the best-documented case of real-time rule-governed music generation by humans — harmony, form, swing timing, rhythm-section rules, and formula-based improvisation, extracted as engine rules.
-- [minimalism-and-process-music](minimalism-and-process-music.md) — Reich's phasing and audible-process manifesto, Glass's additive rhythm, Riley's In C, and Pärt's tintinnabuli — hand-designed processes that generate good music, and why they work.
-- [ambient-and-generative-genre](ambient-and-generative-genre.md) — From Satie's furniture music through Eno's tape-loop and rule systems to generative.fm — the genre whose esthetic and whose production systems are both directly implementable in a browser.
-- [electronic-and-dance](electronic-and-dance.md) — EDM as a grid-locked, layer-based, drop-driven form — its 8/16/32-bar phrasing, tension-engineering toolkit, subgenre map, and why it is unusually amenable to algorithmic generation.
+- [western-classical-tradition](western-classical-tradition.md) ·reviewed — Era-by-era generative principles of Western art music — Baroque, Classical, Romantic, Impressionist, and 20th-century styles — with concrete emulation rules an engine can implement.
+- [jazz-and-improvisation](jazz-and-improvisation.md) ·reviewed — Jazz as the best-documented case of real-time rule-governed music generation by humans — harmony, form, swing timing, rhythm-section rules, and formula-based improvisation, extracted as engine rules.
+- [minimalism-and-process-music](minimalism-and-process-music.md) ·reviewed — Reich's phasing and audible-process manifesto, Glass's additive rhythm, Riley's In C, and Pärt's tintinnabuli — hand-designed processes that generate good music, and why they work.
+- [ambient-and-generative-genre](ambient-and-generative-genre.md) ·reviewed — From Satie's furniture music through Eno's tape-loop and rule systems to generative.fm — the genre whose esthetic and whose production systems are both directly implementable in a browser.
+- [electronic-and-dance](electronic-and-dance.md) ·reviewed — EDM as a grid-locked, layer-based, drop-driven form — its 8/16/32-bar phrasing, tension-engineering toolkit, subgenre map, and why it is unusually amenable to algorithmic generation.
 - [film-and-game-music](film-and-game-music.md) — Film scoring functions and leitmotif, plus the adaptive-music architectures of game audio (vertical layering, horizontal resequencing, stingers, transition matrices) reframed for a browser engine whose game state is the user's controls.
 - [gamelan](gamelan.md) — Javanese and Balinese gamelan as human-made algorithmic music — colotomic gong cycles, a core melody elaborated at fixed density ratios, paired-detuned non-equal tunings, and interlocking figuration.
 - [indian-classical-music](indian-classical-music.md) — Raga as grammar-constrained melodic improvisation over a fixed drone within cyclic tala, unfolding by gradual intensification — a working blueprint for generative melody engines.

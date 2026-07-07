@@ -1,9 +1,9 @@
 ---
 title: Western classical tradition
 tags: [genre]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Era-by-era generative principles of Western art music — Baroque, Classical, Romantic, Impressionist, and 20th-century styles — with concrete emulation rules an engine can implement.
 ---
 
@@ -30,7 +30,7 @@ Emulation rules:
 
 ## Classical (c. 1750–1820)
 
-The Classical style replaces spun-out prose with **periodic phrasing**: short, balanced units with frequent, unmistakable cadences. The two core phrase archetypes are the *sentence* — Schoenberg's model: a basic idea stated, immediately repeated (the presentation), then condensed and driven to a cadence (continuation, with fragmentation and harmonic acceleration), prototypically 2+2+4 = 8 bars — and the *period*: an antecedent phrase ending on a weak cadence (half cadence) answered by a parallel consequent ending on a strong one (perfect authentic cadence). Schoenberg called the sentence "a higher form of construction than the period" because it starts developing its idea at once.
+The Classical style replaces spun-out prose with **periodic phrasing**: short, balanced units with frequent, unmistakable cadences. The two core phrase archetypes are the *sentence* — Schoenberg's model: a basic idea stated, immediately repeated (the presentation), then condensed and driven to a cadence (continuation, with fragmentation and harmonic acceleration), prototypically 2+2+4 = 8 bars — and the *period*: an antecedent phrase ending on a weak cadence (half cadence) answered by a parallel consequent ending on a strong one (perfect authentic cadence). The specific 2+2+4 bar count is a later formalization (Caplin's *Classical Form*, 1998) of Schoenberg's own looser presentation/continuation model. Schoenberg called the sentence "a higher form of construction than the period" because it starts developing its idea at once.
 
 Accompaniment is formulaic by design. The **Alberti bass** — broken chords cycling lowest–highest–middle–highest, as in Mozart's Piano Sonata K. 545 — is so common it was called "perhaps the most overworked fixture of eighteenth-century music." Harmonic vocabulary is small (I, ii, IV, V, vi and secondary dominants), harmonic rhythm slow, and cadences (authentic, half, deceptive) are the punctuation that makes form audible.
 
@@ -116,6 +116,7 @@ Emulation rules:
 - Wikipedia, "Alberti bass." https://en.wikipedia.org/wiki/Alberti_bass
 - Wikipedia, "Sonata form" (scheme, key plans, Rosen's "sonata forms"). https://en.wikipedia.org/wiki/Sonata_form
 - Ratner, Leonard. Classic Music: Expression, Form, and Style (1980) — topic catalog; overview via Internet Archive. https://archive.org/details/classicmusicexpr0000ratn
+- Caplin, William E. Classical Form: A Theory of Formal Functions for the Instrumental Music of Haydn, Mozart, and Beethoven (1998), Oxford University Press — source of the 2+2+4 sentence bar-count formalization.
 - Mirka/ZGMTH, "Once more on musical topics and style analysis" (Ratner's two topic classes). https://www.gmth.de/zeitschrift/artikel/576.aspx
 - Wikipedia, "Romantic music" (chromaticism, character pieces, program music). https://en.wikipedia.org/wiki/Romantic_music
 - Wikipedia, "Tempo rubato" (Chopin's steady-left-hand rubato; two types). https://en.wikipedia.org/wiki/Tempo_rubato

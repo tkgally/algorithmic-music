@@ -1,9 +1,9 @@
 ---
 title: Electronic and dance music
 tags: [genre]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: EDM as a grid-locked, layer-based, drop-driven form — its 8/16/32-bar phrasing, tension-engineering toolkit, subgenre map, and why it is unusually amenable to algorithmic generation.
 ---
 
@@ -26,14 +26,14 @@ Robert Smith's *Music Theory Online* study distinguishes **discrete** processes 
 
 ## Tension engineering and the drop
 
-The build-and-drop is the genre's signature expectation device (see [musical-expectation](musical-expectation.md) and [tension-and-release](tension-and-release.md)). Ragnhild Solberg's "Waiting for the Bass to Drop" (2014) correlates specific production techniques with intense emotional response, framed through Huron's ITPRA theory of expectation. The reliable ingredients:
+The build-and-drop is the genre's signature expectation device (see [musical-expectation](musical-expectation.md) and [tension-and-release](tension-and-release.md)). Ragnhild Solberg's "Waiting for the Bass to Drop" (2014) correlates five specific production techniques — extensive use of uplifters, a "drum roll effect," large frequency changes, removal/reintroduction of bass and kick, and a contrasting breakdown — with intense emotional response, framed through Huron's ITPRA theory of expectation. Folding in Robert Smith's (2021) discrete/continuous-process framework and general EDM production practice, the reliable ingredients are:
 
-- **Risers / uplifters ("soars")** — ascending pitch or filtered-noise sweeps over the final 4–16 bars of a build.
-- **Snare / drum rolls** — accelerating subdivision (8ths → 16ths → 32nds) that raises event density toward the drop.
-- **Filter sweeps** — opening a low-pass cutoff to brighten and "lift" the whole mix.
-- **White-noise crescendo** — a broadband riser adding energy without pitch commitment.
-- **Bass and kick removal, then reintroduction** — stripping the low end during the build so its return at the drop is maximally felt.
-- **A pre-drop pause / "the cue"** — a brief silence or a 1–4-beat anacrustic hit right before the drop. Momentary silence sharpens the prediction and makes the payoff land harder.
+- **Risers / uplifters ("soars")** — ascending pitch or filtered-noise sweeps over the final 4–16 bars of a build. (Solberg)
+- **Snare / drum rolls** — accelerating subdivision (8ths → 16ths → 32nds) that raises event density toward the drop. (Solberg's "drum roll effect")
+- **Filter sweeps** — opening a low-pass cutoff to brighten and "lift" the whole mix. (general production practice, not itself in Solberg's paper; Smith 2021 discusses filter sweeps as a continuous process)
+- **White-noise crescendo** — a broadband riser adding energy without pitch commitment. (general production practice)
+- **Bass and kick removal, then reintroduction** — stripping the low end during the build so its return at the drop is maximally felt. (Solberg)
+- **A pre-drop pause ("the cue," Smith's term)** — a brief silence or a 1–4-beat anacrustic hit right before the drop. Momentary silence sharpens the prediction and makes the payoff land harder.
 
 The drop works because it resolves a deliberately inflated expectation: the build tells the listener exactly what is coming and roughly when, and the payoff arrives on a strong hypermetric boundary. This is engineered anticipation, not surprise.
 
@@ -46,7 +46,7 @@ Two rhythmic lineages organize most of the field:
 
 Core sound-design conventions:
 
-- **Sidechain compression ("pumping")** — the kick's envelope ducks the volume of pads and bass, carving rhythmic space for the low end and producing the characteristic breathing/pumping motion. A release of roughly a quarter- to eighth-note at the track tempo gives the classic pump.
+- **Sidechain compression ("pumping")** — the kick's envelope ducks the volume of pads and bass, carving rhythmic space for the low end and producing the characteristic breathing/pumping motion. A release of roughly a quarter- to eighth-note at the track tempo gives the classic pump (production-tutorial consensus rather than a peer-reviewed figure; flagged as informed speculation per this wiki's citation rule).
 - **Sub-bass management** — one bass element at a time in the low end, summed to mono below ~100–120 Hz to keep it solid on club systems; the kick and bass are arranged (by sidechain or note timing) not to fight.
 - **Supersaw and detuned stacks** — multiple slightly detuned sawtooth oscillators create the wide, shimmering leads and pads of trance and big-room; detune spread and voice count set the width.
 
@@ -63,7 +63,7 @@ Tempo plus drum feel plus bass/sound palette identifies a subgenre better than a
 | Trance | 130–150 | Four-on-the-floor | Supersaw leads, euphoric breakdowns, arpeggios |
 | Drum & bass | 160–180 | Breakbeat | Fast breaks, half-time sub-bass, rolling energy |
 | Dubstep | 135–145 (~140) | Half-time breakbeat | Wobble/growl bass, sparse heavy drops |
-| Downtempo / trip-hop | 60–100 | Backbeat/broken | Relaxed grooves, dusty samples, space |
+| Downtempo / trip-hop | 70–110 | Backbeat/broken | Relaxed grooves, dusty samples, space |
 | IDM | variable | Irregular/glitch | Complex programming, non-grid rhythms, texture focus |
 
 IDM is the deliberate exception that proves the rule: it earns interest by *breaking* the grid and formula the rest of the family depends on.

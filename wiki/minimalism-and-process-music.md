@@ -1,9 +1,9 @@
 ---
 title: Minimalism and process music
 tags: [genre]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Reich's phasing and audible-process manifesto, Glass's additive rhythm, Riley's In C, and Pärt's tintinnabuli — hand-designed processes that generate good music, and why they work.
 ---
 
@@ -49,7 +49,7 @@ Pärt's tintinnabuli style (from Für Alina, 1976; then Cantus in Memoriam Benja
 - The **T-voice** (tintinnabuli) may sound only the notes of the tonic triad. For each M-voice note, the T-voice picks a triad tone by a fixed positional rule: **1st position** = the nearest triad tone to the M note (never the same pitch), **2nd position** = the next-nearest; the T-voice may sit **superior** (always above the M-voice), **inferior** (always below), or **alternate** sides. Hillier's standard analysis (1997) enumerates these positions; the chosen rule is held constant across a section, so the "harmony" is a deterministic function of the melody.
 - Pärt describes the two voices as one entity: "One and one, it is one — it is not two" — melody (the subjective, in Hillier's gloss) and triad (the objective) fused.
 
-A 2026 arXiv study ("Algo Pärt") algorithmically reconstructs Summa and shows how far the rules go: the M-voice itself is largely derived from the syllable counts of the Latin text mapped onto scale segments in a fixed mode, with the T-voice then computed by position rules — a substantial portion of the finished, much-loved piece follows from the system. Residual deviations are where Pärt's taste intervened; identifying such "10% hand-tuning" layers on top of clean algorithms is a promising engine pattern.
+A 2026 arXiv study ("Algo Pärt") algorithmically reconstructs *Summa* and shows how far the rules go: it recovers roughly 93% of the piece's notes from formalized tintinnabuli rules, with only about 3.5% of the remaining errors attributable to voice interdependencies — a substantial portion of the finished, much-loved piece follows from the system. (Earlier tintinnabuli scholarship holds that Pärt often derives the M-voice from the syllable counts of a text mapped onto scale segments in a fixed mode, with the T-voice then computed by position rules; the arXiv paper's own abstract does not itself detail this derivation mechanism, so treat the syllable-mapping account as informed speculation pending a closer read of the paper's methods.) Residual deviations are where Pärt's taste intervened; identifying such "10% hand-tuning" layers on top of clean algorithms is a promising engine pattern.
 
 ## Why these processes work musically
 
