@@ -1,9 +1,9 @@
 ---
 title: Musical universals
 tags: [psychology, genre]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: What is actually universal in music versus culturally learned — statistical universals, cross-cultural form-function links, the consonance and octave-equivalence debates, rhythm priors, and the standing critiques.
 ---
 
@@ -17,11 +17,11 @@ Absolute universals (present in every music, no exceptions) versus statistical u
 
 ## Statistical universals (Savage et al. 2015)
 
-Features common across all nine regions included: use of discrete pitches; octave-organized scales of seven or fewer tones per octave; descending or arched melodic contours; motivic patterns and repetition; an isochronous (evenly spaced) beat; beat subdivision into groups of 2 or 3; syllabic, chest-voice singing; performance in groups; percussion instruments; association with dance. Their network analysis found about ten features that travel together, centered on group performance, dance, percussion, and "simple, repetitive music" — a cluster the authors read as serving group coordination and cohesion. Practical reading: the cross-culturally shared core of music is closer to a drum circle than to a symphony.
+Savage et al. report two distinct kinds of result, worth keeping separate. First, 18 individually statistically-universal features, common far above chance across all nine regions on their own: use of discrete pitches; octave-organized scales of seven or fewer tones per octave; descending or arched melodic contours; motivic patterns and repetition; an isochronous (evenly spaced) beat; beat subdivision into groups of 2 or 3; syllabic, chest-voice singing of words; and others. Second, a separate network analysis found about ten features that travel *together* across cultures more than chance would predict — centered on group performance, dance, percussion, and "simple, repetitive music" — a co-occurrence cluster the authors read as serving group coordination and cohesion, not a claim that each of those features is independently universal in the way the first list's items are. Practical reading: the cross-culturally shared core of music is closer to a drum circle than to a symphony, but "percussion" and "dance" travel together as an associated bundle more than they stand alone as universals.
 
 ## Form-function links (Mehr et al. 2019, Natural History of Song)
 
-Mehr and colleagues built paired corpora — ethnographic descriptions of song from 60 societies (with music mentioned in *all* 315 societies for which ethnography existed) and 118 field recordings from 86 societies — and found song behavior varying along three dimensions (formality, arousal, religiosity), with music most consistently attached to infant care, healing, dance, and love. In online experiments (N ≈ 29,000), listeners identified the function of foreign songs above chance: dance songs and lullabies most reliably, healing songs moderately, love songs poorly. Acoustic features predicted function across cultures (lullabies slower, simpler, "sadder"; dance songs faster, more complex, more arousing) — the infant-directed register in particular appears highly stereotyped worldwide. Mehr also noted the data "raise the controversial possibility" that tonality — organizing melody around a stable reference pitch — "could be a universal feature of music." Form-function is the strongest bridge this project has between engine parameters and intended listener state; see [emotion-and-meaning](emotion-and-meaning.md).
+Mehr and colleagues built paired corpora — ethnographic descriptions of song from 60 societies (eHRAF ethnographies describe music in 309 of the 315 societies with ethnography — six had none documented) and 118 field recordings from 86 societies — and found song behavior varying along three dimensions (formality, arousal, religiosity), with music most consistently attached to infant care, healing, dance, and love. In online experiments (N ≈ 29,000), listeners identified the function of foreign songs above chance: dance songs and lullabies most reliably, healing songs moderately, love songs poorly. Acoustic features predicted function across cultures (lullabies slower, simpler, "sadder"; dance songs faster, more complex, more arousing) — the infant-directed register in particular appears highly stereotyped worldwide. Mehr also noted the data "raise the controversial possibility" that tonality — organizing melody around a stable reference pitch — "could be a universal feature of music." Form-function is the strongest bridge this project has between engine parameters and intended listener state; see [emotion-and-meaning](emotion-and-meaning.md).
 
 ## What does not transfer: consonance preference
 
