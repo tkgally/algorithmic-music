@@ -1,9 +1,9 @@
 ---
 title: Counterpoint and voice leading
 tags: [theory]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Voice-leading rules as auditory-stream engineering — species counterpoint, Huron's perceptual derivation of the rules, dissonance treatment, chorale norms, contrapuntal devices, and how many voices listeners can actually track.
 ---
 
@@ -85,7 +85,7 @@ As taught in chorale-writing pedagogy (ranges as commonly given; MIDI numbers fo
 - Canon/round: strict continuous imitation; works when the material is designed so that it harmonizes with its own delayed copy — a constraint-satisfaction problem well suited to engines ([constraint-and-rule-based-methods.md](constraint-and-rule-based-methods.md)).
 - Invertible counterpoint: two lines written so they still work with registers swapped. At the octave, 3rds↔6ths survive but 5ths become 4ths (dissonant) — so treat 5ths as unstable when writing invertible pairs.
 - Hocket: one melody split between alternating voices (13th–14th c. Europe); the same interlocking logic appears as Javanese imbal and Balinese kotekan, in mbira and panpipe traditions, and in minimalism and math-pop (Wikipedia "Hocket"; see [gamelan.md](gamelan.md), [minimalism-and-process-music.md](minimalism-and-process-music.md)).
-- Pseudo-polyphony (compound melody): one fast monophonic line alternating between registers separated by large intervals is heard as two streams (Gray & Bunescu 2020) — two voices for the price of one oscillator, a genuinely useful trick for thin Web Audio textures.
+- Pseudo-polyphony (compound melody): one fast monophonic line alternating between registers separated by large intervals is heard as two streams — the classic case is Wessel's timbre/register streaming illusion, discussed in Huron (2001) alongside the auditory-scene-analysis account of the effect (Bregman 1990). Two voices for the price of one oscillator, a genuinely useful trick for thin Web Audio textures.
 
 ## Textures and how many voices listeners can track
 
@@ -126,7 +126,7 @@ Tracking limits: Huron (1989) had trained listeners identify the number of concu
 - David Huron, "Tone and Voice: A Derivation of the Rules of Voice-Leading from Perceptual Principles," Music Perception 19/1 (2001), 1–64. https://doi.org/10.1525/mp.2001.19.1.1
 - David Huron, "Voice Denumerability in Polyphonic Music of Homogeneous Timbres," Music Perception 6/4 (1989), 361–382. https://doi.org/10.2307/40285438
 - Emmanuel Deruty et al., "Evolving Music Theory for Emerging Musical Languages" (2025) — secondary account of Huron's tonal-fusion argument, Zarlino, Bach vs Debussy practice. https://arxiv.org/abs/2506.14504
-- Patrick Gray & Razvan Bunescu, "From Note-Level to Chord-Level Neural Network Models for Voice Separation in Symbolic Music" (2020) — streaming principles applied computationally; pseudo-polyphony. https://arxiv.org/abs/2011.03028
+- Albert S. Bregman, *Auditory Scene Analysis: The Perceptual Organization of Sound* (MIT Press, 1990) — the streaming/fission-illusion account behind pseudo-polyphony (cited via Huron 2001's discussion; not independently re-verified in this pass).
 - Mark Gotham et al., Open Music Theory, "First-Species Counterpoint." http://openmusictheory.com/firstSpecies.html (read via project source: https://raw.githubusercontent.com/openmusictheory/openmusictheory.github.io/master/firstSpecies.md)
 - Wikipedia, "Counterpoint." https://en.wikipedia.org/wiki/Counterpoint
 - Wikipedia, "Nonchord tone." https://en.wikipedia.org/wiki/Nonchord_tone

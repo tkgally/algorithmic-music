@@ -1,9 +1,9 @@
 ---
 title: Tuning and scales
 tags: [theory]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Tuning systems and scale construction across cultures — 12-TET vs just intonation, roughness and harmonicity models of consonance (with their cultural limits), tonal hierarchies, and how to realize any tuning in Web Audio via cents.
 ---
 
@@ -43,10 +43,10 @@ Scales worldwide are mostly 5–7 tones per octave, unequal steps being the norm
 
 - Pentatonic scales are globally widespread — anhemitonic major pentatonic (C D E G A) and its modes appear across East Asia, Africa, the Andes, and Anglo-American folk. Five tones with no semitones minimizes roughness among any chord subset, making pentatonics nearly "error-proof" for generative layering.
 - Heptatonic diatonic: the Western major/minor and church-mode system; steps of 1–2 semitones, asymmetric pattern enabling position-finding (every degree hears unique interval relations to the tonic). See [harmony.md](harmony.md).
-- Maqam (Arab world): theory frames a 24-quarter-tone (50¢) gamut, but the quarter tone is never a melodic step; scales are heptatonic, built from tetrachords (ajnas), with the neutral second (~150¢) as the characteristic interval — e.g., maqam Rast ≈ 0, 200, 350, 500, 700, 900, 1050¢. Over 70 maqamat exist; measured performance deviates flexibly from exact 24-TET (Wikipedia "Arab tone system").
+- Maqam (Arab world): theory frames a 24-quarter-tone (50¢) gamut, but the quarter tone is never a melodic step; scales are heptatonic, built from tetrachords (ajnas), with the neutral second (~150¢) as the characteristic interval. Over 70 maqamat exist; measured performance deviates flexibly from exact 24-TET (Wikipedia "Arab tone system"). Maqam Rast ≈ 0, 200, 350, 500, 700, 900, 1050¢ (derived from its two Rast-type jins tetrachords, each 1-tone + 3/4-tone + 3/4-tone; cross-checked against a maqam cents reference rather than the Wikipedia page above, which doesn't itself give Rast's cent values).
 - Indian raga: theory names 22 shrutis per octave built from ratios 256:243 (90¢), 25:24 (70¢), and 81:80 (22¢), from which 7 svaras are selected; but the 22-division is contested, and measurement studies find intonation "neither rigidly fixed nor randomly varying" — artists differ on the same raga (Wikipedia "Shruti (music)"). A raga is far more than its scale (ascent/descent rules, characteristic phrases, note hierarchies); see [indian-classical-music.md](indian-classical-music.md).
 - Gamelan (Java/Bali): slendro = 5 roughly equal steps (~240¢ each); pelog = 7 markedly unequal steps (sometimes approximated as a subset of 9-TET) of which 5-tone subsets are used in practice. No two gamelans share exact tuning — the tuning belongs to the ensemble, not a standard; Balinese paired instruments are deliberately detuned a few Hz apart to beat (ombak shimmer) (Wikipedia "Slendro", "Pelog"). See [gamelan.md](gamelan.md).
-- Japan: the in (miyako-bushi) scale — 1, b2, 4, 5, b6 (e.g., E F A B C) — is the semitone-flavored koto/shamisen pentatonic, organized around nuclear tones a fourth apart; the yo scale (2 3 5 6 8 pattern, no semitones) is its folk counterpart (Wikipedia "In scale"). See [east-asian-traditions.md](east-asian-traditions.md).
+- Japan: the in (miyako-bushi) scale — 1, b2, 4, 5, b6 (e.g., E F A B C) — is the semitone-flavored koto/shamisen pentatonic, organized around nuclear tones a fourth apart (Wikipedia "In scale"); the yo scale (2 3 5 6 8 pattern, no semitones) is its folk counterpart — a standard characterization, though the cited Wikipedia page names the yo scale only as a contrast without spelling out its degrees. See [east-asian-traditions.md](east-asian-traditions.md).
 
 Design lesson: a scale system = pitch set + hierarchy + melodic grammar + intonation practice. Borrowing only the pitch set (e.g., "pentatonic = Chinese") produces exotic kitsch, not the tradition's music.
 

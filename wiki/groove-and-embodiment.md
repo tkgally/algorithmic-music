@@ -1,9 +1,9 @@
 ---
 title: Groove and embodiment
 tags: [psychology, theory]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Groove as the pleasurable urge to move, the syncopation inverted-U, the contested evidence on microtiming, and the concrete drum-pattern features (backbeat, bass weight, velocity hierarchy, ghost notes) that make music move the body.
 ---
 
@@ -21,7 +21,7 @@ Two mechanisms underlie it. **Entrainment**: the motor system locks to a periodi
 
 The central quantitative result is **Witek et al. (2014)**. Sixty-six participants rated 50 funk drum-breaks (synthesized kick/snare/hi-hat, two-bar loops at 120 BPM) for wanting-to-move and pleasure. Both followed an **inverted-U in syncopation** (measured with a polyphonic extension of Longuet-Higgins & Lee — see [rhythm-and-meter.md](rhythm-and-meter.md)): **medium syncopation produced the most movement and the most pleasure**, more than either low (metronomic, boring) or high (too complex, meter destabilized) syncopation. The quadratic fit was strong: R² ≈ 0.35 for movement, ≈ 0.43 for pleasure. Syncopation predicted the response better than audio entropy did. The effect was **amplified by experience with dancing** but largely unaffected by formal musical training, and independent of familiarity — groove is broadly accessible, not an expert taste.
 
-The design reading is direct: an engine should target the *middle* of the syncopation range, not maximal regularity (dull) and not maximal complexity (the meter flips, per Fitch & Rosenfeld). A compact reusable stimulus set reproducing this inverted-U has since been published (Senn et al. 2022), confirming the curve is robust.
+The design reading is direct: an engine should target the *middle* of the syncopation range, not maximal regularity (dull) and not maximal complexity (the meter flips, per Fitch & Rosenfeld's "resetting"). A compact reusable stimulus set reproducing this inverted-U has since been published (Stupacher, Wrede & Vuust 2022). The curve is not unconditionally settled, though: a subsequent study by Senn's group — with Witek herself a co-author — using a new 40-pattern stimulus set found **no significant effect of complexity on urge-to-move** (p=.834) and suggested the original inverted-U may partly reflect the musical implausibility of experimenter-composed stimuli rather than complexity per se, especially once patterns are restricted to idiomatic, drummer-composed ones. Treat the inverted-U as the best current default, not as a fully settled law.
 
 ## The microtiming debate — genuinely unresolved
 
@@ -43,7 +43,7 @@ Groove depends on the tactus sitting where the body wants to move. The preferred
 
 ## Low-frequency emphasis and movement
 
-Bass is not just harmonic foundation — it is a **motor** driver. Hove, Marie, Bruce & Trainor (2014, PNAS) found humans have **superior time perception for lower-pitched tones**: listeners detect timing deviations more accurately in the lower of two simultaneous voices, an asymmetry with a cochlear/brainstem basis (better temporal encoding of low frequencies). This gives a physiological reason why, across cultures, **bass-range instruments lay down the rhythm**. Complementary work (Stupacher, Hove and colleagues) shows **low-frequency content increases groove and sensorimotor coupling**: adding bass/low-frequency vibration strengthens tapping and enjoyment, and low-frequency spectral flux plus overall RMS power are effective predictors of groove ratings. Implication: put the timekeeping and the most rhythmically precise events in the **bass register**, and give the low end real energy — a thin, bass-light mix will not groove no matter how good the pattern.
+Bass is not just harmonic foundation — it is a **motor** driver. Hove, Marie, Bruce & Trainor (2014, PNAS) found humans have **superior time perception for lower-pitched tones**: listeners detect timing deviations more accurately in the lower of two simultaneous voices, and their modeling points to a **cochlear** basis (nonlinear cochlear dynamics), not a claim about the brainstem. This gives a physiological reason why, across cultures, **bass-range instruments lay down the rhythm**. Complementary work — Stupacher, Hove & Janata (2016) — shows **low-frequency content increases groove and sensorimotor coupling**: low-frequency spectral flux plus overall RMS power are effective predictors of groove ratings; related work on bass/low-frequency vibration (e.g. "Feel the Bass") shows added low-frequency tactile stimulation strengthens tapping and enjoyment. Implication: put the timekeeping and the most rhythmically precise events in the **bass register**, and give the low end real energy — a thin, bass-light mix will not groove no matter how good the pattern.
 
 ## Repetition's role
 
@@ -53,7 +53,7 @@ Groove requires **repetition**. The looped ostinato is what lets entrainment bui
 
 Practitioner knowledge (drum-programming craft) converges with the research on a few concrete levers:
 
-- **Velocity hierarchy.** Not all hits are equal. Accented backbeat and downbeat hits are loudest; ghost notes are very quiet. Typical programming guidance: main backbeat/accents high; **ghost notes at velocity ≈ 10–30** (well below ~70); even the main hits vary by **±5–10** to avoid machine-gun uniformity.
+- **Velocity hierarchy.** Not all hits are equal. Accented backbeat and downbeat hits are loudest; ghost notes are very quiet. Practitioner sources agree ghost notes sit **well below ~70** and put worked examples anywhere from the ~20s up to the high 70s depending on the tutorial — treat **≈10–30** for ghost notes and **±5–10** variation on repeated hits as an informed starting estimate to tune by ear, not a figure drawn verbatim from any one source.
 - **Ghost notes.** Quiet, often-syncopated snare taps between the backbeats create forward motion and the "human" feel far more effectively than timing jitter. They are low-velocity onsets on weak sixteenths.
 - **Hi-hat detail.** Vary hi-hat velocity across the beat (e.g. stronger on downbeats, lighter offbeats — a simple loud/soft alternation already helps); open/closed and occasional accents add life. The hi-hat is where subdivision density and "shimmer" live.
 - **A stable low anchor.** Kick and bass articulate the primary pulse tightly and with weight (per the low-frequency findings above).
@@ -65,7 +65,7 @@ These are *velocity and pattern* levers, not timing-noise levers — consistent 
 
 - **Optimize for medium syncopation.** Score candidate drum patterns with the polyphonic Witek/LHL index and select from the middle of the range (the inverted-U peak) — a handful of weak-position onsets per two-bar loop whose following strong position is a rest, while keeping beat 1 and one backbeat articulated so the meter stays put.
 - **Default to quantized timing; if you deviate, deviate with structure.** Abandon uniform random jitter entirely. Use a small number of *fixed, per-instrument, style-labeled* offsets (e.g. laid-back snare +10–20 ms, swung offbeat ~100 ms) applied identically every cycle, ideally coupled to a velocity/timbre change. Treat quantized as a legitimate, often-best baseline.
-- **Encode a velocity hierarchy explicitly.** Per-voice velocity layers: accents (backbeat/downbeat) high; ghost notes ≈ 10–30; ±5–10 variation on repeated hits. This does more for "human feel" than any timing manipulation.
+- **Encode a velocity hierarchy explicitly.** Per-voice velocity layers: accents (backbeat/downbeat) high; ghost notes well below ~70 (≈10–30 as a starting estimate); ±5–10 variation on repeated hits. This does more for "human feel" than any timing manipulation.
 - **Make the backbeat structural.** In 4/4 popular styles, place snare/clap on 2 and 4 as the loudest recurring accent, kick on 1 (+3) as the tight low anchor.
 - **Put timekeeping and energy in the bass.** Give the low register the most precise, weighty rhythmic role and ensure real low-frequency energy in the mix (see [synthesis-recipes.md](synthesis-recipes.md), [effects-and-mixing.md](effects-and-mixing.md)); low-frequency flux/RMS is a groove predictor worth targeting.
 - **Tempo 90–130 BPM for danceable groove**, with a clear, salient tactus. Keep pulse clarity high even when syncopation is high.
@@ -76,6 +76,7 @@ These are *velocity and pattern* levers, not timing-noise levers — consistent 
 - Exact per-style microtiming templates (which instrument, how many ms, coupled to what velocity/timbre change) that *do* add groove — the literature says structured deviations can help but has not delivered a portable, quantitative recipe.
 - How groove features interact with harmony: Senn et al. found rhythmic and harmonic complexity jointly shape groove; the interaction is not yet a formula.
 - Whether the inverted-U peak location shifts with tempo, register, and genre, and how to set it automatically.
+- Reconciling Witek et al. (2014) with the 2024/25 non-replication (PMC11567550): is the inverted-U a real effect of syncopation per se, or partly an artifact of experimenter-composed (vs. idiomatic, drummer-composed) stimuli? An engine should probably favor idiomatic patterns regardless, but the theoretical account needs revisiting.
 
 ## Related pages
 
@@ -92,10 +93,14 @@ These are *velocity and pattern* levers, not timing-noise levers — consistent 
 ## Sources
 
 - P. Janata, S. Tomic & J. Haberman, "Sensorimotor coupling in music and the psychology of the groove," *J. Experimental Psychology: General*, 2012 — groove defined as pleasurable urge to move. Summarized in Senn et al., "Preliminaries to a Psychological Model of Musical Groove," *Frontiers in Psychology* 2019: https://pmc.ncbi.nlm.nih.gov/articles/PMC6558102/
-- M. Witek, E. Clarke, M. Wallentin, M. Kringelbach & P. Vuust, "Syncopation, Body-Movement and Pleasure in Groove Music," *PLOS ONE*, 2014 — the syncopation inverted-U: https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0094446
+- M. Witek, E. Clarke, M. Wallentin, M. Kringelbach & P. Vuust, "Syncopation, Body-Movement and Pleasure in Groove Music," *PLOS ONE*, 2014 — the syncopation inverted-U (verified exactly: R²=.3474 movement, .4267 pleasure): https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0094446
+- J. Stupacher, T. Wrede & P. Vuust, "A Brief and Efficient Stimulus Set to Create the Inverted U-Shaped Relationship Between Rhythmic Complexity and The Sensation of Groove," *PLOS ONE*, 2022 — compact reusable stimulus set reproducing the inverted-U. https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0266902
+- Senn et al. (Lucerne, with M. Witek as co-author), "Null effect of perceived drum pattern complexity on the experience of groove," 2024/2025 — the inverted-U did not replicate with a new 40-pattern set (p=.834); complicates the "settled curve" reading. https://pmc.ncbi.nlm.nih.gov/articles/PMC11567550/
 - J. Frühauf, R. Kopiez & F. Platz, "Music on the timing grid," *Musicae Scientiae*, 2013 — quantized preferred, exactitude aesthetics: https://journals.sagepub.com/doi/abs/10.1177/1029864913486793
 - O. Senn et al., "The Effect of Expert Performance Microtiming on Listeners' Experience of Groove," *Frontiers in Psychology*, 2016 — high-groove zone from quantized to original: https://pmc.ncbi.nlm.nih.gov/articles/PMC5050221/
-- A. Danielsen et al. (RITMO), on microrhythm/timing feels shaped by sound as well as onset: https://www.uio.no/ritmo/english/projects/time/ ; instructed-timing study: https://journals.sagepub.com/doi/full/10.1177/10298649231182039
+- A. Danielsen et al. (RITMO), on microrhythm/timing feels shaped by sound (duration, intensity, spectral centroid) as well as onset: https://www.uio.no/ritmo/english/projects/time/ ; a related RITMO instructed-timing study on body posture (not the sound-feature claim itself): https://journals.sagepub.com/doi/full/10.1177/10298649231182039
+- J. Stupacher, M. J. Hove & P. Janata, "Audio Features Underlying Perceived Groove and Sensorimotor Synchronization in Music," *Music Perception*, 33/5 (2016) — low-frequency spectral flux and RMS power as groove predictors.
+- Related Stupacher/Hove work on tactile bass (sometimes referenced as "Feel the Bass") reports added low-frequency vibration strengthens tapping and enjoyment — exact primary citation not pinned down in this pass; a future session should locate and verify it before leaning on the specific finding.
 - M. Hove, C. Marie, I. Bruce & L. Trainor, "Superior time perception for lower musical pitch explains why bass-ranged instruments lay down musical rhythms," *PNAS*, 2014, doi:10.1073/pnas.1402039111.
 - B. Repp, "Sensorimotor synchronization: A review of the tapping literature," *Psychonomic Bulletin & Review*, 2005 — entrainment limits.
 - O. Senn et al., "The sensation of groove is affected by the interaction of rhythmic and harmonic complexity," *PLOS ONE*, 2018: https://pmc.ncbi.nlm.nih.gov/articles/PMC6328141/ ; groove "sweet spot" review, *Frontiers in Psychology* 2022: https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2022.906190/full

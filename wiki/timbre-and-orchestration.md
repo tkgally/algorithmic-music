@@ -1,9 +1,9 @@
 ---
 title: Timbre and orchestration
 tags: [theory, craft]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: The perceptual dimensions of timbre (attack, brightness, spectral flux), why attack transients identify instruments, and the orchestration rules — register, blend vs segregation, spacing, foreground/background — needed so synthesized voices read as distinct instruments.
 ---
 
@@ -23,7 +23,7 @@ Grey's landmark 1977 study placed 16 orchestral instruments in a 3-D timbre spac
 
 ## Why attack transients dominate identification
 
-The **attack transient — the first few tens of milliseconds** — carries most of the information the ear uses to identify an instrument. The classic demonstration: **remove the attack** (splice it out or play the note in reverse) and instruments become surprisingly hard to name; a piano tone reversed loses its identity and can be mistaken for a reed organ, because what defines "piano" is the percussive onset and subsequent decay, not the steady state. The steady-state harmonic spectrum alone is a weak identifier; the *onset behavior* — how quickly and in what order partials arrive, the presence of inharmonic noise in the first milliseconds (bow scratch, breath, hammer thud, pick click) — is decisive. For synthesis this is the highest-leverage fact on the page: **a convincing, differentiated attack is worth more than an elaborate sustain.** Static-onset synth tones read as generic precisely because they discard the identifying transient.
+The **attack transient — the first few tens of milliseconds** — carries most of the information the ear uses to identify an instrument. Saldanha & Corso (1964), discussed in McAdams's reviews, found that excising the attack (and decay) portions of instrument tones markedly reduces listeners' ability to identify them. A related classic demonstration reverses a recording of a piano passage: the reversed tone loses its percussive identity entirely and can be mistaken for a different, swelling-onset instrument (a reed organ or harmonium, per the well-known Bell Labs/Fassett "Strange to Your Ears" demonstration recording) — because what defines "piano" is the percussive onset and subsequent decay, not the steady state. The steady-state harmonic spectrum alone is a weak identifier; the *onset behavior* — how quickly and in what order partials arrive, the presence of inharmonic noise in the first milliseconds (bow scratch, breath, hammer thud, pick click) — is decisive. For synthesis this is the highest-leverage fact on the page: **a convincing, differentiated attack is worth more than an elaborate sustain.** Static-onset synth tones read as generic precisely because they discard the identifying transient.
 
 ## Orchestration: registral strengths of instrument families
 
@@ -77,8 +77,8 @@ A near-universal orchestration rule: **space chords widely in the bass and close
 
 Timbre carries affect directly, largely along two mappings:
 
-- **Brightness (spectral centroid) → arousal / positive valence.** Brighter tones read as more energetic, tenser, often more positive; darker tones as calmer, softer, sometimes sadder. Arousal is well predicted by brightness together with loudness and tempo.
-- **Roughness (spectral/sensory dissonance) → tension / negative valence.** Rough, harsh spectra (dense inharmonic partials, distortion, tight low intervals) signal tension, threat, or aggression; smooth spectra read as consonant and calm.
+- **Brightness (spectral centroid) → arousal, robustly; → valence, contested.** Brighter tones consistently read as more energetic/tenser (arousal is well predicted by brightness together with loudness and tempo), but the two cited studies on brightness and *valence* disagree with each other on direction — one finds brighter/more high-frequency energy reads more positive, another finds the opposite and cites still other work on both sides. Treat brightness→arousal as solid and brightness→valence as an open, style-dependent question rather than a fixed mapping.
+- **Roughness / spectral noisiness → tension, negative valence.** Rough, noisy, or highly variable spectra (dense inharmonic partials, distortion, tight low intervals) signal tension, threat, or aggression; smoother, more harmonic spectra read as calmer. (The cited studies measure this via spectral variation/noisiness proxies rather than a computed Plomp–Levelt roughness score, so "roughness" here is a family of related acoustic measures, not one specific model.)
 
 So timbre choice is an emotional lever independent of pitch and harmony (see [emotion-and-meaning.md](emotion-and-meaning.md)): the same melody on a soft dark pad versus a bright rough lead conveys very different affect.
 
@@ -102,7 +102,7 @@ Overlap in both register and timbre is what makes a mix muddy; separation on tho
 - **Blend deliberately with synchrony + consonance + similarity.** To fuse voices (pads, doublings), align onsets within ~30–50 ms, use octave/unison/fifth relations, and match spectral envelope and attack; move them in parallel. To *segregate* (melody vs accompaniment, counterpoint), do the opposite: contrasting attack/centroid, independent rhythm, staggered onsets, contrary motion.
 - **Assign strata explicitly.** Give each voice a role (lead/bed/bass/ornament/percussion) and enforce foreground vs background via dynamics, register separation, articulation, and "transparency" — a moving bright line in front, a soft diffuse pad behind. Double the lead at the octave to project it.
 - **Apply the spacing rule.** Keep low intervals wide (octaves/fifths below ~C3), allow close voicings above C4; this is a direct consequence of critical bands and prevents low-register mud.
-- **Use timbre as an emotion control.** Map target arousal to brightness/loudness and target tension to roughness; pick and modulate patches accordingly rather than treating timbre as fixed dressing.
+- **Use timbre as an emotion control.** Map target arousal to brightness/loudness (well supported) and target tension to spectral roughness/noisiness (well supported); treat brightness→valence direction as style-dependent and worth a listening-test check rather than assuming brighter always reads happier. Pick and modulate patches accordingly rather than treating timbre as fixed dressing.
 - **Keep the mix legible by separation.** Allocate register and timbre so functional roles do not collide; if two voices must share a register, separate them strongly in timbre (and vice versa).
 
 ## Open questions
@@ -126,7 +126,9 @@ Overlap in both register and timbre is what makes a mix muddy; separation on tho
 
 - J. M. Grey, "Multidimensional perceptual scaling of musical timbres," *JASA*, 1977 — 3-D timbre space (attack, spectral distribution, spectral flux).
 - S. McAdams, S. Winsberg, S. Donnadieu, G. De Soete & J. Krimphoff, "Perceptual scaling of synthesized musical timbres," *Psychological Research*, 58:177–192, 1995 — rise time, spectral centroid, spectral irregularity: https://www.mcgill.ca/mpcl/files/mpcl/mcadams_1995_psycholres.pdf
-- S. McAdams & K. Siedenburg, "Perception of Musical Timbre" (2019) and S. McAdams, "The Perceptual Representation of Timbre" — attack-transient importance, brightness/centroid: https://www.mcgill.ca/mpcl/files/mpcl/mcadams_2019_foundmuspsychol.pdf
+- S. McAdams & K. Siedenburg, "Perception of Musical Timbre" (2019) and S. McAdams, "The Perceptual Representation of Timbre" — attack-transient importance (discussing Saldanha & Corso 1964), brightness/centroid: https://www.mcgill.ca/mpcl/files/mpcl/mcadams_2019_foundmuspsychol.pdf
+- E. J. Saldanha & J. F. Corso, "Timbre cues and the identification of musical instruments," *JASA* 36 (1964) — attack/decay excision reduces instrument identification (cited via McAdams 2019 above; not independently re-verified in this pass).
+- J. Fassett, "Strange to Your Ears" (Columbia Record No. ML 4938) — the classic reversed-piano/reed-organ demonstration recording, reproduced in psychoacoustics demonstration compilations; a well-known illustration of the attack-transient point, cited here separately from the McAdams reviews above (which discuss the general finding but not this specific recording).
 - S. McAdams, M. Goodchild et al., "A Taxonomy of Orchestral Grouping Effects Derived from Principles of Auditory Perception," *Music Theory Online* 28.3, 2022 — blend/segregation, 30–50 ms synchrony window, stratification, named devices: https://mtosmt.org/issues/mto.22.28.3/mto.22.28.3.mcadams.html ; reprint: https://timbreandorchestration.org/writings/reprints/a-taxonomy-of-orchestral-grouping-effects-derived-from-principles-of-auditory-perception
 - G. Sandell, "Roles for spectral centroid and other factors in determining 'blended' instrument pairings," *Music Perception*, 1995 — augmentation/emergence/heterogeneity.
 - N. Rimsky-Korsakov, *Principles of Orchestration* (1912/1922); S. Adler, *The Study of Orchestration* — register strengths, doubling, spacing, functional division (treatise principles).
