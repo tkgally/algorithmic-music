@@ -1,9 +1,9 @@
 ---
 title: The improvement loop
 tags: [project, evaluation]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: The project's process for turning wiki knowledge, metrics, and human feedback into measurably better music, session after session.
 ---
 
@@ -26,7 +26,7 @@ findings pages ◄── analysis ◄── human feedback (Tom + evaluators, vi
 2. **Build versioned.** Changes land as a new engine version; old versions stay playable (same seed → A/B comparison — see [engine-architecture](engine-architecture.md)).
 3. **Self-evaluate before humans hear it.** Run the metric suite ([computational-music-metrics](computational-music-metrics.md)) on score dumps and offline renders: regression tests on solved problems (loudness, spectra, onset behavior — the verify.mjs inheritance) plus the musical diagnostics (cadence presence, motif recurrence, tension-curve fit, density variance). Claude cannot hear; metrics and structural self-reports are Claude's ears between human feedback rounds, within their known limits (they detect absences and anomalies, not quality).
 4. **Collect human feedback.** Structured, piece-anchored, low-friction (see [listening-tests-and-feedback](listening-tests-and-feedback.md)): every feedback datum records `(engine, version, seed, params, timestamp)` plus ratings and free text. Tom's feedback is the primary signal early; other evaluators join via the public site. Pairwise A/B between versions with identical seeds is the most sensitive instrument available — prefer it.
-5. **Analyze and file findings.** Each feedback round or experiment gets a findings page (`findings-YYYY-MM-DD-<topic>.md`, tags `[findings]`): what was tested, against which hypothesis, what was observed, what changes. General pages get updated to cite the finding (e.g., if phrase-final lengthening measurably helps, [expressive-performance](expressive-performance.md) gains a "confirmed in this project" note). This is the compounding step — do not skip it.
+5. **Analyze and file findings.** Each feedback round or experiment gets a findings page (`findings-<topic>.md`, one per experiment or theme, tags `[findings]` — see [conventions](conventions.md); the date lives in frontmatter/`log.md`, not the filename, per the precedent set by [findings-shared-lib-foundation](findings-shared-lib-foundation.md)): what was tested, against which hypothesis, what was observed, what changes. General pages get updated to cite the finding (e.g., if phrase-final lengthening measurably helps, [expressive-performance](expressive-performance.md) gains a "confirmed in this project" note). This is the compounding step — do not skip it.
 6. **Repeat.** The next hypothesis comes from the updated wiki.
 
 ## Feedback taxonomy
