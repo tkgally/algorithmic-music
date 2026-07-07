@@ -1,9 +1,9 @@
 ---
 title: Film and game music
 tags: [genre]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Film scoring functions and leitmotif, plus the adaptive-music architectures of game audio (vertical layering, horizontal resequencing, stingers, transition matrices) reframed for a browser engine whose game state is the user's controls.
 ---
 
@@ -36,7 +36,7 @@ Games cannot use fixed linear cues because the duration and emotional trajectory
 
 ### Vertical layering (re-orchestration)
 
-The score is split into simultaneous **stems/layers** that are added or removed — or faded up and down — according to game state. All layers share one key, tempo, and grid so any combination is coherent. Examples: Leonard Paul's work on *Vessel* grouped 20–30 instrument stems into four layers (ambient, harmony, bass, drums) mixed live by gameplay events; *Red Dead Redemption* wrote most of its music in A minor at 130 BPM specifically so pre-recorded instrument tracks could be recombined freely. Layer volumes are driven by continuous state variables (in Wwise these are **RTPCs**, real-time parameter controls).
+The score is split into simultaneous **stems/layers** that are added or removed — or faded up and down — according to game state. All layers share one key, tempo, and grid so any combination is coherent. Examples: Leonard Paul's work on *Vessel* grouped 20–30 instrument stems into four layers (ambient, harmony, bass, drums) mixed live by gameplay events; composer Bill Elm has said *Red Dead Redemption* recorded roughly 24 hours of music (including *Undead Nightmare*) all in A minor, with a tempo of 130 (half-time 65) chosen because it suited the game's movement and let stems drop over one another seamlessly at any moment the player demanded. Layer volumes are driven by continuous state variables (in Wwise these are **RTPCs**, real-time parameter controls).
 
 ### Horizontal resequencing (segment graphs)
 
@@ -108,3 +108,4 @@ The prior studio prototypes already used a single "Presence" macro mapping to ~1
 - Audiokinetic, "Get Started Using the Music System in Wwise" (segments, transitions, stingers, sync points) — https://www.audiokinetic.com/en/get-started-using-the-music-system-in-wwise/
 - Kent Jolly & Aaron McLeran, "Procedural Music in SPORE," GDC 2008 — https://www.gdcvault.com/play/323/Procedural-Music-in ; background: https://en.wikipedia.org/wiki/Spore_(2008_video_game)
 - Paul Weir, "Behind the Sound of 'No Man's Sky': A Q&A" (Pulse, generative vs procedural, states, asset counts), A Sound Effect — https://www.asoundeffect.com/no-mans-sky-sound-procedural-audio/
+- Bill Elm interview, "Myths, Mavericks, and Music of Red Dead Redemption," Game Developer — https://www.gamedeveloper.com/audio/myths-mavericks-and-music-of-i-red-dead-redemption-i- ; corroborating: "Playing Your Song: The Evolution of Dynamic Music in Games," EGM — https://egmnow.com/playing-your-song-the-evolution-of-dynamic-music-in-games/

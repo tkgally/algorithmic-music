@@ -1,9 +1,9 @@
 ---
 title: Indian classical music
 tags: [genre]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Raga as grammar-constrained melodic improvisation over a fixed drone within cyclic tala, unfolding by gradual intensification — a working blueprint for generative melody engines.
 ---
 

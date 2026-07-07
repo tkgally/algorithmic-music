@@ -1,9 +1,9 @@
 ---
 title: West African rhythm
 tags: [genre]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Timeline-anchored ostinato ensembles with systematic cross-rhythm, master-drummer variation, and interlocking parts — an engine architecture for rhythm-forward music, read with Agawu's cautions against exoticism.
 ---
 
@@ -24,7 +24,7 @@ A five-stroke reduction of it is common, and its duple-pulse (16-pulse) relative
 
 ## Cross-rhythm: 3:2 as structural principle
 
-Beneath the timeline runs a regular beat scheme — typically four ternary beats per 12-pulse cycle, grounded in the dancers' feet. The same 12 pulses simultaneously support six duple beats, and this two-in-the-time-of-three duality is generative, not occasional: Novotney calls 3:2 "the foundation of all West African polyrhythmic textures," and Locke writes that "ternary beats invariably imply their binary counterparts; in other words, 3:2 is an inseparable twinning." Locke's "metric matrix" describes the result: an implicit grid of coexisting beat streams (4-feel and 6-feel over the same cycle) from which parts and listeners can select perspectives — his "simultaneous multidimensionality." Willie Anku's set-theoretic model makes the machine explicit: music perceived as circular, one regulative beat per cycle dividing it into four equidistant beats, with 12-time-point and 16-time-point sets as the two basic cycle types. Two cautions from insiders and critics alike: the components are not independent layers but "a single Gestalt" (Agawu/Ladzekpo — hence skepticism about "polymeter" notation), and meter is embodied — Agawu: "many misinterpretations of African rhythm stem from failure to observe the dance." See [groove-and-embodiment](groove-and-embodiment.md).
+Beneath the timeline runs a regular beat scheme — typically four ternary beats per 12-pulse cycle, grounded in the dancers' feet. The same 12 pulses simultaneously support six duple beats, and this two-in-the-time-of-three duality is generative, not occasional: Novotney calls 3:2 "the foundation of most typical... polyrhythmic textures found in West African musics," and Locke writes that "ternary beats invariably imply their binary counterparts; in other words, 3:2 is an inseparable twinning." Locke's "metric matrix" describes the result: an implicit grid of coexisting beat streams (4-feel and 6-feel over the same cycle) from which parts and listeners can select perspectives — his "simultaneous multidimensionality." Willie Anku's set-theoretic model makes the machine explicit: music perceived as circular, one regulative beat per cycle dividing it into four equidistant beats, with 12-time-point and 16-time-point sets as the two basic cycle types. Two cautions from insiders and critics alike: the components are not independent layers but "a single Gestalt" (Agawu/Ladzekpo — hence skepticism about "polymeter" notation), and meter is embodied — Agawu: "many misinterpretations of African rhythm and meter stem from a failure to observe the dance" (*African Rhythm: A Northern Ewe Perspective*, 1995). See [groove-and-embodiment](groove-and-embodiment.md).
 
 ## Ensemble roles: fixed ostinati plus one variable voice
 
@@ -33,7 +33,7 @@ The role hierarchy is consistent across repertoires (Ewe drumming is the best-do
 - **Timekeepers**: bell (timeline) and rattle; unvarying.
 - **Support drums**: each locks a short ostinato to a specific phase of the timeline, often deliberately off-beat, forming a composite lattice. Parts are quasi-immutable; identity of the piece lives here.
 - **Response/middle drum**: semi-fixed, in dialogue with the lead.
-- **Lead (master) drum**: the one free agent — but Anku stresses the lead drummer "manipulates relatively few known set rhythms rather than inventing new ones," recombining stock variations by rotation, substitution, and interpolation against the stable background, and signaling section changes to drummers and dancers.
+- **Lead (master) drum**: the one free agent — but Anku stresses that the lead drummer structurally manipulates relatively few set rhythms — drawn from a stock of generative rhythmic vocabulary, not invented on the spur of the moment — recombining stock variations by rotation, substitution, and interpolation against the stable background, and signaling section changes to drummers and dancers.
 - **Call-and-response** pervades both drum dialogue and song above it.
 
 The Mande djembe ensemble instantiates the same design: dunun trio (kenkeni, sangban, dundunba) as pitched interlocking ostinati with cycles of different lengths, accompaniment djembes on short repeating patterns built from three strokes (bass/tone/slap), and one lead djembe playing solo phrases that cue the dancers and mark the choreography (Wikipedia, Djembe).
@@ -80,6 +80,6 @@ Agawu ("The Invention of 'African Rhythm'," 1995; *Representing African Music*, 
 - W. Anku, "Circles and Time: A Theory of Structural Organization of Rhythm in African Music," *Music Theory Online* 6.1 (2000). https://mtosmt.org/issues/mto.00.6.1/mto.00.6.1.anku.html
 - M. Scherzinger, "Temporal Geometries of an African Music: A Preliminary Sketch," *Music Theory Online* 16.4 (2010). https://www.mtosmt.org/issues/mto.10.16.4/mto.10.16.4.scherzinger.html
 - Wikipedia, "Bell pattern" — https://en.wikipedia.org/wiki/Bell_pattern; "Rhythm in Sub-Saharan Africa" — https://en.wikipedia.org/wiki/Rhythm_in_Sub-Saharan_Africa; "Mbira" — https://en.wikipedia.org/wiki/Mbira; "Djembe" — https://en.wikipedia.org/wiki/Djembe
-- K. Agawu, "The Invention of 'African Rhythm'," *Journal of the American Musicological Society* 48/3 (1995); and *Representing African Music: Postcolonial Notes, Queries, Positions* (Routledge, 2003). https://books.google.com/books/about/Representing_African_Music.html?id=30JpAwAAQBAJ (positions corroborated via Scherzinger 2010 and secondary summaries)
+- K. Agawu, "The Invention of 'African Rhythm'," *Journal of the American Musicological Society* 48/3 (1995); *African Rhythm: A Northern Ewe Perspective* (Cambridge Univ. Press, 1995) — source of the "failure to observe the dance" quote; and *Representing African Music: Postcolonial Notes, Queries, Positions* (Routledge, 2003). https://books.google.com/books/about/Representing_African_Music.html?id=30JpAwAAQBAJ (positions corroborated via Scherzinger 2010 and secondary summaries)
 - G. Kubik, *Theory of African Music*, Vol. I (Univ. of Chicago Press) — amadinda interlocking, inherent patterns. https://press.uchicago.edu/ucp/books/book/chicago/T/bo8648201.html
 - P. Berliner, *The Soul of Mbira* (Univ. of California Press, 1978) — mbira practice and bira context (cited via Mbira sources above).
