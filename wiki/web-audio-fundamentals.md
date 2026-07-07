@@ -3,7 +3,7 @@ title: Web Audio fundamentals
 tags: [implementation]
 status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: The audio-graph mental model, AudioContext lifecycle, AudioParam automation and click-safety, the node zoo, envelope patterns, and OfflineAudioContext rendering — the base layer every engine builds on.
 ---
 
@@ -50,7 +50,7 @@ The automation methods are the API's real instrument. All times are in `ctx.curr
 
 A discontinuity in gain, frequency (of audible filters), pan, or delay time produces a broadband click. House rules:
 
-- Audible params never jump. Gain moves get ≥ 3–10 ms ramps; filter frequency moves get ≥ 20–50 ms (`setTargetAtTime` with τ ≈ 30–100 ms is ideal for live control).
+- Audible params never jump. Gain moves get ≥ 3–10 ms ramps for continuous changes (fades, crossfades, live-control automation); filter frequency moves get ≥ 20–50 ms (`setTargetAtTime` with τ ≈ 30–100 ms is ideal for live control). A percussive note's initial attack is the one accepted exception to the ≥3 ms gain floor: any nonzero ramp from 0 (even ~1–2 ms) already eliminates the step-discontinuity click, so short percussive attacks can go faster than the general floor — see [synthesis-recipes.md](synthesis-recipes.md)'s drum recipes.
 - Never `stop()` a source that is still audible — release first, stop after the release tail.
 - `delayTime` changes on an audible delay pitch-shift and zipper; crossfade between two delays for tempo-sync changes.
 - Initialize params before the context runs or while gain is 0; `.value =` is fine then and only then.

@@ -3,7 +3,7 @@ title: Auditory perception basics
 tags: [psychology]
 status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: The hard perceptual constraints every engine must respect — auditory scene analysis and streaming, critical bands and masking, pitch and the missing fundamental, equal-loudness contours, temporal resolution and memory, the ~3-voice polyphony limit, and pitch/tuning tolerance.
 ---
 
@@ -29,7 +29,7 @@ The cochlea performs a frequency analysis with finite resolution: it is divided 
 
 ## Pitch perception: virtual pitch, missing fundamental, octave equivalence
 
-Pitch is inferred from spectral pattern, not read off a single frequency. Present a set of harmonics (300, 400, 500 Hz) with no energy at 100 Hz and listeners still hear pitch at 100 Hz — the missing fundamental / virtual pitch, robust even when noise masks the region where the fundamental would be, so it is a central (neural) computation, not cochlear distortion. This is why telephones (no energy below ~300 Hz) and small speakers still convey bass pitch, and why a thin-sounding synth bass with strong harmonics reads as the right note. Octave equivalence (notes an octave apart share pitch class / chroma) is near-universal across cultures and underlies all scale systems (see [musical-universals.md](musical-universals.md), [tuning-and-scales.md](tuning-and-scales.md)). Practical upshot: an engine can imply a bass register through harmonics when playback hardware lacks true low end.
+Pitch is inferred from spectral pattern, not read off a single frequency. Present a set of harmonics (300, 400, 500 Hz) with no energy at 100 Hz and listeners still hear pitch at 100 Hz — the missing fundamental / virtual pitch, robust even when noise masks the region where the fundamental would be, so it is a central (neural) computation, not cochlear distortion. This is why telephones (no energy below ~300 Hz) and small speakers still convey bass pitch, and why a thin-sounding synth bass with strong harmonics reads as the right note. Octave equivalence (notes an octave apart share pitch class / chroma) is common across cultures and underlies most scale systems, but it is not a settled universal: Jacoby et al. (2019) found US singers reproduced melodies transposed by whole octaves when pitched outside their vocal range, while Tsimane' singers preserved the interval pattern with no bias toward octave-equivalent transposition — see [musical-universals.md](musical-universals.md) for the full cross-cultural picture and its "contested" framing. Practical upshot: an engine can imply a bass register through harmonics when playback hardware lacks true low end; don't assume octave-equivalent chroma perception is a human universal outside the Western-enculturated listeners this project mostly designs for.
 
 ## Loudness: equal-loudness contours
 
