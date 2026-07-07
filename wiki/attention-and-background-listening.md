@@ -1,9 +1,9 @@
 ---
 title: Attention and background listening
 tags: [psychology]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: How music interacts with cognitive work — the irrelevant-sound effect, lyrics as distractor, the arousal-mood account, the near-null meta-analytic picture, individual differences, and the design rules that define the background end of this project's listening axis.
 ---
 
@@ -18,6 +18,8 @@ The load-bearing result comes from the **irrelevant-sound effect** (ISE) literat
 ## Lyrics are the most robust distractor
 
 Speech and sung lyrics are the worst offenders because they carry maximal changing-state variation plus phonological content that collides with verbal processing. For reading and comprehension the ordering is reliably silence > instrumental > vocal. Nick Perham's work adds a sharp point: liking the music does not rescue performance — participants recalled equally poorly with *liked* and *disliked* music, and both were worse than quiet, because disruption is driven by the acoustics (changing state), not by preference or annoyance. For a background-music engine this is close to a hard rule: **no lyrics, and no formant/vocal-like timbres that mimic speech**, at least by default.
+
+(This finding is from Perham & Vizard (2011), a serial-recall study — see Sources. A related, separate Perham & Currie (2014) paper found the silence > instrumental > vocal ordering specifically for reading comprehension.)
 
 ## Arousal-mood vs direct cognitive effects
 
@@ -40,7 +42,7 @@ The mass culture of "lo-fi hip hop radio — beats to relax/study to" (the Lofi 
 
 ## Brain.fm-style amplitude modulation (hedge heavily)
 
-Some products (Brain.fm, Endel) claim that adding rapid **amplitude modulation** (AM) to music aids attention via neural entrainment. The best evidence is Woods et al. (2024, *Communications Biology*): music with added AM improved sustained-attention (SART) performance, best at a **16 Hz** (beta-band) rate and higher modulation depths, with the benefit concentrated in listeners reporting more **ADHD** symptoms; fMRI showed greater attention-network activation and EEG showed increased 16 Hz stimulus-brain phase-locking. Two large caveats: the study's lead author is a Brain.fm employee and a co-author held company equity (disclosed conflict of interest), and the effect is strongest for a subpopulation. The same literature warns that *irregular* modulation is extra-distracting — so **if** an engine modulates, it should modulate like clockwork. Treat AM as an honestly-labeled, off-by-default experiment, not a validated feature.
+Some products (Brain.fm, Endel) claim that adding rapid **amplitude modulation** (AM) to music aids attention via neural entrainment. The best evidence is Woods et al. (2024, *Communications Biology*): music with added AM improved sustained-attention (SART) performance, best at a **16 Hz** (beta-band) rate and higher modulation depths, with the benefit concentrated in listeners reporting more **ADHD** symptoms; fMRI showed greater attention-network activation and EEG showed increased 16 Hz stimulus-brain phase-locking. Two large caveats: the study's lead author is a Brain.fm employee and a co-author held company equity (disclosed conflict of interest), and the effect is strongest for a subpopulation. Treat AM as an honestly-labeled, off-by-default experiment, not a validated feature; **if** an engine modulates, the conservative default is regular, clockwork modulation at 16 Hz, since that is the only rate this study actually tested and validated — Woods et al. (2024) itself does not test or report on irregular modulation, so a claim that irregularity is *extra* distracting would be an unsupported extrapolation, not a finding from this source.
 
 ## Loudness: quiet, and level-matched
 
@@ -77,8 +79,10 @@ Level matters. A controlled study found **45 dB(A)** white noise produced better
 ## Sources
 
 - Juliane Kämpfe, Peter Sedlmeier & Frank Renkewitz, "The impact of background music on adult listeners: A meta-analysis," *Psychology of Music* 39(4) (2011) — https://journals.sagepub.com/doi/10.1177/0305735610376261
-- Nick Perham & Harriet Currie, "Can preference for background music mediate the irrelevant sound effect?" *Applied Cognitive Psychology* (2011) — https://onlinelibrary.wiley.com/doi/abs/10.1002/acp.1731
+- Nick Perham & Joanne Vizard, "Can preference for background music mediate the irrelevant sound effect?" *Applied Cognitive Psychology* 25(4) (2011) — https://onlinelibrary.wiley.com/doi/abs/10.1002/acp.1731
+- Nick Perham & Harriet Currie, "Does listening to preferred music improve reading comprehension performance?" *Applied Cognitive Psychology* 28(2) (2014) — https://doi.org/10.1002/acp.2994
+- William Forde Thompson, E. Glenn Schellenberg & Gabriela Husain, "Arousal, Mood, and the Mozart Effect," *Psychological Science* 12(3) (2001) — https://doi.org/10.1111/1467-9280.00345
 - Sebastian Küssner, "Eysenck's Theory of Personality and the Role of Background Music in Cognitive Task Performance: A Mini-Review" (covers Furnham & Bradley 1997), *Frontiers in Psychology* (2017) — https://pmc.ncbi.nlm.nih.gov/articles/PMC5694457/
 - Göran Söderlund et al., "Listen to the noise: noise is beneficial for cognitive performance in ADHD," *J. Child Psychology & Psychiatry* (2007); MBA model — https://www.icben.org/2008/PDFs/Soederlund_Sikstroem.pdf
 - Kevin J. P. Woods et al., "Rapid modulation in music supports attention in listeners with attentional difficulties," *Communications Biology* 7:1376 (2024) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11499863/
-- Onur Yorulmaz et al., "Cognitive performance, creativity and stress levels of neurotypical young adults under different white noise levels" (45 vs 65 dB), *Scientific Reports* (2022) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9418159/
+- Mohamad Awada, Burcin Becerik-Gerber, Gale Lucas & Stacy Roll, "Cognitive performance, creativity and stress levels of neurotypical young adults under different white noise levels" (45 vs 65 dB), *Scientific Reports* 12 (2022) — https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9418159/
