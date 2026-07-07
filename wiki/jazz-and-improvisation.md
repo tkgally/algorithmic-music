@@ -35,6 +35,7 @@ Friberg and Sundström measured ride-cymbal timing from recordings of four canon
 - The short note's absolute duration is approximately constant at ~100 ms across medium-to-fast tempos — swing behaves like "long note stretches, short note stays fixed," plausibly a perceptual-motor limit.
 - The common notion of a fixed 2:1 "triplet feel" is wrong as a general rule; 2:1 is just what the function passes through at medium tempos. Wikipedia's summary of the literature puts practical ratios between 1:1 and 3:1, wider when slower.
 - Ensemble microtiming matters: physicists and psychologists studying swing note a perceptible timing offset between soloist and rhythm section (soloists tend to play "behind" the cymbal); magnitudes vary by player and tempo, and precise norms should be checked against the 2002 Music Perception paper before hard-coding — see [groove-and-embodiment](groove-and-embodiment.md).
+- The 2:1 "triplet feel" assumption is wrong for both roles, in opposite directions: at medium tempi, drummers' ratios run consistently *above* 2:1 and soloists' consistently *below* it — 2:1 is roughly where the two roles straddle, not what either actually plays.
 
 ## Rhythm section construction rules
 
@@ -62,7 +63,7 @@ In the late 1950s, as a reaction to bebop's dense changes, modal jazz slowed har
 ## Implications for generative engines
 
 - Pipeline mirrors the human division of labor (per Johnson-Laird): (1) offline, choose form and generate the chord chart (blues or AABA, with substitutions applied at generation time); (2) online, generate each role from the chart with role-specific rules; (3) interaction layer modulates density/register/intensity across roles and choruses.
-- Swing timing: implement ratio as a function of tempo — e.g., linear from ~3:1 at 60–100 BPM through ~2:1 near 150–180 BPM to 1:1 at 300 BPM — or equivalently hold the short eighth near 100 ms and give the remainder of the beat to the long eighth; clamp so the short note never drops below ~90–100 ms. Do not hard-code triplet swing at all tempos.
+- Swing timing: implement ratio as a function of tempo, not a fixed value — the measured curve above runs from ~3.5:1 at slow tempi down toward ~1:1 by ~300 BPM; the simplest implementation holds the short eighth near ~100 ms and gives the remainder of the beat to the long eighth, clamped so the short note never drops below ~90–100 ms. Do not hard-code triplet (2:1) swing at all tempos.
 - Walking bass is fully specifiable: root on 1, chord/scale tones on 2–3, chromatic or dominant approach on 4 targeting the next root; mostly stepwise with occasional leaps; never stop the quarter-note pulse.
 - Melody generator: maintain (a) a formula library (30–100 idiomatic figures — enclosures, arpeggio triplets, mordent figures, bebop-scale runs) tagged by harmonic context, (b) a guide-tone skeleton to aim at (3rds/7ths on chord changes), (c) chorus-level phrase schemata (4/4/4, 8/4, 4/8, 6/6) with rests between phrases — Parker's plans show that where phrases sit matters as much as their notes; (d) more chromaticism at phrase starts, diatonic closure at ends (Frieler).
 - Comping: rootless voicings (Type A/B alternation, register C3–C5), 1–3 hits per bar at irregular syncopated positions, density inversely related to soloist activity.
@@ -91,6 +92,7 @@ In the late 1950s, as a reaction to bebop's dense changes, modal jazz slowed har
 - Berliner, Paul F. Thinking in Jazz: The Infinite Art of Improvisation, University of Chicago Press, 1994. https://press.uchicago.edu/ucp/books/book/chicago/T/bo3697073.html
 - Friberg, Anders and Andreas Sundström. "Jazz Drummers' Swing Ratio in Relation to Tempo," ASA presentation summary, 1999. https://acoustics.org/pressroom/httpdocs/137th/friberg.html
 - Friberg, Anders and Andreas Sundström. "Swing Ratios and Ensemble Timing in Jazz Performance," Music Perception 19(3), 2002. https://online.ucpress.edu/mp/article-abstract/19/3/333/61900/
+- Friberg, Anders and Andreas Sundström. "Grouping Rules: Ensemble Swing" (KTH summary — drummers' ratio consistently above 2:1 at medium tempi, soloists' consistently below). https://www.speech.kth.se/music/performance/Texts/ensemble_swing.htm
 - Johnson-Laird, Philip N. "How Jazz Musicians Improvise," Music Perception 19(3), 2002. https://online.ucpress.edu/mp/article/19/3/415/61921/How-Jazz-Musicians-Improvise
 - Owens, Thomas. "Charlie Parker: Techniques of Improvisation," PhD dissertation, UCLA, 1974. https://archive.org/details/CharlieParkerDissertationVolumeIThomasOwens1974
 - "Owens' 64 Motives for Alto Saxophone," Charlie Parker Centennial blog, 2020. https://charlieparkercentennial.com/owens-64-motives-for-alto-saxophone-update/
