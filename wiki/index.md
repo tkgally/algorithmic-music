@@ -84,10 +84,14 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Evaluation and improvement
 
-- [evaluation-challenges](evaluation-challenges.md) — Why judging generated music is intrinsically hard — subjectivity, listening context, exposure effects, Turing-test traps, short-clip bias — and the pragmatic evaluation stance this project takes.
-- [listening-tests-and-feedback](listening-tests-and-feedback.md) — Methods for collecting human judgments of generated music — MUSHRA, ABX, pairwise preference with Bradley-Terry, rating scales, continuous response, implicit signals — sized for this project's tiny volunteer panel.
-- [computational-music-metrics](computational-music-metrics.md) — Symbolic and in-browser audio metrics for scoring engine output automatically — feature sets, reference-distribution comparisons, tension-curve checks, and why metrics are diagnostics, not objectives.
-- [corpus-analysis](corpus-analysis.md) — Human-composed corpora as reference distributions — the major symbolic datasets, what statistics to extract, licensing care, and a dev-time workflow that bakes distilled tables into the wiki.
+- [evaluation-challenges](evaluation-challenges.md) ·reviewed — Why judging generated music is intrinsically hard — subjectivity, listening context, exposure effects, Turing-test traps, short-clip bias — and the pragmatic evaluation stance this project takes.
+- [listening-tests-and-feedback](listening-tests-and-feedback.md) ·reviewed — Methods for collecting human judgments of generated music — MUSHRA, ABX, pairwise preference with Bradley-Terry, rating scales, continuous response, implicit signals — sized for this project's tiny volunteer panel.
+- [computational-music-metrics](computational-music-metrics.md) ·reviewed — Symbolic and in-browser audio metrics for scoring engine output automatically — feature sets, reference-distribution comparisons, tension-curve checks, and why metrics are diagnostics, not objectives.
+- [corpus-analysis](corpus-analysis.md) ·reviewed — Human-composed corpora as reference distributions — the major symbolic datasets, what statistics to extract, licensing care, and a dev-time workflow that bakes distilled tables into the wiki.
+
+## Findings (experiment results)
+
+- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) ·reviewed — Results from prototyping the first two first-party shared-library modules (seeded rng + lookahead transport) in experiments/ — what was built, what the 25-test headless suite proves, and the file:// module-format finding that fixes the vendoring format.
 
 ## Meta
 

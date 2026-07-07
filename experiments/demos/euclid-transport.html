@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Euclidean rhythm + lookahead transport — shared-lib demo</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.25rem; }
+  fieldset { border: 1px solid #8886; border-radius: 8px; margin: 1rem 0; }
+  label { display: inline-block; min-width: 5.5rem; }
+  input[type=number], input[type=text] { width: 6rem; }
+  .row { margin: .4rem 0; }
+  button { font-size: 1rem; padding: .4rem 1rem; border-radius: 6px; cursor: pointer; }
+  #grid { display: flex; flex-wrap: wrap; gap: 4px; margin: 1rem 0; }
+  .cell { width: 20px; height: 20px; border-radius: 4px; background: #8883; }
+  .cell.on { background: #4a90d9; }
+  .cell.play { outline: 2px solid #e0a; }
+  .muted { color: #8888; font-size: .9em; }
+  code { background: #8882; padding: 0 .3em; border-radius: 3px; }
+</style>
+</head>
+<body>
+<h1>Euclidean rhythm over a lookahead transport</h1>
+<p class="muted">
+  A prototype for the algorithmic-music project's first-party shared libraries
+  (<code>rng</code> + <code>transport</code>, see <code>wiki/shared-libraries.md</code>).
+  Both are loaded as plain <code>&lt;script src&gt;</code> — which runs from
+  <code>file://</code> with no server or build step, the way an engine would
+  vendor them. Everything is deterministic from the seed.
+</p>
+
+<fieldset>
+  <legend>Pattern</legend>
+  <div class="row"><label for="seed">seed</label><input type="text" id="seed" value="demo"></div>
+  <div class="row"><label for="pulses">pulses (k)</label><input type="number" id="pulses" value="5" min="0" max="32"></div>
+  <div class="row"><label for="steps">steps (n)</label><input type="number" id="steps" value="8" min="1" max="32"></div>
+  <div class="row"><label for="rotation">rotation</label><input type="number" id="rotation" value="0" min="0" max="31"></div>
+  <div class="row"><label for="bpm">bpm</label><input type="number" id="bpm" value="110" min="40" max="240"></div>
+</fieldset>
+
+<div id="grid" aria-label="rhythm grid"></div>
+
+<div class="row">
+  <button id="play">Play</button>
+  <button id="stop" disabled>Stop</button>
+  <span id="status" class="muted"></span>
+</div>
+
+<p class="muted" id="notation"></p>
+
+<!-- Vendored classic scripts: file://-safe, unlike ES-module imports. -->
+<script src="../lib/rng.js"></script>
+<script src="../lib/transport.js"></script>
+<script>
+(function () {
+  'use strict';
+  const { Rng, euclid, onsets } = window.AM.rng;
+  const { MusicClock, Scheduler } = window.AM.transport;
+
+  const $ = (id) => document.getElementById(id);
+  const grid = $('grid');
+  let ctx = null, scheduler = null, master = null;
+
+  function params() {
+    return {
+      seed: $('seed').value || 'demo',
+      pulses: clampInt($('pulses').value, 0, 32),
+      steps: Math.max(1, clampInt($('steps').value, 1, 32)),
+      rotation: clampInt($('rotation').value, 0, 31),
+      bpm: clampInt($('bpm').value, 40, 240),
+    };
+  }
+  function clampInt(v, lo, hi) { v = Math.round(+v || 0); return Math.min(hi, Math.max(lo, v)); }
+
+  function drawGrid(pattern, playIndex) {
+    grid.innerHTML = '';
+    pattern.forEach((on, i) => {
+      const d = document.createElement('div');
+      d.className = 'cell' + (on ? ' on' : '') + (i === playIndex ? ' play' : '');
+      grid.appendChild(d);
+    });
+  }
+
+  function refresh() {
+    const p = params();
+    const pattern = euclid(p.pulses, p.steps, p.rotation);
+    drawGrid(pattern, -1);
+    $('notation').textContent =
+      'E(' + p.pulses + ',' + p.steps + (p.rotation ? ',' + p.rotation : '') + ') = [' +
+      pattern.map((x) => (x ? 'x' : '.')).join('') + ']   onsets at ' +
+      JSON.stringify(onsets(pattern));
+    return pattern;
+  }
+  ['seed', 'pulses', 'steps', 'rotation', 'bpm'].forEach((id) =>
+    $(id).addEventListener('input', () => { if (!scheduler) refresh(); }));
+
+  // A short percussive blip; click-safe with ramped envelope on the gain.
+  function blip(time, freq, vel) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, time);
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, vel), time + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.18);
+    osc.connect(gain).connect(master);
+    osc.start(time);
+    osc.stop(time + 0.22);
+  }
+
+  function start() {
+    const p = params();
+    const pattern = refresh();          // draws grid + notation, returns pattern
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    master = ctx.createGain();
+    master.gain.value = 0.25;           // headroom; never clip
+    master.connect(ctx.destination);
+
+    const clock = new MusicClock({ bpm: p.bpm });
+    const stepSeconds = clock.beatsToSeconds(1) / 4;   // one 16th note per step
+    const rng = new Rng(p.seed).stream('drums');
+
+    let nextStepTime = ctx.currentTime + 0.05;
+    let stepCount = 0;
+
+    scheduler = new Scheduler({ now: () => ctx.currentTime });
+    // Refill: lazily emit one event per step (onset or rest), staying only a
+    // lookahead ahead of the audio clock — never materializing an infinite loop.
+    scheduler.onRefill((until) => {
+      while (nextStepTime < until) {
+        const idx = stepCount % pattern.length;
+        scheduler.push(nextStepTime, { idx: idx, on: pattern[idx] });
+        nextStepTime += stepSeconds;
+        stepCount++;
+      }
+    });
+    // Consume: onsets play a blip at their exact audio-clock time; every step
+    // moves the visual playhead.
+    scheduler.onSchedule((ev, time) => {
+      if (ev.on) {
+        const accent = ev.idx === 0;
+        blip(time, accent ? 220 : 330, rng.float(0.5, 0.9) * (accent ? 1 : 0.8));
+      }
+      const delay = Math.max(0, (time - ctx.currentTime) * 1000);
+      setTimeout(() => drawGrid(pattern, ev.idx), delay);
+    });
+    scheduler.start();
+
+    $('play').disabled = true;
+    $('stop').disabled = false;
+    $('status').textContent = 'playing…';
+  }
+
+  function stop() {
+    if (scheduler) { scheduler.stop(); scheduler = null; }
+    if (ctx) { ctx.close(); ctx = null; }
+    $('play').disabled = false;
+    $('stop').disabled = true;
+    $('status').textContent = 'stopped';
+    refresh();
+  }
+
+  $('play').addEventListener('click', start);
+  $('stop').addEventListener('click', stop);
+  refresh();
+})();
+</script>
+</body>
+</html>

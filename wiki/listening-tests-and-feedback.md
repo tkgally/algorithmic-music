@@ -1,9 +1,9 @@
 ---
 title: Listening tests and feedback
 tags: [evaluation]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Methods for collecting human judgments of generated music — MUSHRA, ABX, pairwise preference with Bradley-Terry, rating scales, continuous response, implicit signals — sized for this project's tiny volunteer panel.
 ---
 
@@ -19,7 +19,7 @@ Three requirements, in order: *sensitive* (detect that engine v(n+1) beats v(n) 
 
 ### MUSHRA (ITU-R BS.1534)
 
-MUSHRA ("MUltiple Stimuli with Hidden Reference and Anchor," ITU-R BS.1534-3, 2015) presents 3–12 stimuli per trial for rating on a 0–100 scale, including a declared reference, a hidden copy of that reference, and low/high-quality anchors; hidden-reference and anchor ratings are used to post-screen unreliable assessors. It is the standard for intermediate-quality audio comparisons (codecs, source separation) and assumes experienced listeners and — critically — a known-good reference signal. Generated compositions have no reference, and recent work on generative speech ("Rethinking MUSHRA") shows the method penalizes systems that differ from or exceed the reference (reference-matching bias) and suffers judgment ambiguity without fine-grained guidelines. Verdict for this project: appropriate only for *rendering* questions where a reference exists (e.g., comparing synthesis/mixing variants of the same score); wrong tool for "is this composition better." If ever needed, webMUSHRA is a browser-based, BS.1534-compliant implementation.
+MUSHRA ("MUltiple Stimuli with Hidden Reference and Anchor," ITU-R BS.1534-3, 2015) presents up to 12 stimuli per trial (ideally ≤7) for rating on a 0–100 scale, including a declared reference, a hidden copy of that reference, and one or more degraded low-pass anchors (typically 3.5 kHz and 7 kHz — the top of the scale is set by the hidden reference, not a "high-quality" anchor); the hidden-reference and anchor ratings are used to post-screen unreliable assessors. It is the standard for intermediate-quality audio comparisons (codecs, source separation) and assumes experienced listeners and — critically — a known-good reference signal. Generated compositions have no reference, and recent work on generative speech ("Rethinking MUSHRA") shows the method penalizes systems that differ from or exceed the reference (reference-matching bias) and suffers judgment ambiguity without fine-grained guidelines. Verdict for this project: appropriate only for *rendering* questions where a reference exists (e.g., comparing synthesis/mixing variants of the same score); wrong tool for "is this composition better." If ever needed, webMUSHRA is a browser-based, BS.1534-compliant implementation.
 
 ### ABX / 2AFC discrimination
 
@@ -37,7 +37,7 @@ Fast and fine for tracking absolute-ish level over time, but afflicted by centra
 
 ### Continuous response
 
-Real-time sliders capture how judgment evolves during a piece — Farbood's musical-tension studies had listeners move a slider sampled at 10 Hz while listening, yielding tension curves that can be averaged across listeners and compared to model predictions. For this project: the engine plans a tension trajectory ([tension-and-release](tension-and-release.md)); 2–3 volunteers with a browser slider give a coarse empirical curve to compare against the intended one and against the extracted metric curve ([computational-music-metrics](computational-music-metrics.md)). High effort per listener; reserve for structure experiments, not routine version tests.
+Real-time sliders capture how judgment evolves during a piece — Farbood's musical-tension study had listeners move a slider sampled at 60 Hz (downsampled to 50 Hz for analysis) while listening, yielding tension curves that can be averaged across listeners and compared to model predictions. For this project: the engine plans a tension trajectory ([tension-and-release](tension-and-release.md)); 2–3 volunteers with a browser slider give a coarse empirical curve to compare against the intended one and against the extracted metric curve ([computational-music-metrics](computational-music-metrics.md)). High effort per listener; reserve for structure experiments, not routine version tests.
 
 ### Ecological and diary methods
 
@@ -109,8 +109,8 @@ While Tom is the only respondent this is moot; it applies the moment collection 
 - "Bradley-Terry model." Wikipedia. https://en.wikipedia.org/wiki/Bradley%E2%80%93Terry_model
 - "Optimal Pairwise Comparison Procedures for Subjective Evaluation." arXiv:2508.17840, 2025. https://arxiv.org/html/2508.17840v1
 - "Benchmarking Music Generation Models and Metrics via Human Preference Studies." arXiv:2506.19085, 2025 (15,600 pairwise comparisons, Bradley-Terry aggregation). https://arxiv.org/html/2506.19085
-- Farbood, M. "A Parametric, Temporal Model of Musical Tension." Music Perception 29(4), 2012. https://mp.ucpress.edu/content/29/4/387
-- NYU Center for Data Science, "Using Data Science to Understand Music Cognition" (Farbood's slider method, 10 Hz sampling). https://medium.com/center-for-data-science/using-data-science-to-understand-music-cognition-fcef00020a5f
+- Farbood, M. "A Parametric, Temporal Model of Musical Tension." Music Perception 29(4), 2012 (slider sampled at 60 Hz, resampled to 50 Hz for analysis). https://mp.ucpress.edu/content/29/4/387
+- NYU Center for Data Science, "Using Data Science to Understand Music Cognition" (Farbood's slider method, general description). https://medium.com/center-for-data-science/using-data-science-to-understand-music-cognition-fcef00020a5f
 - Brost, B., Mehrotra, R., Jehan, T. "The Music Streaming Sessions Dataset." arXiv:1901.09851, 2019. https://arxiv.org/pdf/1901.09851
 - "Survey on the Evaluation of Generative Models in Music." arXiv:2506.05104, 2025 (lack of standardized subjective practice). https://arxiv.org/abs/2506.05104
 - "Human participants in AI research: Ethics and transparency in practice." arXiv:2311.01254 (consent in online studies; ToS is not consent). https://arxiv.org/pdf/2311.01254

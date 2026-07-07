@@ -1,9 +1,9 @@
 ---
 title: Evaluation challenges
 tags: [evaluation]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: Why judging generated music is intrinsically hard — subjectivity, listening context, exposure effects, Turing-test traps, short-clip bias — and the pragmatic evaluation stance this project takes.
 ---
 
