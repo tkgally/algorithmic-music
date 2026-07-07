@@ -1,7 +1,7 @@
 ---
 title: Engine architecture
 tags: [implementation, project]
-status: draft
+status: reviewed
 created: 2026-07-06
 updated: 2026-07-07
 summary: The reference architecture for this project's browser engines — module boundaries, data schemas, determinism rules, UI and deployment conventions, and testability requirements.
@@ -51,7 +51,7 @@ Two invariants: (1) *composer thinks in beats*, tempo lives in the performer; (2
 
 ## Runtime rules
 
-- Vanilla ES modules or a single classic script; no build step; must run from `file://` and from GitHub Pages. Dependency-free at runtime by default — external libraries are not banned, but shared functionality is preferably met by this project's own **original, first-party libraries** ([shared-libraries](shared-libraries.md)), vendored (copied in) per engine and never fetched at runtime, in preference to importing outside code.
+- Classic scripts, not cross-file ES-module `import`/`export`: a `<script src="…">` loads fine under `file://`, but a module-script `import` across files is CORS-blocked there (confirmed by prototyping — [findings-shared-lib-foundation](findings-shared-lib-foundation.md)). An engine is therefore either a single classic script, or several classic-script files loaded via multiple `<script src>` tags (a vendored library plus the engine's own code); no build step either way; must run from `file://` and from GitHub Pages. Dependency-free at runtime by default — external libraries are not banned, but shared functionality is preferably met by this project's own **original, first-party libraries** ([shared-libraries](shared-libraries.md)), vendored (copied in, as dual-format/UMD-lite classic scripts) per engine and never fetched at runtime, in preference to importing outside code.
 - Lookahead scheduling per [scheduling-and-timing](scheduling-and-timing.md); hidden-tab safe.
 - Audio starts only on user gesture; resume handling and autoplay etiquette per [audio-worklets-and-performance](audio-worklets-and-performance.md).
 - Long-session hygiene: no unbounded arrays, nodes disconnected after use, hour-long runs without glitches or growth.
@@ -98,6 +98,7 @@ This page *is* the implications. The checklist form: pure beat-based composer ·
 
 - [generative-music-design-patterns](generative-music-design-patterns.md) · [scheduling-and-timing](scheduling-and-timing.md) · [web-audio-fundamentals](web-audio-fundamentals.md) · [effects-and-mixing](effects-and-mixing.md)
 - [computational-music-metrics](computational-music-metrics.md) · [improvement-loop](improvement-loop.md) · [previous-experiments-lessons](previous-experiments-lessons.md)
+- [shared-libraries](shared-libraries.md), [findings-shared-lib-foundation](findings-shared-lib-foundation.md) — the first-party libraries this page's runtime rules vendor, and the prototype that fixed the classic-script vendoring format
 
 ## Sources
 
