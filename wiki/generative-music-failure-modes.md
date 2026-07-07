@@ -1,9 +1,9 @@
 ---
 title: Failure modes of generative music
 tags: [algorithms, evaluation, project]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: A diagnostic taxonomy of the ways algorithmically generated music goes wrong, with causes and pointers to remedies — the checklist every engine is tested against.
 ---
 

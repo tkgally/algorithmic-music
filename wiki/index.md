@@ -14,9 +14,9 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Doctrine (cross-cutting syntheses)
 
-- [generative-music-failure-modes](generative-music-failure-modes.md) — A diagnostic taxonomy of the ways algorithmically generated music goes wrong, with causes and pointers to remedies — the checklist every engine is tested against.
-- [generative-music-design-patterns](generative-music-design-patterns.md) — A catalog of architectural and compositional patterns for building generative engines — the constructive counterpart to the failure-mode taxonomy.
-- [engine-architecture](engine-architecture.md) — The reference architecture for this project's browser engines — module boundaries, data schemas, determinism rules, UI and deployment conventions, and testability requirements.
+- [generative-music-failure-modes](generative-music-failure-modes.md) ·reviewed — A diagnostic taxonomy of the ways algorithmically generated music goes wrong, with causes and pointers to remedies — the checklist every engine is tested against.
+- [generative-music-design-patterns](generative-music-design-patterns.md) ·reviewed — A catalog of architectural and compositional patterns for building generative engines — the constructive counterpart to the failure-mode taxonomy.
+- [engine-architecture](engine-architecture.md) ·reviewed — The reference architecture for this project's browser engines — module boundaries, data schemas, determinism rules, UI and deployment conventions, and testability requirements.
 - [style-and-genre-overview](style-and-genre-overview.md) ·reviewed — Style as a probabilistic constraint system that listeners learn statistically; why an engine must commit to a genre, what minimally signals one, and how to encode styles as reusable packs.
 
 ## Music theory and structure

@@ -1,9 +1,9 @@
 ---
 title: Design patterns for generative music
 tags: [algorithms, project]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: A catalog of architectural and compositional patterns for building generative engines — the constructive counterpart to the failure-mode taxonomy.
 ---
 
