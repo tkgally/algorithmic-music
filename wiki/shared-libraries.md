@@ -1,7 +1,7 @@
 ---
 title: Shared libraries
 tags: [implementation, project]
-status: draft
+status: reviewed
 created: 2026-07-07
 updated: 2026-07-07
 summary: The plan for this project's own original, first-party libraries — the reusable core (theory, timing, seeded RNG, synthesis, effects, analysis) that engines vendor instead of importing outside code, why they are built from scratch, and in what order.
@@ -26,7 +26,7 @@ The one line to hold carefully: **original code, not original ideas.** Reusing a
 
 This must be reconciled with the self-containment rule in [engine-architecture](engine-architecture.md) (every engine independently downloadable, `file://`-runnable, no runtime coupling to another engine). The reconciliation is the **vendoring model**:
 
-- The canonical source for each library lives once in the repo. Each engine **copies in** the modules it uses; it does not import them across engine boundaries or fetch them at runtime.
+- The canonical source for each library lives once in the repo. Each engine **copies in** the modules it uses; it does not import them across engine boundaries or fetch them at runtime. Concretely, each module is a dual-format (UMD-lite) **classic script** — a Node `require` and a browser `<script src>` global (`window.AM.*`) in one file — because cross-file ES-module `import` is CORS-blocked under `file://` ([engine-architecture](engine-architecture.md) "Runtime rules"; validated in [findings-shared-lib-foundation](findings-shared-lib-foundation.md)).
 - A library is therefore a shared *source of truth*, not a shared *runtime dependency*. Two engines can carry different pinned copies; evolving the canonical library never silently breaks a shipped engine.
 - Result: code reuse (write the theory module once, not five times) without giving up self-containment (each engine is still a self-contained folder that runs from `file://`).
 
@@ -73,7 +73,7 @@ The two cheapest foundation modules are prototyped and validated headless in `ex
 - **`rng`** (`experiments/lib/rng.js`) — seeded PRNG (mulberry32), named independent streams, the distributions (uniform, weighted, Gaussian, 1/f pink noise), and Euclidean rhythm (Bjorklund). Euclidean output proven maximally even for all E(k,n), 1 ≤ k ≤ n ≤ 32; determinism and named-stream independence tested.
 - **`transport`** (`experiments/lib/transport.js`) — `MusicClock` (beats↔seconds) and a lookahead `Scheduler` with injected clock/timer so the same code is headless-testable in Node and drives a real `AudioContext` in the browser.
 
-`node experiments/tests/run.js` runs 25 passing assertions. Two things the prototype settled:
+`node experiments/tests/run.js` runs 25 passing tests (several containing many internal checks — e.g. the Euclidean-evenness test alone checks all 528 `(k,n)` pairs with 1 ≤ k ≤ n ≤ 32). Two things the prototype settled:
 
 - **Format = dual-format (UMD-lite) classic scripts, not ES modules.** A vendored library must load from `file://`; a classic `<script src>` does, but a cross-file ES-module `import` is CORS-blocked under `file://`. So each module is one file that works as both a Node `require` and a browser global (`window.AM.*`). This resolves the granularity/format open question below.
 - **Injected dependencies** (pass the `AudioContext`/timing source in; no globals) is the standing pattern for the Web-Audio libraries, and is what makes them testable.
