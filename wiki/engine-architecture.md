@@ -3,7 +3,7 @@ title: Engine architecture
 tags: [implementation, project]
 status: draft
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: The reference architecture for this project's browser engines — module boundaries, data schemas, determinism rules, UI and deployment conventions, and testability requirements.
 ---
 
@@ -51,7 +51,7 @@ Two invariants: (1) *composer thinks in beats*, tempo lives in the performer; (2
 
 ## Runtime rules
 
-- Vanilla ES modules or a single classic script; no build step; must run from `file://` and from GitHub Pages. Dependency-free by default — a tiny, vendored, permissively-licensed helper only if ever genuinely needed, copied in and never fetched at runtime.
+- Vanilla ES modules or a single classic script; no build step; must run from `file://` and from GitHub Pages. Dependency-free at runtime by default — external libraries are not banned, but shared functionality is preferably met by this project's own **original, first-party libraries** ([shared-libraries](shared-libraries.md)), vendored (copied in) per engine and never fetched at runtime, in preference to importing outside code.
 - Lookahead scheduling per [scheduling-and-timing](scheduling-and-timing.md); hidden-tab safe.
 - Audio starts only on user gesture; resume handling and autoplay etiquette per [audio-worklets-and-performance](audio-worklets-and-performance.md).
 - Long-session hygiene: no unbounded arrays, nodes disconnected after use, hour-long runs without glitches or growth.
@@ -82,11 +82,11 @@ docs/
   assets/             shared CSS/JS for the hub only — engines stay self-contained
 ```
 
-Engines never share runtime code with each other (self-containment beats DRY here: engines must be independently downloadable, and experiments must not couple). Knowledge is shared through the wiki, not through imports.
+Engines stay self-contained artifacts: each **vendors its own copy** of whatever it uses — including any of the project's shared libraries ([shared-libraries](shared-libraries.md)) — so every engine remains independently downloadable and `file://`-runnable with no runtime coupling to another engine. The shared libraries are a common *source* maintained once in the repo, not a runtime dependency linked across engines: code reuse without sacrificing self-containment. Knowledge is still shared through the wiki; now code can be shared too — by copying from a canonical original library rather than re-deriving the same helper in every engine.
 
 ## Implications for generative engines
 
-This page *is* the implications. The checklist form: pure beat-based composer · swappable performer · style as data · seeded determinism with URL state · score dump + offline render + self-report · dependency-free by default · file:// compatible · two-level UI · level-matched output.
+This page *is* the implications. The checklist form: pure beat-based composer · swappable performer · style as data · seeded determinism with URL state · score dump + offline render + self-report · dependency-free at runtime (original first-party libraries, vendored — [shared-libraries](shared-libraries.md)) · file:// compatible · two-level UI · level-matched output.
 
 ## Open questions
 

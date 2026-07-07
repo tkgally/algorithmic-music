@@ -3,13 +3,13 @@ title: JavaScript music libraries
 tags: [implementation]
 status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: A survey of Tone.js, Tonal, Magenta.js, Strudel/Gibber, scribbletune, WebPd/RNBO/Faust, Elementary, and Meyda — mined for design lessons a dependency-free engine should steal, plus the case for and against the no-dependency constraint.
 ---
 
 # JavaScript music libraries
 
-This project stays dependency-free (vanilla JS + Web Audio), so this page is a survey for *design lessons*, not a shopping list: each library encodes hard-won decisions about how to represent musical time, theory, patterns, DSP graphs, and analysis in the browser, and we want the good ideas without the payload. For each, the questions are: what abstraction does it get right, what does it get wrong for generative use, and what should a hand-rolled engine borrow? The page closes with the honest argument for and against writing everything ourselves — an open project decision recorded in [project-open-questions.md](project-open-questions.md). Version/size facts below were checked against the npm registry on 2026-07-06.
+This project stays dependency-free at runtime (vanilla JS + Web Audio), so this page is a survey for *design lessons*, not a shopping list: each library encodes hard-won decisions about how to represent musical time, theory, patterns, DSP graphs, and analysis in the browser, and we want the good ideas without the payload. For each, the questions are: what abstraction does it get right, what does it get wrong for generative use, and what should our own code borrow? Tom's 2026-07-07 decision makes the "write it ourselves" answer explicit: when shared functionality is genuinely needed, this project builds its **own original, first-party libraries** — reusing published *ideas and algorithms* from the work below, never their *code* — in preference to importing outside libraries (see [shared-libraries.md](shared-libraries.md) for the plan, and [project-open-questions.md](project-open-questions.md) for the decision). Version/size facts below were checked against the npm registry on 2026-07-06.
 
 ## Tone.js — scheduling and instrument/effect abstractions
 
@@ -79,7 +79,7 @@ Meyda (MIT; v5.6.x, April 2024; small) extracts audio features in real time or o
 
 ## The no-dependency constraint: for and against
 
-This is an open project decision ([project-open-questions.md](project-open-questions.md)); the honest ledger:
+This was an open project decision, settled 2026-07-06 and refined 2026-07-07 in favor of building the project's own original first-party libraries rather than importing third-party ones ([project-open-questions.md](project-open-questions.md)); the honest ledger that informed it:
 
 For staying vanilla:
 - Bundle size and load time: the whole point of client-side generation is a page that loads and plays instantly; Magenta-scale downloads (megabytes) defeat that, and even Tone.js adds weight we mostly don't use.
@@ -93,7 +93,7 @@ Against (costs we accept):
 - Opportunity cost: time spent rebuilding infrastructure is time not spent on composition quality; borrow algorithms aggressively (with attribution) rather than deriving from scratch.
 - Ceiling: we forgo pretrained ML generation entirely; if a future engine wants learned models, the no-dependency stance would have to be revisited.
 
-Current stance: vanilla, borrowing *designs and algorithms* (not code, and never copyleft code) from the libraries above. Revisit if a specific need (heavy DSP, learned models) makes a targeted, self-contained wasm module clearly worth it.
+Current stance (Tom, revised 2026-07-07): stay vanilla at runtime and meet shared needs with the project's **own original libraries**, borrowing *designs and algorithms* (never *code*, and certainly never copyleft code) from the libraries above. There is no absolute ban on external libraries, but original first-party code is the strong preference; revisit only if a specific need (heavy DSP, learned models) makes a targeted, self-contained module clearly worth importing. The constructive plan — which libraries to build, in what order — lives in [shared-libraries.md](shared-libraries.md).
 
 ## Implications for generative engines
 
@@ -105,6 +105,7 @@ Current stance: vanilla, borrowing *designs and algorithms* (not code, and never
 - Build an offline-render + feature-extraction path early (Meyda's feature menu) so the engine can measure brightness, loudness, noisiness, and harmonic content of its own output — the backbone of the improvement loop.
 - Reserve AudioWorklet + wasm (Faust/Gibber lesson) for DSP-heavy voices only, as a self-contained escape hatch, not a runtime dependency.
 - Do not copy code from AGPL (Strudel) or commercial (RNBO) sources; reimplement concepts; attribute algorithm sources in comments and in [log.md](log.md).
+- These reimplementation targets are consolidated into a concrete build plan in [shared-libraries.md](shared-libraries.md) — the project's own original libraries (theory, scheduling, RNG, synthesis, analysis), written from scratch and vendored per engine.
 
 ## Open questions
 
@@ -121,7 +122,8 @@ Current stance: vanilla, borrowing *designs and algorithms* (not code, and never
 - [computational-music-metrics.md](computational-music-metrics.md), [improvement-loop.md](improvement-loop.md) — Meyda-style self-evaluation
 - [machine-learning-music.md](machine-learning-music.md) — the Magenta/ML context
 - [harmony.md](harmony.md), [tuning-and-scales.md](tuning-and-scales.md) — what the theory module serves
-- [project-open-questions.md](project-open-questions.md) — the no-dependency decision
+- [shared-libraries.md](shared-libraries.md) — the plan for the project's own original libraries these lessons feed
+- [project-open-questions.md](project-open-questions.md) — the dependency decision (settled 2026-07-06, refined 2026-07-07)
 
 ## Sources
 

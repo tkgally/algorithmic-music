@@ -1,9 +1,9 @@
 ---
 title: Expressive performance
 tags: [craft, evaluation]
-status: draft
+status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: What human performers add to a score — the KTH rule system, measured timing/dynamics/articulation regularities, and an engine-ready table of deviation magnitudes.
 ---
 
@@ -13,14 +13,14 @@ A score is not a performance. Human players systematically deviate from notated 
 
 ## The KTH rule system
 
-The most complete engineering artifact in this field is the KTH rule system (Sundberg, Friberg, Bresin and colleagues, developed from the 1980s at KTH Stockholm; implemented in the Director Musices software). Built by analysis-by-synthesis — propose a rule, synthesize, let expert listeners judge — it comprises roughly 30 rules, each mapping a score context to deviations in duration, sound level, and/or pitch, with a per-rule quantity parameter k scaling the magnitude (default k=1; preferred magnitudes vary among musicians by factors above 2.5, so k is genuinely a taste knob). Rules fall into three functional groups: differentiation of categories (making note classes more distinct), grouping (marking phrase and gesture boundaries), and ensemble rules.
+The most complete engineering artifact in this field is the KTH rule system (Sundberg, Friberg, Bresin and colleagues, developed from the 1980s at KTH Stockholm; implemented in the Director Musices software). Built by analysis-by-synthesis — propose a rule, synthesize, let expert listeners judge — it comprises roughly 30 rules, each mapping a score context to deviations in duration, sound level, and/or pitch, with a per-rule quantity parameter k scaling the magnitude (default k=1; preferred magnitudes vary among musicians by a factor above 2 — up to about 2.5× — so k is genuinely a taste knob). Rules fall into three functional groups: differentiation of categories (making note classes more distinct), grouping (marking phrase and gesture boundaries), and ensemble rules.
 
 Key rules, with quantitative details where the sources give them:
 
-- Duration contrast: relatively short notes get shorter and softer, sharpening rhythmic categories. Independent measurement: sixteenths in dotted-eighth–sixteenth patterns shortened ~8%.
+- Duration contrast: relatively short notes get shorter and softer, sharpening rhythmic categories. At k=1 the rule shortens such short notes by ~5% (the KTH default magnitude).
 - Double duration: in 2:1 duration pairs, lengthen the short note, shorten the long one (softens over-crisp ratios).
 - Faster uphill: shorten durations in ascending lines, creating drive toward the top note.
-- High loud: play louder in proportion to pitch height (mirrors voice/brass acoustics). High sharp: stretch intonation ~3–4 cents per octave above the reference.
+- High loud: play louder in proportion to pitch height (mirrors voice/brass acoustics). High sharp: stretch intonation ~4 cents per octave above the reference.
 - Melodic charge: emphasize notes in proportion to their tonal distance from the current chord root — more level, more duration, more vibrato on harmonically "expensive" notes. Harmonic charge: the same idea at chord level, relative to the key center — crescendo toward remote harmonies. These two connect performance directly to [tension-and-release](tension-and-release.md).
 - Punctuation: parse the melody into small gestures (14 subrules find the boundaries), then lengthen each gesture's final note and insert a micropause after it.
 - Phrase arch: each phrase gets a tempo arch (start slow, accelerate through the middle, ritard into the end) coupled with a dynamic arch (crescendo–diminuendo), applied hierarchically at phrase and subphrase levels — the single highest-value rule for the "aimless noodling" failure mode, tying performance to [phrase-structure](phrase-structure.md).
@@ -41,13 +41,13 @@ Independent measurement studies broadly confirm the rule system's shape and add 
 ## Micro-timing, swing, and the randomness question
 
 - Swing ratio is tempo-dependent, not a constant: measured drummers play ~3–3.5:1 below ~150 BPM, decreasing roughly linearly to ~1:1 (no swing) as tempo approaches 300 BPM (Friberg & Sundström). Hard-coding "2:1 swing" at all tempos is wrong twice over.
-- Structured beats random, decisively. Datseris et al. manipulated a professional jazz pianist's micro-timing (SD of deviations ≈ 18.5 ms, laid back up to ~25 ms behind the grid): *quantized* versions were rated swingier than the originals, and doubling the deviations was rated worst; inverting deviations changed little because real deviation sequences are long-range correlated (slow drift, not per-note noise). Their conclusion: "a rhythm should be persistent in its timing to yield a pronounced swing feel."
+- Structured beats random, decisively. Datseris et al. manipulated a professional jazz pianist's micro-timing (SD of deviations ≈ 18.5 ms; the systematic mean offset from the grid stayed small, ~10 ms, near auditory threshold): *quantized* versions were rated swingier than the originals, and doubling the deviations was rated worst; inverting deviations changed little because real deviation sequences are long-range correlated (slow drift, not per-note noise). Their conclusion: "a rhythm should be persistent in its timing to yield a pronounced swing feel."
 - The engine lesson: uniform per-note jitter does not sound human — it sounds sloppy (the "drunk drummer" effect). Human-like timing = systematic components (swing, laid-back offsets, phrase arching) plus a *small, temporally correlated* residual. Genre micro-timing and the participatory-discrepancies debate continue in [groove-and-embodiment](groove-and-embodiment.md).
 
 ## Articulation and vibrato
 
 - Articulation classes: legato (notes overlap slightly), non-legato/détaché (small gaps), staccato (tone substantially shorter than notated). KTH implements articulation as micropauses and level dips triggered by leaps, repetitions, and punctuation boundaries. Precise overlap/gap magnitudes are instrument- and tempo-dependent; the table below gives engine defaults to calibrate by ear rather than sourced constants.
-- Vibrato: classical vibrato rates run ~5–7 Hz; Prame's measurements of ten professional singers found a mean of 6.0 Hz (5.5–6.7 across singers) with rate rising ~10–15% at phrase endings. Extent is commonly around ±0.5–1 semitone for operatic voices and narrower for most instruments (informed generalization). Practice literature consistently describes vibrato on long notes as starting shallow or delayed and blooming — a cheap, effective synthesis behavior ([synthesis-recipes](synthesis-recipes.md)).
+- Vibrato: classical vibrato rates run ~5–7 Hz; Prame's measurements of ten professional singers found a mean of 6.0 Hz (individual measurements spanning ~4.6–8.7 Hz) with rate rising ~15% toward the ends of long notes. Extent is commonly around ±0.5–1 semitone for operatic voices and narrower for most instruments (informed generalization). Practice literature consistently describes vibrato on long notes as starting shallow or delayed and blooming — a cheap, effective synthesis behavior ([synthesis-recipes](synthesis-recipes.md)).
 
 ## Ensemble timing
 
@@ -59,20 +59,20 @@ Defaults an engine can implement today. "KTH" = magnitude stated in the KTH lite
 
 | Effect | Trigger | Deviation (at k=1) | Confidence |
 |---|---|---|---|
-| Duration contrast | Notes short relative to neighbors | Shorten ~5–10% (≈8% measured for dotted sixteenths); soften ~1 dB | KTH/measured |
+| Duration contrast | Notes short relative to neighbors | Shorten ~5% at k=1 (KTH); soften slightly (~1 dB, default) | KTH + default |
 | Phrase arch (tempo) | Each phrase/subphrase | Edges ~5–15% slower than mid-phrase, smooth arch, nested by level | KTH shape; magnitude default |
 | Phrase arch (dynamics) | Same | ±2–4 dB crescendo/diminuendo coupled to the tempo arch | default |
 | Punctuation | Gesture-final note | Lengthen final note ~5–10%; micropause ~30–80 ms | KTH shape; ms default |
 | Final ritardando | Last ~2–4 bars | Tempo follows a square-root curve down to ~½–⅔ of base tempo | KTH/measured shape; endpoint default |
 | Faster uphill | Ascending runs | Shorten ~2–5% per note | KTH shape; magnitude default |
-| High loud | Pitch height | ~+2–3 dB per octave above mid-register | KTH; calibrate per timbre |
+| High loud | Pitch height | ~+2–3 dB per octave above mid-register | KTH rule; dB magnitude default |
 | Melodic/harmonic charge | Tonal distance from chord root / key | ±1–3 dB level, ±2–5% duration, vibrato depth up | KTH shape; magnitudes default |
 | Melody emphasis | Designated melody voice | +3–6 dB over accompaniment; optional ≤20 ms lead | measured (level); lead per Goebl, keep small |
 | Swing | Idiomatic subdivision pairs | Ratio by tempo: ~3:1 ≤120 BPM → ~2:1 at 160 → ~1.5:1 at 220 → 1:1 by 300 (interpolate) | measured (Friberg & Sundström) |
-| Laid-back voice | Soloist/melody vs groove grid | Constant +10–25 ms behind grid, stable across the passage | measured range (Datseris) |
+| Laid-back voice | Soloist/melody vs groove grid | Constant ~10 ms behind grid (measured); optionally more for a deliberately laid-back feel | measured (Datseris) + default |
 | Timing residual | All onsets | Correlated noise (slow random walk), σ ≈ 3–6 ms, never i.i.d. per note | measured principle; σ default (≤ ~6 ms JND) |
 | Articulation | Staccato / non-legato / legato | Sound ~40–60% of IOI / ~75–90% / 100% + 10–40 ms overlap | default |
-| Vibrato | Sustained notes | 5.5–6.5 Hz; extent ±30–100 cents by instrument; delayed onset ~0.2–0.5 s; rate +10–15% near phrase end | measured (rate); extent/onset default |
+| Vibrato | Sustained notes | ~6 Hz (≈4.6–8.7 measured); extent ±30–100 cents by instrument; delayed onset ~0.2–0.5 s; rate +~15% toward note ends | measured (rate); extent/onset default |
 
 Interactions matter: rules sum, and stacked maxima sound mannered. KTH's k-weighting is the model — implement every rule with an independent k and a global expressive-depth master.
 
@@ -83,7 +83,7 @@ Interactions matter: rules sum, and stacked maxima sound mannered. KTH's k-weigh
 3. Never add uniform random timing jitter; use structured deviations plus a small correlated residual (σ ≤ ~6 ms). Exaggeration is worse than quantization — when in doubt, less (Datseris).
 4. Tempo must be a continuous curve, not a constant: the scheduler needs to support smooth tempo modulation and micropauses without drift ([scheduling-and-timing](scheduling-and-timing.md)).
 5. Swing ratio is a function of tempo; implement the interpolation, not a constant.
-6. Keep k conservative and expose it: preferred magnitudes vary >2.5× among experts, so ship gentle defaults and A/B the knob via pairwise listening.
+6. Keep k conservative and expose it: preferred magnitudes vary by a factor above 2 (up to ~2.5×) among experts, so ship gentle defaults and A/B the knob via pairwise listening.
 7. Validate against data: extract timing/velocity deviation distributions from MAESTRO ([corpus-analysis](corpus-analysis.md)) and compare the engine's deviation distributions to them in the metrics harness ([computational-music-metrics](computational-music-metrics.md)).
 8. Give sustained synth voices vibrato with delayed onset and phrase-end rate lift; a perfectly static sustain is one of the strongest "mechanical" tells ([timbre-and-orchestration](timbre-and-orchestration.md)).
 
@@ -115,5 +115,5 @@ Interactions matter: rules sum, and stacked maxima sound mannered. KTH's k-weigh
 - Repp, B. "A microcosm of musical expression: I. Quantitative analysis of pianists' timing in the initial measures of Chopin's Etude in E major." JASA 104(2), 1085–1100, 1998 (and part II on dynamics, JASA 1999).
 - Friberg, A. & Sundström, A. "Swing ratios and ensemble timing in jazz performance." Music Perception 19(3), 333–349, 2002 (swing ratio vs tempo; cross-checked via Datseris et al.).
 - Datseris, G. et al. "Microtiming Deviations and Swing Feel in Jazz." Scientific Reports 9, 2019. https://pmc.ncbi.nlm.nih.gov/articles/PMC6934603/
-- Prame, E. vibrato measurements summarized in "Vibrato Rate: Speed of Pitch Oscillation in Singing," VoiceScience lexicon (mean 6.0 Hz; phrase-end rate increase). https://www.voicescience.org/lexicon/vibrato-rate/
+- Prame, E. "Measurements of the vibrato rate of ten singers." Journal of the Acoustical Society of America 96(4), 1979–1984, 1994 (mean 6.0 Hz; measurements span ~4.6–8.7 Hz; rate rises toward note ends) — https://pubs.aip.org/asa/jasa/article-abstract/96/4/1979 ; secondary summary: VoiceScience lexicon — https://www.voicescience.org/lexicon/vibrato-rate/
 - "Flexibility of Expressive Timing in Repeated Musical Performances" (phrase arches in professional Bach performances). Frontiers in Psychology, 2016. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5047881/

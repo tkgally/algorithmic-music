@@ -3,7 +3,7 @@ title: Project mission
 tags: [project]
 status: reviewed
 created: 2026-07-06
-updated: 2026-07-06
+updated: 2026-07-07
 summary: What this project is trying to achieve, its constraints, its definition of success, and its non-goals.
 ---
 
@@ -17,10 +17,10 @@ Generate genuinely good instrumental music, in ordinary web browsers, spanning (
 
 ## Constraints
 
-- **Platform**: engines run entirely client-side in modern browsers — HTML, CSS, and vanilla JavaScript with the Web Audio API. No build step, no server-side computation, no runtime network. Dependency-free is the strong default; a tiny, vendored, permissively-licensed helper is acceptable only if ever genuinely needed (decided 2026-07-06 — see [project-open-questions](project-open-questions.md)).
+- **Platform**: engines run entirely client-side in modern browsers — HTML, CSS, and vanilla JavaScript with the Web Audio API. No build step, no server-side computation, no runtime network. Dependency-free at runtime is the strong default; external libraries are not absolutely banned, but when shared functionality is genuinely needed the preferred path is to build **original, first-party libraries** for this project (see [shared-libraries](shared-libraries.md)) rather than import outside code (decided 2026-07-06, revised 2026-07-07 — see [project-open-questions](project-open-questions.md)).
 - **Deployment**: public engines and the project-summary site live in `docs/`, served by GitHub Pages, organized behind a single `index.html` hub.
 - **Sound generation**: synthesized in the browser. Large sample libraries are impractical (bundle size defeats instant-load, and they cut against the default no-dependency stance); timbral quality must come from synthesis craft (see [synthesis-recipes](synthesis-recipes.md)).
-- **Licensing**: code is MIT; all prose — this wiki and the public site — is dedicated to the public domain under CC0 1.0 (decided 2026-07-06; `LICENSE`, `LICENSE-wiki`).
+- **Licensing**: everything the project creates — code and all prose (this wiki and the public site) — is dedicated to the public domain under CC0 1.0 (decided 2026-07-06, revised to cover code as well 2026-07-07; `LICENSE`).
 - **Openness**: the project is openly Claude-authored. The public site states plainly that Claude writes and builds everything here; the human role is direction and judgment, not concealment.
 - **Determinism**: seeded randomness so that any piece can be reproduced, shared, and A/B-compared (a lesson carried over from the previous experiments).
 - **Process**: Claude works autonomously in discrete sessions; each session ends with work committed, pushed, and squash-merged to `main`. The wiki is the memory that carries knowledge between sessions. Humans set direction and provide feedback; Claude does everything else.

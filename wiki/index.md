@@ -59,9 +59,9 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## The craft of composition and performance
 
-- [composition-craft](composition-craft.md) — Recurring advice from composers and treatises across three centuries — economy of material, unity vs. variety, constraint as fuel, revision, trajectory, orchestration clarity, silence — distilled into a working checklist an engine can apply.
-- [expressive-performance](expressive-performance.md) — What human performers add to a score — the KTH rule system, measured timing/dynamics/articulation regularities, and an engine-ready table of deviation magnitudes.
-- [what-makes-music-good](what-makes-music-good.md) — Competing standards for judging music — formalism, expression theories, Meyer's expectation-based meaning, craft-teacher criteria, listener-centered functional value — plus what the 2024–2026 AI-music discourse and attribution-bias studies imply for evaluating generated output.
+- [composition-craft](composition-craft.md) ·reviewed — Recurring advice from composers and treatises across three centuries — economy of material, unity vs. variety, constraint as fuel, revision, trajectory, orchestration clarity, silence — distilled into a working checklist an engine can apply.
+- [expressive-performance](expressive-performance.md) ·reviewed — What human performers add to a score — the KTH rule system, measured timing/dynamics/articulation regularities, and an engine-ready table of deviation magnitudes.
+- [what-makes-music-good](what-makes-music-good.md) ·reviewed — Competing standards for judging music — formalism, expression theories, Meyer's expectation-based meaning, craft-teacher criteria, listener-centered functional value — plus what the 2024–2026 AI-music discourse and attribution-bias studies imply for evaluating generated output.
 
 ## Algorithmic composition
 
@@ -80,6 +80,7 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 - [effects-and-mixing](effects-and-mixing.md) ·reviewed — Reverb, delay, modulation, saturation, compression, EQ, stereo strategy, gain staging, and loudness targets for fully synthesized mixes, built from stock Web Audio nodes.
 - [audio-worklets-and-performance](audio-worklets-and-performance.md) ·reviewed — When node graphs stop being enough — the AudioWorklet model, file:// loading workarounds, real-time performance budgets, autoplay and mobile constraints, and leak-free long sessions.
 - [javascript-music-libraries](javascript-music-libraries.md) ·reviewed — A survey of Tone.js, Tonal, Magenta.js, Strudel/Gibber, scribbletune, WebPd/RNBO/Faust, Elementary, and Meyda — mined for design lessons a dependency-free engine should steal, plus the case for and against the no-dependency constraint.
+- [shared-libraries](shared-libraries.md) — The plan for this project's own original, first-party libraries — the reusable core (theory, timing, seeded RNG, synthesis, effects, analysis) that engines vendor instead of importing outside code, why they are built from scratch, and in what order.
 
 ## Evaluation and improvement
 
