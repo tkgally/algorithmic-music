@@ -10,7 +10,7 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 - [project-roadmap](project-roadmap.md) ·reviewed — The phased plan — wiki building now, engines when Tom gives the go, then feedback-driven improvement and the public project site.
 - [project-open-questions](project-open-questions.md) ·reviewed — Decisions awaiting Tom, plus open research questions for future sessions — the project's asynchronous question channel.
 - [previous-experiments-lessons](previous-experiments-lessons.md) ·reviewed — Analysis of the six 2025–2026 experiments in previous-experiments/ — what they already solved, and a diagnosis of why their music still falls short.
-- [improvement-loop](improvement-loop.md) — The project's process for turning wiki knowledge, metrics, and human feedback into measurably better music, session after session.
+- [improvement-loop](improvement-loop.md) ·reviewed — The project's process for turning wiki knowledge, metrics, and human feedback into measurably better music, session after session.
 
 ## Doctrine (cross-cutting syntheses)
 
@@ -53,7 +53,7 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 - [film-and-game-music](film-and-game-music.md) ·reviewed — Film scoring functions and leitmotif, plus the adaptive-music architectures of game audio (vertical layering, horizontal resequencing, stingers, transition matrices) reframed for a browser engine whose game state is the user's controls.
 - [gamelan](gamelan.md) ·reviewed — Javanese and Balinese gamelan as human-made algorithmic music — colotomic gong cycles, a core melody elaborated at fixed density ratios, paired-detuned non-equal tunings, and interlocking figuration.
 - [indian-classical-music](indian-classical-music.md) ·reviewed — Raga as grammar-constrained melodic improvisation over a fixed drone within cyclic tala, unfolding by gradual intensification — a working blueprint for generative melody engines.
-- [indian-popular-and-film-music](indian-popular-and-film-music.md) — Filmi/Bollywood and regional pop as an East–West hybrid — mukhda/antara song form, Western harmony and drum-kit rhythm laid under raga-inflected melody over a drone, and the purity-vs-harmony dial an engine must expose.
+- [indian-popular-and-film-music](indian-popular-and-film-music.md) ·reviewed — Filmi/Bollywood and regional pop as an East–West hybrid — mukhda/antara song form, Western harmony and drum-kit rhythm laid under raga-inflected melody over a drone, and the purity-vs-harmony dial an engine must expose.
 - [west-african-rhythm](west-african-rhythm.md) ·reviewed — Timeline-anchored ostinato ensembles with systematic cross-rhythm, master-drummer variation, and interlocking parts — an engine architecture for rhythm-forward music, read with Agawu's cautions against exoticism.
 - [east-asian-traditions](east-asian-traditions.md) ·reviewed — Engine-relevant principles from Japanese, Chinese, and Korean art musics — heterophony, breath-based free rhythm, timbre as primary content, silence as structure, and jo-ha-kyu as a form template.
 
@@ -80,7 +80,7 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 - [effects-and-mixing](effects-and-mixing.md) ·reviewed — Reverb, delay, modulation, saturation, compression, EQ, stereo strategy, gain staging, and loudness targets for fully synthesized mixes, built from stock Web Audio nodes.
 - [audio-worklets-and-performance](audio-worklets-and-performance.md) ·reviewed — When node graphs stop being enough — the AudioWorklet model, file:// loading workarounds, real-time performance budgets, autoplay and mobile constraints, and leak-free long sessions.
 - [javascript-music-libraries](javascript-music-libraries.md) ·reviewed — A survey of Tone.js, Tonal, Magenta.js, Strudel/Gibber, scribbletune, WebPd/RNBO/Faust, Elementary, and Meyda — mined for design lessons a dependency-free engine should steal, plus the case for and against the no-dependency constraint.
-- [shared-libraries](shared-libraries.md) — The plan for this project's own original, first-party libraries — the reusable core (theory, timing, seeded RNG, synthesis, effects, analysis) that engines vendor instead of importing outside code, why they are built from scratch, and in what order.
+- [shared-libraries](shared-libraries.md) ·reviewed — The plan for this project's own original, first-party libraries — the reusable core (theory, timing, seeded RNG, synthesis, effects, analysis) that engines vendor instead of importing outside code, why they are built from scratch, and in what order.
 
 ## Evaluation and improvement
 
