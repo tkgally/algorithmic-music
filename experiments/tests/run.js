@@ -9,4 +9,5 @@ require('./analysis.test');
 require('./engine.test');
 require('./ambient.test');
 require('./groove.test');
+require('./expressive.test');
 done();
