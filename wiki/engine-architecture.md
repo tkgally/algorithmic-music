@@ -62,7 +62,7 @@ Two invariants: (1) *composer thinks in beats*, tempo lives in the performer; (2
 Every engine ships with:
 
 1. **Score dump**: a function (or `?dump=1` mode) that generates N bars offline and returns the symbolic score JSON — no audio needed. This is what symbolic [metrics](computational-music-metrics.md) consume.
-2. **Offline render**: OfflineAudioContext render of a given seed/duration for acoustic metrics — the successor to the previous experiments' `verify.mjs`.
+2. **Offline render**: OfflineAudioContext render of a given seed/duration for acoustic metrics — the successor to the previous experiments' `verify.mjs`, now prototyped as `experiments/tools/render-measure.mjs` + the `analysis` library ([findings-shared-lib-foundation](findings-shared-lib-foundation.md)); it validated `transport`'s timing as sample-accurate in a real render.
 3. **Self-report**: the engine's own intent (form plan, tension targets, theme lifecycle) exposed alongside the score, so critics can measure achieved-vs-intended, not just statistics.
 4. **A/B hooks**: any two versions playable side by side with the same seed (the feedback site depends on this).
 
