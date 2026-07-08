@@ -8,4 +8,5 @@ require('./composer.test');
 require('./analysis.test');
 require('./engine.test');
 require('./ambient.test');
+require('./groove.test');
 done();

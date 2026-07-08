@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engine 03 — Groove / Lo-Fi · algorithmic-music</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f4ef; --fg: #211c16; --muted: #6f6656; --line: #e6ddce;
+    --panel: #fffdf9; --accent: #c8791f;
+    --kick: #b5502a; --snare: #c8791f; --hat: #b09a5e; --bass: #7a5cc0; --rhodes: #2f9e8f; --bell: #4f7fd0;
+    --playhead: #d24a4a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#161310; --fg:#ece4d7; --muted:#9c9080; --line:#2b2519; --panel:#1e1a14; --accent:#e6a24d;
+      --kick:#e0714a; --snare:#e6a24d; --hat:#d3bd7e; --bass:#a892e8; --rhodes:#5fd0bd; --bell:#7fa8e6; --playhead:#ff6b6b; }
+  }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+  main { max-width: 820px; margin: 0 auto; padding: 1.6rem 1.2rem 4rem; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.5rem; margin: .2rem 0 .1rem; }
+  .sub { color: var(--muted); margin: 0 0 1.2rem; }
+  .badge { display:inline-block; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:.12rem .6rem; vertical-align:middle; margin-left:.4rem; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem; margin: 1rem 0; }
+  .transport { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+  button { font: inherit; font-weight: 600; padding: .55rem 1.1rem; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: grid; grid-template-columns: 7.5rem 1fr auto; gap: .5rem 1rem; align-items: center; margin: .5rem 0; }
+  .row label { color: var(--muted); font-size: .92rem; }
+  .row output { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 3.5rem; text-align: right; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=text], select { font: inherit; padding: .35rem .5rem; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  input[type=text] { width: 8rem; }
+  canvas { width: 100%; height: 200px; display: block; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
+  .legend { display:flex; gap:1rem; font-size:.8rem; color:var(--muted); margin:.5rem 0 0; flex-wrap:wrap; }
+  .swatch { display:inline-block; width:.7rem; height:.7rem; border-radius:2px; vertical-align:middle; margin-right:.3rem; }
+  details { margin-top: .4rem; }
+  summary { cursor: pointer; color: var(--muted); font-size: .92rem; }
+  .report { font-size: .9rem; }
+  .report table { border-collapse: collapse; width: 100%; margin-top: .4rem; }
+  .report th, .report td { text-align: left; padding: .25rem .5rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .report th { color: var(--muted); font-weight: 600; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
+  .sharebar { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+  .sharebar input { flex: 1 1 12rem; min-width: 8rem; }
+  textarea { width:100%; font: inherit; padding:.5rem; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--fg); resize:vertical; }
+  .muted { color: var(--muted); }
+  .foot { color: var(--muted); font-size: .85rem; margin-top: 2rem; border-top:1px solid var(--line); padding-top:1rem; }
+</style>
+</head>
+<body>
+<main>
+  <p class="sub"><a href="../../index.html">← algorithmic-music</a></p>
+  <h1>Groove / Lo-Fi <span class="badge" id="ver">engine 03</span></h1>
+  <p class="sub">A looped lo-fi hip-hop beat: a backbeat snare that drags behind the pulse, a warm swung kick, ghost notes and a sparse bell in the second half, jazzy 7th/9th electric-piano chords, a weighty bass — and a little vinyl crackle over the top. Synthesized live with the Web Audio API from a seed; nothing is a recording.</p>
+
+  <div class="panel">
+    <div class="transport">
+      <button id="play" class="primary">▶ Play</button>
+      <button id="newp">↻ New groove</button>
+      <label class="muted"><input type="checkbox" id="loop"> keep playing (new seed each time)</label>
+    </div>
+    <canvas id="roll" width="1600" height="400" aria-label="visualization of the groove over time"></canvas>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--kick)"></span>kick</span>
+      <span><span class="swatch" style="background:var(--snare)"></span>snare</span>
+      <span><span class="swatch" style="background:var(--hat)"></span>hats</span>
+      <span><span class="swatch" style="background:var(--bass)"></span>bass</span>
+      <span><span class="swatch" style="background:var(--rhodes)"></span>rhodes</span>
+      <span><span class="swatch" style="background:var(--bell)"></span>bell</span>
+      <span id="nowlabel" class="mono"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="1" step="0.01" value="0.62"><output id="volOut">0.62</output></div>
+    <div class="row"><label for="mood">Mood</label>
+      <select id="mood">
+        <option value="mellow">mellow (major 7ths)</option>
+        <option value="night">night (minor 9ths)</option>
+        <option value="warm">warm (dorian groove)</option>
+        <option value="tape">tape (I vi ii V)</option>
+      </select><span></span></div>
+    <div class="row"><label for="bpm">Tempo</label><input type="range" id="bpm" min="62" max="100" step="1" value="82"><output id="bpmOut">82 BPM</output></div>
+    <div class="row"><label for="swing">Swing</label><input type="range" id="swing" min="0.5" max="0.68" step="0.01" value="0.6"><output id="swingOut">60%</output></div>
+    <div class="row"><label for="rev">Space</label><input type="range" id="rev" min="0.05" max="0.5" step="0.01" value="0.24"><output id="revOut">0.24</output></div>
+    <div class="row"><label for="vinyl">Vinyl</label><input type="range" id="vinyl" min="0" max="1" step="0.05" value="0.5"><output id="vinylOut">0.50</output></div>
+    <details>
+      <summary>Advanced</summary>
+      <div class="row"><label for="bars">Length</label><input type="range" id="bars" min="16" max="40" step="4" value="24"><output id="barsOut">24 bars</output></div>
+      <div class="row"><label for="tonic">Key center</label>
+        <select id="tonic"></select><span class="muted" style="font-size:.82rem">(default follows the mood)</span></div>
+      <div class="row"><label for="seed">Seed</label><input type="text" id="seed" value="lofi-1"><span class="muted" style="font-size:.82rem">any text or number</span></div>
+    </details>
+  </div>
+
+  <div class="panel report" id="reportPanel">
+    <strong>What this groove is doing</strong>
+    <div id="report"></div>
+  </div>
+
+  <div class="panel">
+    <div class="sharebar">
+      <strong style="flex:0 0 auto">Share this exact groove</strong>
+      <input type="text" id="share" readonly>
+      <button id="copy">Copy link</button>
+    </div>
+    <p class="muted" style="margin:.5rem 0 0; font-size:.85rem">The link encodes the seed and all settings — anyone who opens it hears the identical beat.</p>
+  </div>
+
+  <details class="panel">
+    <summary><strong>Leave feedback</strong> — help tune the engine</summary>
+    <div class="row" style="grid-template-columns:7.5rem 1fr; margin-top:.6rem"><label for="rating">Rating</label>
+      <select id="rating"><option value="">—</option><option>1 — poor</option><option>2</option><option>3</option><option>4</option><option>5 — excellent</option></select></div>
+    <p class="muted" style="margin:.3rem 0">What worked, what didn't? (the groove, the swing, the drums, the chords, the vibe…)</p>
+    <textarea id="fbtext" rows="3" placeholder="e.g. lovely chords but the kick is too soft to drive it"></textarea>
+    <div style="margin-top:.6rem"><button id="download">Download feedback (JSON)</button>
+      <span class="muted" style="font-size:.82rem">Saves a small file with your notes + this groove's exact settings. No server; nothing is sent anywhere.</span></div>
+  </details>
+
+  <p class="foot">
+    Engine <span class="mono" id="verfoot"></span> · part of <a href="../../index.html">algorithmic-music</a>, a project researched, written, and built entirely by Claude (Anthropic's AI), directed by Tom Gally.
+    Vanilla HTML/CSS/JS + Web Audio, no dependencies, runs offline. Public domain (CC0).
+  </p>
+</main>
+
+<script src="lib/rng.js"></script>
+<script src="lib/transport.js"></script>
+<script src="lib/theory.js"></script>
+<script src="lib/synth.js"></script>
+<script src="lib/fx.js"></script>
+<script src="composer.js"></script>
+<script src="engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  const E = window.AM.engines.grooveLofi;
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    play: $('play'), newp: $('newp'), loop: $('loop'),
+    vol: $('vol'), volOut: $('volOut'), mood: $('mood'),
+    bpm: $('bpm'), bpmOut: $('bpmOut'), swing: $('swing'), swingOut: $('swingOut'),
+    rev: $('rev'), revOut: $('revOut'), vinyl: $('vinyl'), vinylOut: $('vinylOut'),
+    bars: $('bars'), barsOut: $('barsOut'), tonic: $('tonic'), seed: $('seed'),
+    roll: $('roll'), report: $('report'), share: $('share'), copy: $('copy'),
+    nowlabel: $('nowlabel'), rating: $('rating'), fbtext: $('fbtext'), download: $('download'),
+    ver: $('ver'), verfoot: $('verfoot'),
+  };
+  els.ver.textContent = 'engine 03 · v' + E.VERSION;
+  els.verfoot.textContent = E.NAME + '@' + E.VERSION;
+
+  // Key-center options (blank = follow the mood's default).
+  const optDefault = document.createElement('option'); optDefault.value = ''; optDefault.textContent = 'default'; els.tonic.appendChild(optDefault);
+  ['C3','D3','E3','F3','G3','A2','Bb2','A3'].forEach((n) => {
+    const o = document.createElement('option'); o.value = n; o.textContent = n.replace(/(\d)/, ' ($1)'); els.tonic.appendChild(o);
+  });
+  els.tonic.value = '';
+
+  let ctx = null, player = null, plan = null, playing = false;
+
+  function opts() {
+    return {
+      seed: els.seed.value || 'lofi-1',
+      mood: els.mood.value, tonic: els.tonic.value || null,
+      bpm: +els.bpm.value, swing: +els.swing.value, bars: +els.bars.value,
+      reverb: +els.rev.value, volume: +els.vol.value, vinyl: +els.vinyl.value,
+    };
+  }
+
+  // ---- URL hash state ----
+  function encodeState(o) {
+    const p = new URLSearchParams({ v: E.VERSION, seed: o.seed, mood: o.mood, tonic: o.tonic || '', bpm: o.bpm, swing: o.swing, bars: o.bars, rev: o.reverb, vol: o.volume, vinyl: o.vinyl });
+    return '#' + p.toString();
+  }
+  function decodeState() {
+    if (!location.hash || location.hash.length < 2) return;
+    const p = new URLSearchParams(location.hash.slice(1));
+    if (p.get('seed')) els.seed.value = p.get('seed');
+    if (p.get('mood')) els.mood.value = p.get('mood');
+    if (p.has('tonic')) els.tonic.value = p.get('tonic') || '';
+    if (p.get('bpm')) els.bpm.value = p.get('bpm');
+    if (p.get('swing')) els.swing.value = p.get('swing');
+    if (p.get('bars')) els.bars.value = p.get('bars');
+    if (p.get('rev')) els.rev.value = p.get('rev');
+    if (p.get('vol')) els.vol.value = p.get('vol');
+    if (p.get('vinyl')) els.vinyl.value = p.get('vinyl');
+  }
+
+  function syncOutputs() {
+    els.volOut.textContent = (+els.vol.value).toFixed(2);
+    els.bpmOut.textContent = els.bpm.value + ' BPM';
+    els.swingOut.textContent = Math.round(+els.swing.value * 100) + '%';
+    els.revOut.textContent = (+els.rev.value).toFixed(2);
+    els.vinylOut.textContent = (+els.vinyl.value).toFixed(2);
+    els.barsOut.textContent = els.bars.value + ' bars';
+  }
+
+  // ---- Visualization ----
+  const DRUM = { kick: true, snare: true, hat: true };
+  function draw(elapsedSec) {
+    const c = els.roll, g = c.getContext('2d');
+    const W = c.width, H = c.height, pad = 10;
+    g.clearRect(0, 0, W, H);
+    if (!plan) return;
+    const evs = plan.events;
+    const total = plan.durationSec;
+    let lo = Infinity, hi = -Infinity;
+    for (const e of evs) { if (e.midi < lo) lo = e.midi; if (e.midi > hi) hi = e.midi; }
+    const span = Math.max(1, hi - lo);
+    const x = (t) => pad + (t / total) * (W - 2 * pad);
+    const y = (m) => pad + (1 - (m - lo) / span) * (H - 2 * pad);
+    const rowH = Math.max(3, (H - 2 * pad) / (span + 1) - 1);
+    const css = getComputedStyle(document.documentElement);
+    const col = {
+      kick: css.getPropertyValue('--kick'), snare: css.getPropertyValue('--snare'), hat: css.getPropertyValue('--hat'),
+      bass: css.getPropertyValue('--bass'), rhodes: css.getPropertyValue('--rhodes'), bell: css.getPropertyValue('--bell'),
+    };
+    // bar gridlines
+    const spb = 60 / plan.bpm, bar = spb * (plan.meta.beatsPerBar || 4);
+    g.strokeStyle = css.getPropertyValue('--line').trim(); g.lineWidth = 1;
+    for (let b = 0; b * bar < total; b++) { const sx = x(b * bar); g.globalAlpha = 0.6; g.beginPath(); g.moveTo(sx, 0); g.lineTo(sx, H); g.stroke(); }
+    g.globalAlpha = 1;
+    // pitched sustains first (translucent), then drum hits on top
+    for (const e of evs) {
+      const drum = DRUM[e.voice];
+      g.globalAlpha = drum ? 0.95 : 0.5;
+      g.fillStyle = (col[e.voice] || col.rhodes).trim();
+      const w = drum ? 3.5 : Math.max(3, (e.durSec / total) * (W - 2 * pad) - 1);
+      const h = drum ? Math.max(4, rowH * 1.4) : rowH;
+      g.fillRect(x(e.timeSec), y(e.midi) - h / 2, w, h);
+    }
+    g.globalAlpha = 1;
+    if (elapsedSec != null && elapsedSec >= 0) {
+      const px = x(Math.min(elapsedSec, total));
+      g.strokeStyle = css.getPropertyValue('--playhead').trim();
+      g.lineWidth = 2; g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H); g.stroke();
+    }
+  }
+
+  function refresh() {
+    plan = E.renderPlan(opts());
+    syncOutputs();
+    draw(playing ? undefined : -1);
+    refreshShare();
+    renderReport();
+    els.nowlabel.textContent = '';
+  }
+
+  function renderReport() {
+    const r = plan.selfReport;
+    const gr = r.groove || {};
+    els.report.innerHTML =
+      `<p style="margin:.4rem 0"><strong>${r.key}</strong> · ${r.bars} bars · ${plan.bpm} BPM · swing ${Math.round(plan.swing * 100)}%</p>` +
+      `<table><tbody>` +
+      `<tr><th>progression</th><td class="mono">${r.progressionRoman || '—'}</td></tr>` +
+      `<tr><th>backbeat</th><td>${gr.backbeat || 'snare on 2 & 4'}</td></tr>` +
+      `<tr><th>kick (A / B)</th><td class="mono">${gr.kickA || '—'} &nbsp;/&nbsp; ${gr.kickB || '—'}</td></tr>` +
+      `<tr><th>ghosts / lead</th><td>${gr.ghostNotes ? 'ghost snares ' + (gr.lead ? '+ bell lead' : '') : (gr.lead ? 'bell lead' : '—')}</td></tr>` +
+      `</tbody></table>` +
+      `<p class="muted" style="margin:.5rem 0 0">${r.idea}</p>`;
+  }
+
+  // ---- Playback ----
+  async function start() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') await ctx.resume();
+    stop();
+    player = E.play(ctx, opts(), {
+      onFrame: (elapsed) => { draw(elapsed); els.nowlabel.textContent = 'playing · ' + Math.floor(elapsed) + 's'; },
+      onEnd: () => {
+        playing = false; els.play.textContent = '▶ Play';
+        if (els.loop.checked) { els.seed.value = randomSeed(); refresh(); start(); }
+        else { els.nowlabel.textContent = 'done'; draw(-1); }
+      },
+    });
+    playing = true; els.play.textContent = '⏹ Stop';
+  }
+  function stop() { if (player) { player.stop(); player = null; } playing = false; els.play.textContent = '▶ Play'; }
+
+  function randomSeed() { return Math.random().toString(36).slice(2, 8); }
+
+  // ---- Wiring ----
+  els.play.addEventListener('click', () => { if (playing) { stop(); draw(-1); els.nowlabel.textContent = ''; } else start(); });
+  els.newp.addEventListener('click', () => { els.seed.value = randomSeed(); refresh(); if (playing) start(); });
+  els.vol.addEventListener('input', () => { syncOutputs(); if (player) player.setVolume(+els.vol.value); if (!playing) draw(-1); refreshShare(); });
+  els.rev.addEventListener('input', () => { syncOutputs(); if (player) player.setReverb(+els.rev.value); refreshShare(); });
+  els.vinyl.addEventListener('input', () => { syncOutputs(); if (player) player.setVinyl(+els.vinyl.value); refreshShare(); });
+  els.bpm.addEventListener('input', () => { refresh(); if (playing) start(); });
+  els.swing.addEventListener('input', () => { refresh(); if (playing) start(); });
+  els.bars.addEventListener('input', () => { refresh(); if (playing) start(); });
+  ['mood', 'tonic'].forEach((k) => els[k].addEventListener('change', () => { refresh(); if (playing) start(); }));
+  els.seed.addEventListener('change', () => { refresh(); if (playing) start(); });
+  function refreshShare() { els.share.value = location.origin + location.pathname + encodeState(opts()); if (history.replaceState) history.replaceState(null, '', encodeState(opts())); }
+  els.copy.addEventListener('click', () => { els.share.select(); navigator.clipboard && navigator.clipboard.writeText(els.share.value); els.copy.textContent = 'Copied!'; setTimeout(() => els.copy.textContent = 'Copy link', 1200); });
+  els.download.addEventListener('click', () => {
+    const o = opts();
+    const payload = { engine: E.NAME, version: E.VERSION, seed: o.seed, mood: o.mood, tonic: o.tonic, bpm: o.bpm, swing: o.swing, bars: o.bars, reverb: o.reverb, volume: o.volume, vinyl: o.vinyl, rating: els.rating.value || null, comment: els.fbtext.value || '', form: plan.selfReport.form, key: plan.selfReport.key, submittedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'feedback-groove-lofi-' + o.seed + '.json'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+  window.addEventListener('resize', () => draw(playing ? undefined : -1));
+
+  decodeState();
+  refresh();
+})();
+</script>
+</body>
+</html>

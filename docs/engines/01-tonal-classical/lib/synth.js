@@ -56,6 +56,28 @@
     node.onended = () => { for (const n of list) { try { n.disconnect(); } catch (e) {} } };
   }
 
+  // Shared, DETERMINISTIC white-noise buffer, one per AudioContext (built lazily
+  // and cached) — the drum voices below play offset slices of it rather than
+  // allocating a new noise buffer per hit (wiki/synthesis-recipes.md "Drums":
+  // "generate one seeded noise AudioBuffer at startup and play offset slices per
+  // hit — deterministic and allocation-free"). A fixed internal seed keeps the
+  // synthesized audio reproducible (the render-and-measure gate wants stable
+  // metrics), independent of Math.random.
+  const _noiseCache = (typeof WeakMap !== 'undefined') ? new WeakMap() : null;
+  function noiseBuffer(ctx) {
+    if (_noiseCache && _noiseCache.has(ctx)) return _noiseCache.get(ctx);
+    const len = Math.max(1, Math.floor(ctx.sampleRate * 2));
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    let a = 0x2545f491 >>> 0;                       // fixed seed -> deterministic
+    for (let i = 0; i < len; i++) { a ^= a << 13; a ^= a >>> 17; a ^= a << 5; a >>>= 0; d[i] = (a / 4294967296) * 2 - 1; }
+    if (_noiseCache) _noiseCache.set(ctx, buf);
+    return buf;
+  }
+  // A per-hit noise read offset (seconds) so successive hits don't play the exact
+  // same slice — deterministic from the scheduled time, no Math.random.
+  function noiseOffset(time) { const x = Math.abs(time) * 7.13; return (x - Math.floor(x)) * 1.6; }
+
   // ---- keys: 2-operator FM electric piano (Rhodes-ish) ----------------------
   // wiki/synthesis-recipes.md "Two-operator FM": carrier:modulator 1:1, index
   // ~1.5–3 with a fast decay so brightness fades faster than amplitude — the
@@ -233,8 +255,119 @@
     disconnectOnEnd(sub, [sub, fifth, fifthG, lp, env.gain, out]);
   }
 
+  // ---- kick: sine with a fast downward pitch drop (round, lo-fi) ------------
+  // wiki/synthesis-recipes.md "Drums": a sine whose frequency drops exponentially
+  // (≈130→46 Hz over ~60 ms) with a fast amp decay. Kept deliberately ROUND —
+  // little beater click — for the warm, dusty lo-fi character (a bright click
+  // would fight the tape aesthetic). The weight is the point (wiki/groove-and-
+  // embodiment.md: "put timekeeping and energy in the bass … a thin, bass-light
+  // mix will not groove"). vel scales both peak and how far the pitch starts up.
+  function kick(ctx, dest, note) {
+    const { time, vel } = note;
+    const osc = ctx.createOscillator(); osc.type = 'sine';
+    const f1 = 118 + 34 * vel, f0 = 46;
+    osc.frequency.setValueAtTime(f1, time);
+    osc.frequency.exponentialRampToValueAtTime(f0, time + 0.06);
+    const g = ctx.createGain();
+    const peak = 0.92 * (0.62 + 0.38 * vel);
+    const dec = 0.15 + 0.05 * vel;
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.exponentialRampToValueAtTime(peak, time + 0.004);   // 4 ms attack
+    g.gain.exponentialRampToValueAtTime(0.0016, time + dec);
+    g.gain.linearRampToValueAtTime(0, time + dec + 0.012);     // true zero, no click
+    osc.connect(g); g.connect(dest);
+    const endAt = time + dec + 0.03;
+    osc.start(time); osc.stop(endAt);
+    disconnectOnEnd(osc, [osc, g]);
+  }
+
+  // ---- snare: two tone partials + band-passed noise -------------------------
+  // wiki/synthesis-recipes.md "Snare": ~185 + ~330 Hz triangles (fast τ) plus
+  // white noise through a ~1.9 kHz bandpass; VELOCITY SCALES THE NOISE MORE THAN
+  // THE TONE, which is exactly what makes ghost notes (low-vel snare taps) read as
+  // soft brushes rather than quiet full hits (wiki/groove-and-embodiment.md).
+  function snare(ctx, dest, note) {
+    const { time, vel } = note;
+    const out = ctx.createGain(); out.gain.value = 1; out.connect(dest);
+    // tone
+    const toneG = ctx.createGain();
+    const t1 = ctx.createOscillator(); t1.type = 'triangle'; t1.frequency.setValueAtTime(185, time);
+    const t2 = ctx.createOscillator(); t2.type = 'triangle'; t2.frequency.setValueAtTime(328, time);
+    const tonePeak = 0.16 * (0.5 + 0.5 * vel);
+    toneG.gain.setValueAtTime(0.0001, time);
+    toneG.gain.exponentialRampToValueAtTime(tonePeak, time + 0.003);
+    toneG.gain.exponentialRampToValueAtTime(0.0016, time + 0.055);
+    toneG.gain.linearRampToValueAtTime(0, time + 0.066);
+    t1.connect(toneG); t2.connect(toneG); toneG.connect(out);
+    // noise body
+    const noise = ctx.createBufferSource(); noise.buffer = noiseBuffer(ctx); noise.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.setValueAtTime(1900, time); bp.Q.setValueAtTime(0.7, time);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.setValueAtTime(700, time);
+    const nG = ctx.createGain();
+    const nPeak = 0.5 * (0.3 + 0.7 * vel);                     // noise dominated by velocity
+    const nDec = 0.085 + 0.06 * vel;
+    nG.gain.setValueAtTime(0.0001, time);
+    nG.gain.exponentialRampToValueAtTime(nPeak, time + 0.003);
+    nG.gain.exponentialRampToValueAtTime(0.0016, time + nDec);
+    nG.gain.linearRampToValueAtTime(0, time + nDec + 0.01);
+    noise.connect(bp); bp.connect(hp); hp.connect(nG); nG.connect(out);
+    const endAt = time + Math.max(0.066, nDec + 0.02);
+    t1.start(time); t2.start(time); noise.start(time, noiseOffset(time));
+    t1.stop(endAt); t2.stop(endAt); noise.stop(endAt);
+    disconnectOnEnd(noise, [t1, t2, toneG, noise, bp, hp, nG, out]);
+  }
+
+  // ---- hat: high-passed noise, closed (short) or open (long) ----------------
+  // wiki/synthesis-recipes.md "Hi-hats": highpassed white noise (≥7–8 kHz) is the
+  // acceptable cheap substitute; closed τ ≈ 0.03–0.06 s, open τ ≈ 0.3–0.6 s. Tag
+  // 'open' selects the long decay. Level is kept modest so the shimmer sits under
+  // the backbeat and the per-sample steps of the bright noise stay bounded.
+  function hat(ctx, dest, note) {
+    const { time, vel, tags } = note;
+    const open = tags && tags.indexOf('open') !== -1;
+    const noise = ctx.createBufferSource(); noise.buffer = noiseBuffer(ctx); noise.loop = true;
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.setValueAtTime(7600, time); hp.Q.setValueAtTime(0.7, time);
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.setValueAtTime(10500, time); bp.Q.setValueAtTime(1.1, time);
+    const g = ctx.createGain();
+    const dec = open ? 0.26 : 0.045;
+    const peak = 0.11 * (0.4 + 0.6 * vel);
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.exponentialRampToValueAtTime(peak, time + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0016, time + dec);
+    g.gain.linearRampToValueAtTime(0, time + dec + 0.008);
+    noise.connect(hp); hp.connect(bp); bp.connect(g); g.connect(dest);
+    const endAt = time + dec + 0.02;
+    noise.start(time, noiseOffset(time)); noise.stop(endAt);
+    disconnectOnEnd(noise, [noise, hp, bp, g]);
+  }
+
+  // ---- rhodes: warm, dusty 2-op FM electric piano (lo-fi chord/keys voice) ---
+  // The signature lo-fi timbre (wiki/synthesis-recipes.md "Two-operator FM":
+  // Rhodes-like EP, 1:1 ratio, index with a fast decay). Distinguished from the
+  // brighter `keys` lead by a WARM LOWPASS (the "dusty"/filtered character) and a
+  // gentler index, so stacked chord tones stay mellow and never fizz.
+  function rhodes(ctx, dest, note) {
+    const { freq, time, durSec, vel } = note;
+    const car = ctx.createOscillator(); const mod = ctx.createOscillator();
+    car.type = 'sine'; mod.type = 'sine';
+    car.frequency.setValueAtTime(freq, time);
+    mod.frequency.setValueAtTime(freq, time);          // 1:1 -> harmonic
+    const dev = ctx.createGain();
+    const index = 0.7 + 1.1 * vel;
+    dev.gain.setValueAtTime(index * freq, time);
+    dev.gain.setTargetAtTime(index * freq * 0.1, time, Math.max(0.05, durSec * 0.2));
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+    lp.frequency.setValueAtTime(Math.min(2600, freq * 6), time); lp.Q.setValueAtTime(0.4, time);
+    const env = envGain(ctx, time, durSec, 0.2 * (0.5 + 0.5 * vel), 0.006, Math.min(0.7, 0.25 + durSec * 0.35));
+    mod.connect(dev); dev.connect(car.frequency); car.connect(lp); lp.connect(env.gain); env.gain.connect(dest);
+    car.start(time); mod.start(time);
+    car.stop(env.stopAt); mod.stop(env.stopAt);
+    disconnectOnEnd(car, [car, mod, dev, lp, env.gain]);
+  }
+
   // Voice registry, keyed by the composer's `voice` field.
-  const VOICES = { melody: keys, chord: strings, bass: bass, bell: bell, pad: pad, drone: drone };
+  const VOICES = { melody: keys, chord: strings, bass: bass, bell: bell, pad: pad, drone: drone,
+    kick: kick, snare: snare, hat: hat, rhodes: rhodes };
 
   /** Play a composer voice by name: play('melody', ctx, dest, note). */
   function play(voice, ctx, dest, note) {
@@ -242,5 +375,5 @@
     fn(ctx, dest, note);
   }
 
-  return { play, keys, strings, bass, bell, pad, drone, VOICES, envGain };
+  return { play, keys, strings, bass, bell, pad, drone, kick, snare, hat, rhodes, VOICES, envGain, noiseBuffer };
 });

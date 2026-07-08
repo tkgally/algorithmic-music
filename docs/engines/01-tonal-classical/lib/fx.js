@@ -127,8 +127,19 @@
     const bellBus = makeBus(90, reverbAmount * 1.1);
     const padBus = makeBus(90, reverbAmount * chordSendScale);
     const droneBus = makeBus(0, opts.bassSend || 0.0);
+    // Groove/lo-fi voices: the kick is full-range and dry (its weight is the
+    // groove — no reverb, no HP, like the bass bus); snare/hat are high-passed
+    // with a LIGHT reverb (drums drown in a big tail); the rhodes (lo-fi keys)
+    // gets a warm, chord-like send (wiki/groove-and-embodiment.md, wiki/effects-
+    // and-mixing.md). drumSendScale lets an engine dial the whole kit's space.
+    const drumSendScale = opts.drumSendScale == null ? 0.55 : opts.drumSendScale;
+    const kickBus = makeBus(0, 0.0);
+    const snareBus = makeBus(120, reverbAmount * drumSendScale);
+    const hatBus = makeBus(400, reverbAmount * drumSendScale * 0.8);
+    const rhodesBus = makeBus(90, reverbAmount);
 
-    const buses = { melody: melodyBus, chord: chordBus, bass: bassBus, bell: bellBus, pad: padBus, drone: droneBus };
+    const buses = { melody: melodyBus, chord: chordBus, bass: bassBus, bell: bellBus, pad: padBus, drone: droneBus,
+      kick: kickBus, snare: snareBus, hat: hatBus, rhodes: rhodesBus };
 
     return {
       master, sum, buses,
@@ -140,6 +151,9 @@
         chordBus.send.gain.setTargetAtTime(v * chordSendScale, ctx.currentTime, 0.05);
         bellBus.send.gain.setTargetAtTime(v * 1.1, ctx.currentTime, 0.05);
         padBus.send.gain.setTargetAtTime(v * chordSendScale, ctx.currentTime, 0.05);
+        snareBus.send.gain.setTargetAtTime(v * drumSendScale, ctx.currentTime, 0.05);
+        hatBus.send.gain.setTargetAtTime(v * drumSendScale * 0.8, ctx.currentTime, 0.05);
+        rhodesBus.send.gain.setTargetAtTime(v, ctx.currentTime, 0.05);
       },
       /** Quiet-listening tone tilt: +dB high shelf as playback gets quieter. */
       setTone(db) { tone.gain.setTargetAtTime(db, ctx.currentTime, 0.05); },

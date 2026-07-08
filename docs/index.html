@@ -20,14 +20,26 @@
   h2 { font-size: 1.15rem; margin: 2.2rem 0 .6rem; }
   .lede { color: var(--fg); font-size: 1.08rem; }
   .muted { color: var(--muted); }
-  .card { display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.3rem; margin: 1rem 0; text-decoration: none; color: inherit; transition: border-color .15s, transform .05s; }
+  /* Compact engine cards: a one-line head (number · title · tagline · play) with
+     the longer description in a collapsed <details> box, shut by default — the
+     catalog stays scannable as it grows. */
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: .8rem 1.1rem; margin: .6rem 0; color: inherit; transition: border-color .15s; }
   .card:hover { border-color: var(--accent); }
-  .card:active { transform: translateY(1px); }
-  .card .num { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; font-size: .9rem; letter-spacing: .08em; }
-  .card h3 { margin: .2rem 0 .3rem; font-size: 1.25rem; }
-  .card p { margin: .2rem 0 0; color: var(--muted); font-size: .95rem; }
-  .card .cta { margin-top: .6rem; font-weight: 600; color: var(--accent); font-size: .92rem; }
-  .soon { opacity: .6; border-style: dashed; }
+  .cardhead { display: flex; align-items: baseline; flex-wrap: wrap; gap: .15rem .7rem; }
+  .card .num { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; font-size: .78rem; letter-spacing: .08em; white-space: nowrap; }
+  .card .title { font-size: 1.15rem; font-weight: 700; text-decoration: none; color: inherit; }
+  .card .title:hover { color: var(--accent); }
+  .card .tagline { color: var(--muted); font-size: .9rem; flex: 1 1 11rem; }
+  .card .play { margin-left: auto; font-weight: 600; color: var(--accent); font-size: .9rem; text-decoration: none; white-space: nowrap; }
+  .card .play:hover { text-decoration: underline; }
+  .card details.desc { margin-top: .5rem; }
+  .card details.desc summary { cursor: pointer; color: var(--muted); font-size: .84rem; list-style: none; }
+  .card details.desc summary::-webkit-details-marker { display: none; }
+  .card details.desc summary::before { content: "▸ "; }
+  .card details.desc[open] summary::before { content: "▾ "; }
+  .card details.desc p { margin: .5rem 0 0; color: var(--muted); font-size: .93rem; }
+  .soon { opacity: .7; border-style: dashed; }
+  .soon .num { color: var(--muted); }
   .tags { font-size: .78rem; color: var(--muted); margin-top: .5rem; }
   .tags span { border: 1px solid var(--line); border-radius: 999px; padding: .08rem .55rem; margin-right: .3rem; white-space: nowrap; }
   .foot { color: var(--muted); font-size: .88rem; margin-top: 2.6rem; border-top: 1px solid var(--line); padding-top: 1.2rem; }
@@ -45,29 +57,51 @@
   </p>
 
   <h2>The engines</h2>
-  <p class="muted">Each engine is a self-contained, deliberately different generative instrument. Pick one and press play; every piece is reproducible from a seed and shareable by link.</p>
+  <p class="muted">Each engine is a self-contained, deliberately different generative instrument, newest first. Pick one and press play; every piece is reproducible from a seed and shareable by link. Open a card for the details.</p>
 
-  <a class="card" href="engines/01-tonal-classical/index.html">
-    <div class="num">ENGINE 01</div>
-    <h3>Tonal Classical</h3>
-    <p>A short piece in classical style, built to actually <em>finish</em>: a theme (a parallel period that asks and answers with real cadences), a contrasting middle, a varied return of the theme at the climax, and a closing coda that accelerates into a final cadence and a lengthened last chord. Harmony is generated backward from its cadences; melody is shaped contour-first around pinned goal tones. Major or minor, any key, adjustable tempo and reverb.</p>
-    <div class="tags"><span>rounded ternary form</span><span>goal-directed harmony</span><span>real endings</span><span>FM + string synthesis</span></div>
-    <div class="cta">Play engine 01 →</div>
-  </a>
+  <article class="card">
+    <div class="cardhead">
+      <span class="num">ENGINE 03</span>
+      <a class="title" href="engines/03-groove-lofi/index.html">Groove / Lo-Fi</a>
+      <span class="tagline">a looped lo-fi beat — swing, backbeat, jazzy chords</span>
+      <a class="play" href="engines/03-groove-lofi/index.html">Play →</a>
+    </div>
+    <details class="desc">
+      <summary>About this engine</summary>
+      <p>The trio's groove engine: a looped lo-fi hip-hop beat built to make you nod. A backbeat snare that drags behind the pulse, a warm swung kick at medium syncopation, ghost notes and a sparse bell in the second half, jazzy 7th/9th electric-piano chords, a weighty bass — and a little vinyl crackle over the top. Groove comes from structured pattern, swing, and a velocity hierarchy, not timing noise. Choose the mood (major 7ths, minor 9ths, dorian, tape), tempo, swing, and space.</p>
+      <div class="tags"><span>lo-fi hip-hop</span><span>swing + laid-back backbeat</span><span>medium syncopation</span><span>drum + Rhodes synthesis</span></div>
+    </details>
+  </article>
 
-  <a class="card" href="engines/02-ambient-drift/index.html">
-    <div class="num">ENGINE 02</div>
-    <h3>Ambient Drift</h3>
-    <p>The deliberate opposite of Engine 01: weightless, beatless, and slow. Sustained tones and sparse bells run on periods that never quite line up — Brian Eno's <em>Music for Airports</em> trick — over a drone that drifts through a single mode. It emerges from silence and dissolves back into it. As ignorable as it is interesting; choose the mood (lydian, pentatonic, dorian, minor), the pace, and the space.</p>
-    <div class="tags"><span>generative ambient</span><span>incommensurable loops</span><span>modal drift</span><span>modal bell + pad synthesis</span></div>
-    <div class="cta">Play engine 02 →</div>
-  </a>
+  <article class="card">
+    <div class="cardhead">
+      <span class="num">ENGINE 02</span>
+      <a class="title" href="engines/02-ambient-drift/index.html">Ambient Drift</a>
+      <span class="tagline">weightless, beatless, slow — Eno's <em>Airports</em> trick</span>
+      <a class="play" href="engines/02-ambient-drift/index.html">Play →</a>
+    </div>
+    <details class="desc">
+      <summary>About this engine</summary>
+      <p>The deliberate opposite of a beat: weightless, beatless, and slow. Sustained tones and sparse bells run on periods that never quite line up — Brian Eno's <em>Music for Airports</em> trick — over a drone that drifts through a single mode. It emerges from silence and dissolves back into it. As ignorable as it is interesting; choose the mood (lydian, pentatonic, dorian, minor), the pace, and the space.</p>
+      <div class="tags"><span>generative ambient</span><span>incommensurable loops</span><span>modal drift</span><span>modal bell + pad synthesis</span></div>
+    </details>
+  </article>
 
-  <div class="card soon">
-    <div class="num">ENGINE 03</div>
-    <h3>More engines coming</h3>
-    <p>The plan is a family of deliberately contrasting engines across different genres and architectures — groove-based and non-Western tuning systems among them — each built from the same knowledge base. This catalog will grow; engines are numbered so they are easy to reference and compare.</p>
-  </div>
+  <article class="card">
+    <div class="cardhead">
+      <span class="num">ENGINE 01</span>
+      <a class="title" href="engines/01-tonal-classical/index.html">Tonal Classical</a>
+      <span class="tagline">a short classical piece built to actually <em>finish</em></span>
+      <a class="play" href="engines/01-tonal-classical/index.html">Play →</a>
+    </div>
+    <details class="desc">
+      <summary>About this engine</summary>
+      <p>A short piece in classical style, built to actually finish: a theme (a parallel period that asks and answers with real cadences), a contrasting middle, a varied return of the theme at the climax, and a closing coda that accelerates into a final cadence and a lengthened last chord. Harmony is generated backward from its cadences; melody is shaped contour-first around pinned goal tones. Major or minor, any key, adjustable tempo and reverb.</p>
+      <div class="tags"><span>rounded ternary form</span><span>goal-directed harmony</span><span>real endings</span><span>FM + string synthesis</span></div>
+    </details>
+  </article>
+
+  <p class="muted" style="font-size:.86rem; margin-top:.8rem">More engines are planned — deliberately contrasting genres and architectures (non-Western tuning systems among them), each built from the same knowledge base and numbered so they are easy to reference and compare.</p>
 
   <h2>How it works</h2>
   <ul class="plain muted">
