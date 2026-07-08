@@ -11,7 +11,7 @@ summary: The project's first public engine — how the single parallel period gr
 
 Tom opened **Phase 2** (2026-07-08) by asking for the launch engine: extend the [worked composer](findings-tonal-phrase-composer.md) "from one period to a whole piece (add endings, motivic variation, a full form) and build the audible synth/fx layer," then ship it under `docs/`. This page records what was built and what the validation shows. Like the other findings pages, every structural claim is backed by re-runnable in-repo code — `node experiments/tests/run.js` (**88 tests**, of which 8 are whole-piece composer checks and 6 are performer checks) and `node experiments/tools/render-engine.mjs` (the offline audio gate) — which is a stronger check than source-fetching.
 
-The engine is **`tonal-classical@0.1.0`**, live at `docs/engines/01-tonal-classical/`. The hub `docs/index.html` catalogs it as **Engine 01** and holds a slot for future numbered engines.
+The engine is **`tonal-classical@0.2.0`**, live at `docs/engines/01-tonal-classical/`. The hub `docs/index.html` catalogs it as **Engine 01**. (Version 0.2 is the listener-feedback pass — see [§ v0.2](#v02--the-listener-feedback-pass) below.)
 
 ## From one period to a whole piece
 
@@ -53,6 +53,16 @@ The [shared-libraries](shared-libraries.md) plan's "audible layer" is now built 
 The [engine-architecture](engine-architecture.md) deployment layout held up as specified. `docs/index.html` is the hub; `docs/engines/01-tonal-classical/` is the self-contained engine. The engine **vendors** (copies in) the shared libraries and the composer — `lib/{rng,transport,theory,synth,fx}.js`, `composer.js`, `engine.js` — maintained canonically in `experiments/` and copied here, so the folder is independently downloadable and `file://`-runnable with **no runtime coupling** to the rest of the repo. Numbering the folder (`01-…`) and the hub card ("Engine 01") makes engines easy to reference as the catalog grows.
 
 The engine page realizes the architecture's UI conventions: two-level controls (a simple panel plus an Advanced disclosure), an **editable seed**, **full state serialized into the URL hash** (a shared link reproduces the exact piece), a **self-report** table of what each section is doing, a piano-roll **visualization** with a moving playhead, and a **feedback affordance** that saves a JSON file locally (the decided no-server feedback transport — [listening-tests-and-feedback](listening-tests-and-feedback.md)). Audio starts only on the user's Play gesture.
+
+## v0.2 — the listener-feedback pass
+
+The first listener rated v0.1 a 3/5 with three specific notes: a **faint static/clipping** heard "at the end of the very last note," a **mechanical** melodic articulation/phrasing, and a **too-slow starting tempo**. v0.2 addresses each, all validated by the existing render gate and node suite (no regressions: 88 tests still pass, 16/16 gates green at the new default tempo):
+
+- **The "static" was the reverb, not clipping** (the render peak was ≈ 0.58, far below full scale). Diagnosis: the convolution used a *bright, noisy* impulse response, so sustained chords — worst on the exposed final note — produced a periodic high-frequency "fizz" wash, and the hard-ish glue compressor pumped the tail up as the note decayed. Fixes in `fx.js`/`synth.js`: a darker, smoother IR (two cascaded one-pole lowpasses over the noise, more damping, a 4 ms fade-in), a **band-limited reverb return** (highpass + lowpass), gentler master glue, and envelopes that ramp to **true zero** (a short linear tail after the exponential release) before any oscillator stops. A tail probe confirms the final seconds now decay **monotonically (0.0 dB post-peak swell)** and **dark** (a high-frequency first-difference ratio ≈ 0.00).
+- **The mechanical feel came from per-note white jitter** — exactly the "drunk-drummer" tell [expressive-performance](expressive-performance.md) warns against. v0.2 replaces it with that page's "minimum viable humanization": a **nested phrase-arch tempo** (each 4-bar phrase's edges slower than its middle) over a **square-root final ritardando**; a coupled **dynamic arch** (swell to mid-phrase, ease at the cadence), **high-loud**, softened metric accents, and melody emphasis; **structured articulation** (détaché lead, separated repeated notes, ringing cadence notes); a subtle **chord roll**; delayed **vibrato** on held melody notes; and a small **correlated** (AR(1)) timing/dynamics residual (lag-1 autocorrelation ≈ 0.8, σ ≈ 3 ms, below the ~6 ms JND). The melody phrases instead of marching.
+- **Tempo**: the default rose from **92 → 110 BPM** with a wider range (66–140).
+
+This is also the first real, if partial, answer to the carried-over **R3** open question (do the KTH expressive magnitudes transfer to synthesized timbres?): the phrase arch, ritardando, articulation, and correlated residual are now audible on this engine's FM/triangle voices and cleared the render gate — a listener A/B against v0.1 is the next validation.
 
 ## Design decisions settled
 

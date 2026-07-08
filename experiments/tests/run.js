@@ -7,4 +7,5 @@ require('./theory.test');
 require('./composer.test');
 require('./analysis.test');
 require('./engine.test');
+require('./ambient.test');
 done();

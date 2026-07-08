@@ -29,9 +29,9 @@ const PAGE = 'file://' + path.resolve(HERE, '../../docs/engines/01-tonal-classic
 const argv = process.argv.slice(2);
 
 const CASES = [
-  { seed: 'demo-1', mode: 'major', tonic: 'C4', bpm: 92 },
-  { seed: 'shadow', mode: 'minor', tonic: 'A3', bpm: 84 },
-  { seed: 'bright7', mode: 'major', tonic: 'G4', bpm: 104 },
+  { seed: 'demo-1', mode: 'major', tonic: 'C4', bpm: 110 },  // the new default tempo
+  { seed: 'shadow', mode: 'minor', tonic: 'A3', bpm: 96 },
+  { seed: 'bright7', mode: 'major', tonic: 'G4', bpm: 120 },
 ];
 
 function gates(r) {

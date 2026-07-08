@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Engine 01 — Tonal Classical · algorithmic-music</title>
+<title>Engine 02 — Ambient Drift · algorithmic-music</title>
 <style>
   :root {
     color-scheme: light dark;
-    --bg: #faf9f7; --fg: #1c1a17; --muted: #6d675f; --line: #e5e1da;
-    --panel: #ffffff; --accent: #6a5acd; --melody: #6a5acd; --chord: #4a90d9; --bass: #d98a3a;
+    --bg: #f6f8f9; --fg: #17201f; --muted: #63706e; --line: #dde5e4;
+    --panel: #ffffff; --accent: #2f9e8f; --bell: #2f9e8f; --pad: #5a86c9; --drone: #b98a4a;
     --playhead: #d24a4a;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg:#17151a; --fg:#ece9e4; --muted:#9a938a; --line:#2c2833; --panel:#201d26; --accent:#9d8cff; --melody:#9d8cff; --chord:#5ba7f0; --bass:#e0a05a; --playhead:#ff6b6b; }
+    :root { --bg:#0f1514; --fg:#e6ecea; --muted:#8a9794; --line:#213029; --panel:#141d1b; --accent:#5fd0bd; --bell:#5fd0bd; --pad:#7fa8e6; --drone:#d9a866; --playhead:#ff6b6b; }
   }
   * { box-sizing: border-box; }
   body { font: 15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
@@ -53,60 +53,66 @@
 <body>
 <main>
   <p class="sub"><a href="../../index.html">← algorithmic-music</a></p>
-  <h1>Tonal Classical <span class="badge" id="ver">engine 01</span></h1>
-  <p class="sub">A short tonal piece in classical style — a theme, a contrasting middle, a varied return, and a real ending — generated in your browser from a seed. Everything is synthesized live with the Web Audio API; nothing is a recording.</p>
+  <h1>Ambient Drift <span class="badge" id="ver">engine 02</span></h1>
+  <p class="sub">A slow, weightless ambient texture — sustained tones and sparse bells on periods that never quite line up, over a drone that drifts through a single mode. No beat, no melody to follow; as ignorable as it is interesting. Synthesized live with the Web Audio API from a seed; nothing is a recording.</p>
 
   <div class="panel">
     <div class="transport">
       <button id="play" class="primary">▶ Play</button>
-      <button id="newp">↻ New piece</button>
+      <button id="newp">↻ New drift</button>
       <label class="muted"><input type="checkbox" id="loop"> keep playing (new seed each time)</label>
     </div>
-    <canvas id="roll" width="1600" height="380" aria-label="piano-roll visualization of the piece"></canvas>
+    <canvas id="roll" width="1600" height="380" aria-label="visualization of the ambient texture over time"></canvas>
     <div class="legend">
-      <span><span class="swatch" style="background:var(--melody)"></span>melody</span>
-      <span><span class="swatch" style="background:var(--chord)"></span>harmony</span>
-      <span><span class="swatch" style="background:var(--bass)"></span>bass</span>
+      <span><span class="swatch" style="background:var(--bell)"></span>bells (incommensurable loops)</span>
+      <span><span class="swatch" style="background:var(--pad)"></span>pad</span>
+      <span><span class="swatch" style="background:var(--drone)"></span>drone</span>
       <span id="nowlabel" class="mono"></span>
     </div>
   </div>
 
   <div class="panel">
-    <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="1" step="0.01" value="0.6"><output id="volOut">0.60</output></div>
-    <div class="row"><label for="rev">Reverb</label><input type="range" id="rev" min="0" max="0.6" step="0.01" value="0.24"><output id="revOut">0.24</output></div>
-    <div class="row"><label for="mode">Mode</label>
-      <select id="mode"><option value="major">major (bright)</option><option value="minor">minor (shadowed)</option></select><span></span></div>
+    <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="1" step="0.01" value="0.62"><output id="volOut">0.62</output></div>
+    <div class="row"><label for="rev">Space</label><input type="range" id="rev" min="0.1" max="0.8" step="0.01" value="0.5"><output id="revOut">0.50</output></div>
+    <div class="row"><label for="palette">Mode</label>
+      <select id="palette">
+        <option value="warm">warm (lydian)</option>
+        <option value="calm">calm (major pentatonic)</option>
+        <option value="open">open (dorian)</option>
+        <option value="shadow">shadow (natural minor)</option>
+      </select><span></span></div>
+    <div class="row"><label for="pace">Drift</label><input type="range" id="pace" min="0.6" max="1.6" step="0.05" value="1"><output id="paceOut">1.00×</output></div>
     <details>
       <summary>Advanced</summary>
-      <div class="row"><label for="bpm">Tempo</label><input type="range" id="bpm" min="66" max="140" step="1" value="110"><output id="bpmOut">110</output></div>
+      <div class="row"><label for="dur">Length</label><input type="range" id="dur" min="90" max="240" step="10" value="150"><output id="durOut">150s</output></div>
       <div class="row"><label for="tonic">Key center</label>
         <select id="tonic"></select><span></span></div>
-      <div class="row"><label for="seed">Seed</label><input type="text" id="seed" value="demo-1"><span class="muted" style="font-size:.82rem">any text or number</span></div>
+      <div class="row"><label for="seed">Seed</label><input type="text" id="seed" value="drift-1"><span class="muted" style="font-size:.82rem">any text or number</span></div>
     </details>
   </div>
 
   <div class="panel report" id="reportPanel">
-    <strong>What this piece is doing</strong>
+    <strong>What this texture is doing</strong>
     <div id="report"></div>
   </div>
 
   <div class="panel">
     <div class="sharebar">
-      <strong style="flex:0 0 auto">Share this exact piece</strong>
+      <strong style="flex:0 0 auto">Share this exact texture</strong>
       <input type="text" id="share" readonly>
       <button id="copy">Copy link</button>
     </div>
-    <p class="muted" style="margin:.5rem 0 0; font-size:.85rem">The link encodes the seed and all settings — anyone who opens it hears the identical piece.</p>
+    <p class="muted" style="margin:.5rem 0 0; font-size:.85rem">The link encodes the seed and all settings — anyone who opens it hears the identical drift.</p>
   </div>
 
   <details class="panel">
     <summary><strong>Leave feedback</strong> — help tune the engine</summary>
     <div class="row" style="grid-template-columns:7.5rem 1fr; margin-top:.6rem"><label for="rating">Rating</label>
       <select id="rating"><option value="">—</option><option>1 — poor</option><option>2</option><option>3</option><option>4</option><option>5 — excellent</option></select></div>
-    <p class="muted" style="margin:.3rem 0">What worked, what didn't? (melody, harmony, the ending, the sound…)</p>
-    <textarea id="fbtext" rows="3" placeholder="e.g. the return felt satisfying but the middle dragged"></textarea>
+    <p class="muted" style="margin:.3rem 0">What worked, what didn't? (the drift, the bells, the sound, the mood…)</p>
+    <textarea id="fbtext" rows="3" placeholder="e.g. lovely bed but the bells felt too sparse"></textarea>
     <div style="margin-top:.6rem"><button id="download">Download feedback (JSON)</button>
-      <span class="muted" style="font-size:.82rem">Saves a small file with your notes + this piece's exact settings. No server; nothing is sent anywhere.</span></div>
+      <span class="muted" style="font-size:.82rem">Saves a small file with your notes + this texture's exact settings. No server; nothing is sent anywhere.</span></div>
   </details>
 
   <p class="foot">
@@ -125,47 +131,50 @@
 <script>
 (function () {
   'use strict';
-  const E = window.AM.engines.tonalClassical;
-  const theory = window.AM.theory;
+  const E = window.AM.engines.ambientDrift;
   const $ = (id) => document.getElementById(id);
   const els = {
     play: $('play'), newp: $('newp'), loop: $('loop'),
     vol: $('vol'), volOut: $('volOut'), rev: $('rev'), revOut: $('revOut'),
-    mode: $('mode'), bpm: $('bpm'), bpmOut: $('bpmOut'), tonic: $('tonic'), seed: $('seed'),
+    palette: $('palette'), pace: $('pace'), paceOut: $('paceOut'), dur: $('dur'), durOut: $('durOut'),
+    tonic: $('tonic'), seed: $('seed'),
     roll: $('roll'), report: $('report'), share: $('share'), copy: $('copy'),
     nowlabel: $('nowlabel'), rating: $('rating'), fbtext: $('fbtext'), download: $('download'),
     ver: $('ver'), verfoot: $('verfoot'),
   };
-  els.ver.textContent = 'engine 01 · v' + E.VERSION;
+  els.ver.textContent = 'engine 02 · v' + E.VERSION;
   els.verfoot.textContent = E.NAME + '@' + E.VERSION;
 
-  // key-center choices
-  ['C4','G4','D4','A3','F4','Bb3','E4','Eb4'].forEach((n) => {
+  // low key centers suit drones
+  ['C3','D3','E3','F3','G2','A2','Bb2','D2'].forEach((n) => {
     const o = document.createElement('option'); o.value = n; o.textContent = n.replace(/(\d)/, ' ($1)'); els.tonic.appendChild(o);
   });
+  els.tonic.value = 'D3';
 
   let ctx = null, player = null, plan = null, playing = false;
 
   function opts() {
     return {
-      seed: els.seed.value || 'demo-1',
-      bpm: +els.bpm.value, mode: els.mode.value, tonic: els.tonic.value,
+      seed: els.seed.value || 'drift-1',
+      palette: els.palette.value, tonic: els.tonic.value,
+      pace: +els.pace.value, durationSec: +els.dur.value,
       reverb: +els.rev.value, volume: +els.vol.value,
     };
   }
 
   // ---- URL hash state ----
   function encodeState(o) {
-    const p = new URLSearchParams({ v: E.VERSION, seed: o.seed, bpm: o.bpm, mode: o.mode, tonic: o.tonic, rev: o.reverb, vol: o.volume });
+    const p = new URLSearchParams({ v: E.VERSION, seed: o.seed, palette: o.palette, tonic: o.tonic, pace: o.pace, dur: o.durationSec, rev: o.reverb, vol: o.volume });
     return '#' + p.toString();
   }
   function decodeState() {
     if (!location.hash || location.hash.length < 2) return;
     const p = new URLSearchParams(location.hash.slice(1));
     if (p.get('seed')) els.seed.value = p.get('seed');
-    if (p.get('bpm')) els.bpm.value = p.get('bpm');
-    if (p.get('mode')) els.mode.value = p.get('mode');
+    if (p.get('palette')) els.palette.value = p.get('palette');
     if (p.get('tonic')) els.tonic.value = p.get('tonic');
+    if (p.get('pace')) els.pace.value = p.get('pace');
+    if (p.get('dur')) els.dur.value = p.get('dur');
     if (p.get('rev')) els.rev.value = p.get('rev');
     if (p.get('vol')) els.vol.value = p.get('vol');
   }
@@ -173,17 +182,18 @@
   function syncOutputs() {
     els.volOut.textContent = (+els.vol.value).toFixed(2);
     els.revOut.textContent = (+els.rev.value).toFixed(2);
-    els.bpmOut.textContent = els.bpm.value;
+    els.paceOut.textContent = (+els.pace.value).toFixed(2) + '×';
+    els.durOut.textContent = els.dur.value + 's';
   }
 
-  // ---- Piano-roll visualization ----
+  // ---- Visualization ----
   function draw(elapsedSec) {
     const c = els.roll, g = c.getContext('2d');
     const W = c.width, H = c.height, pad = 10;
     g.clearRect(0, 0, W, H);
     if (!plan) return;
     const evs = plan.events;
-    const total = plan.durationSec - 1.2;
+    const total = plan.durationSec;
     let lo = Infinity, hi = -Infinity;
     for (const e of evs) { if (e.midi < lo) lo = e.midi; if (e.midi > hi) hi = e.midi; }
     const span = Math.max(1, hi - lo);
@@ -191,26 +201,25 @@
     const y = (m) => pad + (1 - (m - lo) / span) * (H - 2 * pad);
     const rowH = Math.max(3, (H - 2 * pad) / (span + 1) - 1);
     const css = getComputedStyle(document.documentElement);
-    const col = { melody: css.getPropertyValue('--melody'), chord: css.getPropertyValue('--chord'), bass: css.getPropertyValue('--bass') };
-    // section separators + labels
+    const col = { bell: css.getPropertyValue('--bell'), pad: css.getPropertyValue('--pad'), drone: css.getPropertyValue('--drone') };
+    // region separators (the harmonic drift)
     g.font = '11px system-ui';
-    for (const s of plan.sections) {
-      const ev = evs.find((e) => e.beat >= s.startBar * 4);
-      if (!ev) continue;
-      const sx = x(ev.timeSec);
+    for (const r of (plan.regions || [])) {
+      const sx = x(r.startSec / plan.pace);
       g.globalAlpha = 1; g.strokeStyle = css.getPropertyValue('--line').trim(); g.lineWidth = 1;
       g.beginPath(); g.moveTo(sx, 0); g.lineTo(sx, H); g.stroke();
       g.fillStyle = css.getPropertyValue('--muted').trim();
-      g.fillText(s.role, sx + 3, 13);
+      g.fillText(r.root, sx + 3, 13);
     }
+    // draw pads/drones first (long, translucent), bells on top
     for (const e of evs) {
-      g.globalAlpha = e.voice === 'chord' ? 0.5 : 0.9;
-      g.fillStyle = (col[e.voice] || col.melody).trim();
-      const w = Math.max(2, (e.durSec / total) * (W - 2 * pad) - 1);
+      const isBed = e.voice !== 'bell';
+      g.globalAlpha = isBed ? 0.28 : 0.92;
+      g.fillStyle = (col[e.voice] || col.bell).trim();
+      const w = Math.max(isBed ? 3 : 4, (e.durSec / total) * (W - 2 * pad) - 1);
       g.fillRect(x(e.timeSec), y(e.midi) - rowH / 2, w, rowH);
     }
     g.globalAlpha = 1;
-    // playhead
     if (elapsedSec != null && elapsedSec >= 0) {
       const px = x(Math.min(elapsedSec, total));
       g.strokeStyle = css.getPropertyValue('--playhead').trim();
@@ -230,15 +239,15 @@
 
   function renderReport() {
     const r = plan.selfReport;
-    const rows = r.sections.map((s) => {
-      const cad = s.cadences ? s.cadences.join(' → ') : (s.ending ? 'final cadence' : '');
-      const extra = s.contrast || s.variation || (s.ending ? 'the ending' : '');
-      return `<tr><td><strong>${s.role}</strong></td><td class="mono">${(s.harmony || []).join(' ')}</td><td>${cad}</td><td class="muted">${extra || ''}</td></tr>`;
-    }).join('');
+    const regions = (r.regions || []).map((s) => `<span class="mono">${s.root}</span>`).join(' → ');
+    const loops = (r.loops || []).map((l) => `${l.pitch}<span class="muted">/${l.periodSec}s</span>`).join(', ');
     els.report.innerHTML =
-      `<p style="margin:.4rem 0"><strong>${r.key}</strong> · ${r.form} · ${r.bars} bars · theme apex <span class="mono">${r.theme.apex}</span></p>` +
-      `<table><thead><tr><th>section</th><th>harmony</th><th>cadence</th><th>note</th></tr></thead><tbody>${rows}</tbody></table>` +
-      `<p class="muted" style="margin:.5rem 0 0">Climax: ${r.climax}. Ending: ${r.ending}.</p>`;
+      `<p style="margin:.4rem 0"><strong>${r.key}</strong> · ${r.form} · ${r.durationSec}s</p>` +
+      `<table><tbody>` +
+      `<tr><th>harmonic drift</th><td>${regions || '—'}</td></tr>` +
+      `<tr><th>bell loops</th><td class="mono">${loops || '—'}</td></tr>` +
+      `</tbody></table>` +
+      `<p class="muted" style="margin:.5rem 0 0">${r.idea}</p>`;
   }
 
   // ---- Playback ----
@@ -247,7 +256,7 @@
     if (ctx.state === 'suspended') await ctx.resume();
     stop();
     player = E.play(ctx, opts(), {
-      onFrame: (elapsed) => { draw(elapsed); const b = Math.floor(elapsed); els.nowlabel.textContent = 'playing · ' + b + 's'; },
+      onFrame: (elapsed) => { draw(elapsed); els.nowlabel.textContent = 'playing · ' + Math.floor(elapsed) + 's'; },
       onEnd: () => {
         playing = false; els.play.textContent = '▶ Play';
         if (els.loop.checked) { els.seed.value = randomSeed(); refresh(); start(); }
@@ -265,17 +274,18 @@
   els.newp.addEventListener('click', () => { els.seed.value = randomSeed(); refresh(); if (playing) start(); });
   els.vol.addEventListener('input', () => { syncOutputs(); if (player) player.setVolume(+els.vol.value); if (!playing) draw(-1); refreshShare(); });
   els.rev.addEventListener('input', () => { syncOutputs(); if (player) player.setReverb(+els.rev.value); refreshShare(); });
-  ['bpm'].forEach((k) => els[k].addEventListener('input', () => { refresh(); if (playing) start(); }));
-  ['mode', 'tonic'].forEach((k) => els[k].addEventListener('change', () => { refresh(); if (playing) start(); }));
+  els.pace.addEventListener('input', () => { refresh(); if (playing) start(); });
+  els.dur.addEventListener('input', () => { refresh(); if (playing) start(); });
+  ['palette', 'tonic'].forEach((k) => els[k].addEventListener('change', () => { refresh(); if (playing) start(); }));
   els.seed.addEventListener('change', () => { refresh(); if (playing) start(); });
   function refreshShare() { els.share.value = location.origin + location.pathname + encodeState(opts()); if (history.replaceState) history.replaceState(null, '', encodeState(opts())); }
   els.copy.addEventListener('click', () => { els.share.select(); navigator.clipboard && navigator.clipboard.writeText(els.share.value); els.copy.textContent = 'Copied!'; setTimeout(() => els.copy.textContent = 'Copy link', 1200); });
   els.download.addEventListener('click', () => {
     const o = opts();
-    const payload = { engine: E.NAME, version: E.VERSION, seed: o.seed, bpm: o.bpm, mode: o.mode, tonic: o.tonic, reverb: o.reverb, volume: o.volume, rating: els.rating.value || null, comment: els.fbtext.value || '', form: plan.selfReport.form, key: plan.selfReport.key, submittedAt: new Date().toISOString() };
+    const payload = { engine: E.NAME, version: E.VERSION, seed: o.seed, palette: o.palette, tonic: o.tonic, pace: o.pace, durationSec: o.durationSec, reverb: o.reverb, volume: o.volume, rating: els.rating.value || null, comment: els.fbtext.value || '', form: plan.selfReport.form, key: plan.selfReport.key, submittedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = 'feedback-tonal-classical-' + o.seed + '.json'; a.click();
+    a.download = 'feedback-ambient-drift-' + o.seed + '.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   });
   window.addEventListener('resize', () => draw(playing ? undefined : -1));
