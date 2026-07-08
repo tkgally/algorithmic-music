@@ -203,3 +203,119 @@ test('composer: minor mode resolves to the tonic, uses a leading-tone V, stays i
   const scalePcs = new Set(theory.scale(theory.noteToMidi('A3'), 'naturalMinor').map(pcOf));
   ok(melodyOf(p).every((n) => scalePcs.has(pcOf(n.midi))), 'melody stays within the natural-minor scale');
 });
+
+// ==== composePiece: whole-piece form, variation, and endings ================
+
+const pieceMel = (p) => comp.melodyLine(p);
+const sectOf = (p, role) => p.sections.find((s) => s.role === role);
+// melody notes whose beat lies within a section [startBar, startBar+bars)
+const melInSect = (p, role) => {
+  const s = sectOf(p, role);
+  const lo = s.startBar * 4, hi = (s.startBar + s.bars) * 4;
+  return pieceMel(p).filter((n) => n.beat >= lo && n.beat < hi);
+};
+// on-integer-beat basic-idea pitches of a section's antecedent (beats 0..6 rel)
+const basicSkeleton = (p, role) => {
+  const s = sectOf(p, role), base = s.startBar * 4;
+  const out = [];
+  for (let k = 0; k <= 6; k++) {
+    const n = pieceMel(p).find((x) => x.beat === base + k && x.voice === 'melody');
+    if (n) out.push(n.midi);
+  }
+  return out;
+};
+
+test('piece: deterministic; and the form is intro + A B A′ + coda spanning 30 bars', () => {
+  const a = JSON.stringify(comp.composePiece({ seed: 'z', tonic: 'C4' }).notes);
+  const b = JSON.stringify(comp.composePiece({ seed: 'z', tonic: 'C4' }).notes);
+  const c = JSON.stringify(comp.composePiece({ seed: 'w', tonic: 'C4' }).notes);
+  eq(a, b, 'same seed -> identical piece');
+  ok(a !== c, 'different seed -> different piece');
+  const p = comp.composePiece({ seed: 'form', tonic: 'C4' });
+  eq(p.sections.map((s) => s.role), ['intro', 'A', 'B', "A'", 'coda'], 'five sections in order');
+  eq(p.sections.map((s) => s.bars), [2, 8, 8, 8, 4], 'intro 2 · A/B/A′ 8 each · coda 4');
+  eq(p.meta.bars, 30, 'whole piece is 30 bars');
+});
+
+test("piece: A′ is a recognizable RETURN of A — same harmony and same on-beat basic idea", () => {
+  for (let s = 0; s < 20; s++) {
+    const p = comp.composePiece({ seed: 'ret' + s, tonic: 'C4' });
+    eq(sectOf(p, "A'").harmony, sectOf(p, 'A').harmony, "A′ restates A's harmony exactly");
+    eq(basicSkeleton(p, "A'"), basicSkeleton(p, 'A'), "A′ restates A's on-beat basic idea");
+  }
+});
+
+test("piece: A′ is a VARIED return — its basic idea is ornamented (more onsets than A's)", () => {
+  let variedCount = 0;
+  for (let s = 0; s < 20; s++) {
+    const p = comp.composePiece({ seed: 'var' + s, tonic: 'C4' });
+    const aBasic = melInSect(p, 'A').filter((n) => n.beat < (sectOf(p, 'A').startBar * 4) + 7).length;
+    const apBasic = melInSect(p, "A'").filter((n) => n.beat < (sectOf(p, "A'").startBar * 4) + 7).length;
+    ok(apBasic >= aBasic, "A′ basic idea has at least as many notes as A's");
+    if (apBasic > aBasic) variedCount++;
+  }
+  ok(variedCount >= 18, `A′ is audibly ornamented in ${variedCount}/20 seeds`);
+});
+
+test('piece: B is a contrasting middle — opens off the tonic and ends on the dominant', () => {
+  for (let s = 0; s < 20; s++) {
+    const p = comp.composePiece({ seed: 'ctr' + s, tonic: 'C4' });
+    const B = sectOf(p, 'B');
+    ok(B.harmony[0] !== 'I', `B opens off-tonic (on ${B.harmony[0]})`);
+    eq(B.harmony[B.harmony.length - 1], 'V', 'B ends on V (a re-approach to the return)');
+  }
+});
+
+test('piece: the ENDING is a real close — final note is the tonic, lengthened, tagged (R6)', () => {
+  for (const [seed, mode, tonic] of [['e1', 'major', 'C4'], ['e2', 'major', 'G4'], ['e3', 'minor', 'A3']]) {
+    const p = comp.composePiece({ seed, mode, tonic });
+    const mel = pieceMel(p);
+    const last = mel[mel.length - 1];
+    const tonicPc = pcOf(theory.noteToMidi(tonic));
+    eq(pcOf(last.midi), tonicPc, 'the piece ends on the tonic (do)');
+    ok(last.durBeats >= 4, 'the final note is lengthened (>= a whole bar)');
+    ok(last.durBeats === Math.max(...mel.map((n) => n.durBeats)), 'the final note is the longest melody note');
+    ok((last.tags || []).includes('ending') && (last.tags || []).includes('cadence:PAC'), 'final note tagged ending + PAC');
+  }
+});
+
+test('piece: the coda ACCELERATES the harmonic rhythm (a mid-bar chord change appears)', () => {
+  for (let s = 0; s < 10; s++) {
+    const p = comp.composePiece({ seed: 'acc' + s, tonic: 'C4' });
+    const coda = sectOf(p, 'coda');
+    const lo = coda.startBar * 4;
+    const harmonyBeats = p.notes.filter((n) => (n.voice === 'bass' || n.voice === 'chord') && n.beat >= lo).map((n) => n.beat % 4);
+    ok(harmonyBeats.some((b) => b === 2), 'a chord changes mid-bar in the coda (accelerated cadence)');
+    // and the rest of the piece changes harmony only on downbeats
+    const preCodaOffbeat = p.notes.filter((n) => (n.voice === 'bass' || n.voice === 'chord') && n.beat < lo && n.beat % 4 !== 0);
+    eq(preCodaOffbeat.length, 0, 'before the coda, harmony changes only on bar downbeats');
+  }
+});
+
+test('piece: every melody note is diatonic; the climax (A′) is the intensity peak in the 2nd half', () => {
+  for (const [mode, tonic] of [['major', 'C4'], ['minor', 'A3']]) {
+    const scalePcs = new Set(theory.scale(theory.noteToMidi(tonic), mode === 'minor' ? 'naturalMinor' : 'major').map(pcOf));
+    for (let s = 0; s < 10; s++) {
+      const p = comp.composePiece({ seed: 'd' + s, mode, tonic });
+      ok(pieceMel(p).every((n) => scalePcs.has(pcOf(n.midi))), 'all melody notes are in key');
+    }
+  }
+  const p = comp.composePiece({ seed: 'clx', tonic: 'C4' });
+  const peak = p.sections.reduce((a, b) => (b.intensity > a.intensity ? b : a));
+  eq(peak.role, "A'", 'the intensity peak is the varied return');
+  ok(peak.startBar >= p.meta.bars / 2, 'the climax lands in the second half of the piece');
+});
+
+test('piece: note events conform to the engine-architecture schema; all voices present', () => {
+  const p = comp.composePiece({ seed: 'sch', tonic: 'C4' });
+  const voices = new Set();
+  for (const n of p.notes) {
+    ok(typeof n.beat === 'number' && n.beat >= 0, 'beat non-negative number');
+    ok(typeof n.durBeats === 'number' && n.durBeats > 0, 'durBeats positive');
+    ok(Number.isInteger(n.midi), 'midi integer');
+    ok(Array.isArray(n.tags) && n.tags.some((t) => t.startsWith('sect:')), 'tags include a section tag');
+    ok(n.beat + n.durBeats <= p.meta.bars * 4 + 0.001, 'note fits within the piece');
+    voices.add(n.voice);
+  }
+  ok(voices.has('melody') && voices.has('bass') && voices.has('chord'), 'all three voices present');
+});

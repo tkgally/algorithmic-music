@@ -91,8 +91,9 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Findings (experiment results)
 
-- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) ·reviewed — Results from prototyping the first-party shared-library foundation modules (seeded rng, lookahead transport, theory, and the analysis measurement core) in experiments/ — what was built, what the 74-test headless suite plus a dev-time Tonal oracle check and an OfflineAudioContext render-and-measure harness prove, and the format/validation/audio-timing findings that fix the vendoring, testing, and audio approach.
+- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) ·reviewed — Results from prototyping the first-party shared-library foundation modules (seeded rng, lookahead transport, theory, and the analysis measurement core) in experiments/ — what was built, what the 88-test headless suite plus a dev-time Tonal oracle check and an OfflineAudioContext render-and-measure harness prove, and the format/validation/audio-timing findings that fix the vendoring, testing, and audio approach.
 - [findings-tonal-phrase-composer](findings-tonal-phrase-composer.md) ·reviewed — A worked, tested reference composer that assembles theory + rng into a phrase-first melody over a goal-directed, cadence-first progression — the concrete resolution of R1 (phrase-first melody) and R2 (goal-directed harmony) as one eight-bar parallel period.
+- [findings-tonal-classical-engine](findings-tonal-classical-engine.md) ·reviewed — The project's first public engine (Phase 2): how the single period grew into a whole finishable piece (rounded ternary + intro + motivic variation on the return + a cadential coda that ends), how the synth/fx audible layer was built from stock Web Audio nodes and validated by offline render, and the docs/ deployment + vendoring model.
 
 ## Meta
 

@@ -32,7 +32,7 @@ You are continuing the **algorithmic-music** project: a long-running effort to g
 
 ## Current phase reminder
 
-The project is in the **knowledge-base phase**: building and deepening `wiki/`. Do **not** create public engines in `docs/` — that phase starts only when Tom explicitly asks for it in a session prompt. (When he does: `wiki/project-roadmap.md` Phase 2 and `wiki/engine-architecture.md` are the specs to build from.)
+**Phase 2 has begun (2026-07-08): public engines live in `docs/`.** Phase 1 built a mature, reviewed knowledge base and a validated first-party library foundation (`rng`, `transport`, `theory`, `analysis`, `synth`, `fx`) plus a worked composition algorithm; the launch **Engine 01 — tonal-classical** is shipped at `docs/engines/01-tonal-classical/`, cataloged in the hub `docs/index.html` ([findings-tonal-classical-engine](wiki/findings-tonal-classical-engine.md)). Build new engines from `wiki/project-roadmap.md` Phase 2 + `wiki/engine-architecture.md`: self-contained, **numbered** folders under `docs/engines/` that **vendor** (copy in) the shared libraries from `experiments/lib/`, added to the hub. Keep maintaining the wiki alongside — findings from engine work still land there.
 
 *Phase 4 daily-site rule (dormant until the `docs/` summary site exists):* at session start, check the current UTC date/time; if more than 24 hours have passed since the last site update, refresh the site before ending the session. Not applicable in the current phase.
 

@@ -1,10 +1,10 @@
 # experiments/
 
-Private, dev-time testbeds and prototypes (Phase 1 allows non-public code — see
-`wiki/project-roadmap.md`). Nothing here is shipped product; findings from what
-lives here are filed back into the wiki (an experiment without a filed finding
-didn't happen). All code is public-domain (CC0), original, and reuses no outside
-project's source.
+Dev-time testbeds and prototypes. Nothing here is shipped product directly —
+though the engine code here is **vendored (copied) into `docs/engines/`** as the
+public artifacts (Phase 2). Findings from what lives here are filed back into the
+wiki (an experiment without a filed finding didn't happen). All code is
+public-domain (CC0), original, and reuses no outside project's source.
 
 ## Layout
 
@@ -15,11 +15,16 @@ experiments/
     transport.js   musical-time clock (beats<->seconds) + lookahead note scheduler
     theory.js      notes/MIDI/frequency, intervals, scales, chords, keys, tuning tables
     analysis.js    pure PCM measurement (RMS/peak/dBFS, click proxy, onsets, silence, timing error)
+    synth.js       sample-free Web Audio instrument voices (FM keys, detuned-ensemble strings, bass)
+    fx.js          master chain: per-voice buses, synthesized-IR convolution reverb, glue + limiter
   composers/  engine-level composition algorithms (consume lib/, not shared libraries themselves)
-    tonal-phrase.js  worked R1+R2: phrase-first melody over a goal-directed, cadence-first progression
+    tonal-phrase.js  worked R1+R2 + composePiece(): phrase-first melody over goal-directed harmony —
+                     one parallel period AND a whole rounded-ternary piece with variation + an ending
+  engines/    engine-specific code, canonical here, vendored into docs/engines/ (public)
+    tonal-classical/engine.js  performer (beats->seconds, dynamics, ritard) + synth/fx wiring + scheduler
   tests/      headless Node tests (no framework, no dependencies)
     _runner.js     tiny assert/report harness
-    rng.test.js  transport.test.js  theory.test.js  composer.test.js  analysis.test.js
+    rng.test.js  transport.test.js  theory.test.js  composer.test.js  analysis.test.js  engine.test.js
     run.js         entry point
   demos/      browser demos (run from file://, no server)
     euclid-transport.html   plays a Euclidean rhythm through the lookahead transport
@@ -27,13 +32,15 @@ experiments/
   tools/      dev-time tools
     wiki-lint.mjs       wiki health check (run every session)
     render-measure.mjs  headless OfflineAudioContext render-and-measure harness (Playwright)
+    render-engine.mjs   offline render-and-measure gate for the public tonal-classical engine (Playwright)
 ```
 
 ## Running the tests
 
 ```
-node experiments/tests/run.js               # 74 tests: rng + transport + theory + composer + analysis
-node experiments/tools/render-measure.mjs   # audio harness: renders in headless Chromium, measures, gates
+node experiments/tests/run.js               # 88 tests: rng + transport + theory + composer + analysis + engine
+node experiments/tools/render-measure.mjs   # audio harness: renders the primitives/period in headless Chromium
+node experiments/tools/render-engine.mjs    # audio harness: renders the full public engine, measures, gates
 ```
 
 `run.js` exits non-zero on any failure; the Euclidean-rhythm suite includes an
@@ -53,11 +60,16 @@ node experiments/tools/wiki-lint.mjs --index   # dump frontmatter for index main
 
 ## The library format (why UMD-lite, not ES modules)
 
-`lib/rng.js`, `lib/transport.js`, `lib/theory.js`, `lib/analysis.js`, and
-`composers/tonal-phrase.js` are written as **dual-format (UMD-lite)** files: the
-same source loads as CommonJS in Node (`require('./rng.js')`) and as a browser
-global via a classic `<script src>` (`window.AM.rng`, `window.AM.transport`,
-`window.AM.theory`, `window.AM.analysis`, `window.AM.composers.tonalPhrase`).
+Every `lib/*.js`, `composers/tonal-phrase.js`, and `engines/*/engine.js` is
+written as a **dual-format (UMD-lite)** file: the same source loads as CommonJS
+in Node (`require('./rng.js')`) and as a browser global via a classic
+`<script src>` (`window.AM.rng`, `window.AM.transport`, `window.AM.theory`,
+`window.AM.analysis`, `window.AM.synth`, `window.AM.fx`,
+`window.AM.composers.tonalPhrase`, `window.AM.engines.tonalClassical`). The
+audio-only libs (`synth`, `fx`) and the engine's audio functions need a real or
+offline `AudioContext`, so they run in the browser (validated via the render
+harnesses); their pure parts (the engine's `renderPlan` performer) unit-test in
+Node.
 
 This is deliberate. The project's engines must run from `file://` with no build
 step and no server (`wiki/engine-architecture.md`). A classic `<script src>`
@@ -82,10 +94,15 @@ its interval/scale/chord math was cross-checked at dev time against Tonal
 (`@tonaljs/tonal`) as an output-only oracle, installed to a scratch directory
 outside this repo and never added as a dependency here. `analysis.js` is standard
 DSP (RMS, dBFS, short-time energy onset picking, first-difference discontinuity,
-silence runs). `composers/tonal-phrase.js` operationalizes already-cited wiki
-theory (Piston's table from `harmony.md`; the melodic contour/step/leap/apex
-statistics from `melody.md`; the sentence/period archetypes from
-`phrase-structure.md`; Krumhansl–Kessler weights from `tuning-and-scales.md`).
+silence runs). `synth.js` and `fx.js` implement the standard synthesis/effects
+topologies catalogued (with citations) in `wiki/synthesis-recipes.md` and
+`wiki/effects-and-mixing.md` — 2-operator FM (Chowning), detuned-ensemble
+subtractive voices, and a synthesized-IR convolution reverb + glue/limiter master
+chain — from stock Web Audio nodes, no samples. `composers/tonal-phrase.js`
+operationalizes already-cited wiki theory (Piston's table from `harmony.md`; the
+melodic contour/step/leap/apex statistics from `melody.md`; the sentence/period
+archetypes and rounded-ternary form from `phrase-structure.md`/
+`form-and-structure.md`; Krumhansl–Kessler weights from `tuning-and-scales.md`).
 `tools/render-measure.mjs` drives headless Chromium via Playwright — a dev-time
 tool used exactly as the previous experiments' `verify.mjs` did (the globally
 installed package, never a dependency of this repo). Ideas, algorithms, and

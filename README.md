@@ -11,8 +11,9 @@ The project is a long-running collaboration between [Tom Gally](https://github.c
 | [`wiki/`](wiki/index.md) | The knowledge base: music theory and structure, psychology of musical enjoyment, genres and traditions as generative systems, composition craft, algorithmic-composition techniques, Web Audio implementation, and evaluation methodology — every page ending in concrete implications for generative engines. Start at [`wiki/index.md`](wiki/index.md). |
 | `previous-experiments/` | Six earlier vibe-coded engines (2025–2026), kept immutable as reference. Their diagnosis — intriguing textures, unsatisfying music — is written up in [`wiki/previous-experiments-lessons.md`](wiki/previous-experiments-lessons.md) and motivates the whole project. |
 | `logs/` | Session logs and current project status. |
+| `experiments/` | Dev-time testbeds: the project's first-party shared libraries (`lib/`), composers, headless tests, and audio-render harnesses. Not shipped product; findings land in the wiki. |
 | `CLAUDE.md`, `continue-prompt.md` | The process files that let each new Claude session pick up exactly where the last left off. |
-| `docs/` | *(future)* Public music engines and a project-summary site, served via GitHub Pages, once the knowledge-base phase has matured. |
+| `docs/` | **Public music engines + hub, served via GitHub Pages** (Phase 2, started 2026-07-08). The hub (`docs/index.html`) catalogs the numbered engines; each engine is a self-contained folder under `docs/engines/`. |
 
 ## How it works
 
@@ -24,11 +25,13 @@ Each work session ends squash-merged to `main`, so the repository's history is a
 
 ## Status
 
-**Phase 1 — building the knowledge base.** The wiki was seeded on 2026-07-06 with ~55 researched pages; current state and next steps are always in [`logs/status.md`](logs/status.md). No public engines yet.
+**Phase 2 — engines have begun (started 2026-07-08).** Phase 1 built and matured the knowledge base (63 reviewed wiki pages) and a validated first-party library foundation (`rng`, `transport`, `theory`, `analysis`, `synth`, `fx`) plus a worked composition algorithm. The first public engine is now live in [`docs/`](docs/). Current state and next steps are always in [`logs/status.md`](logs/status.md).
 
 ## Listening
 
-Nothing to hear yet — the GitHub Pages site with playable engines arrives in Phase 2. (The `previous-experiments/` folders contain runnable earlier engines if you're curious about the starting point: open any `index.html` in a browser.)
+The first engine is **[Engine 01 — Tonal Classical](docs/engines/01-tonal-classical/index.html)**: a short tonal piece that states a theme, departs, brings the theme back varied at its climax, and actually *ends* with a cadential coda. Open `docs/index.html` (the hub) or the engine's `index.html` directly in a browser — it runs offline, generates every note live with Web Audio, and reproduces any piece from a seed or a shared link. Once GitHub Pages is enabled for this repo, the hub will also be browsable online.
+
+(The `previous-experiments/` folders contain the runnable earlier engines that motivated the project: open any `index.html` in a browser.)
 
 ## License
 

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>algorithmic-music — generative music engines by Claude</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#faf9f7; --fg:#1c1a17; --muted:#6d675f; --line:#e5e1da; --panel:#ffffff; --accent:#6a5acd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17151a; --fg:#ece9e4; --muted:#9a938a; --line:#2c2833; --panel:#201d26; --accent:#9d8cff; }
+  }
+  * { box-sizing: border-box; }
+  body { font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+  main { max-width: 780px; margin: 0 auto; padding: 2.4rem 1.2rem 4rem; }
+  a { color: var(--accent); }
+  h1 { font-size: 2rem; margin: 0 0 .3rem; letter-spacing: -0.01em; }
+  h2 { font-size: 1.15rem; margin: 2.2rem 0 .6rem; }
+  .lede { color: var(--fg); font-size: 1.08rem; }
+  .muted { color: var(--muted); }
+  .card { display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.3rem; margin: 1rem 0; text-decoration: none; color: inherit; transition: border-color .15s, transform .05s; }
+  .card:hover { border-color: var(--accent); }
+  .card:active { transform: translateY(1px); }
+  .card .num { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; font-size: .9rem; letter-spacing: .08em; }
+  .card h3 { margin: .2rem 0 .3rem; font-size: 1.25rem; }
+  .card p { margin: .2rem 0 0; color: var(--muted); font-size: .95rem; }
+  .card .cta { margin-top: .6rem; font-weight: 600; color: var(--accent); font-size: .92rem; }
+  .soon { opacity: .6; border-style: dashed; }
+  .tags { font-size: .78rem; color: var(--muted); margin-top: .5rem; }
+  .tags span { border: 1px solid var(--line); border-radius: 999px; padding: .08rem .55rem; margin-right: .3rem; white-space: nowrap; }
+  .foot { color: var(--muted); font-size: .88rem; margin-top: 2.6rem; border-top: 1px solid var(--line); padding-top: 1.2rem; }
+  ul.plain { padding-left: 1.1rem; }
+  ul.plain li { margin: .3rem 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>algorithmic-music</h1>
+  <p class="lede">An experiment in making <strong>genuinely good instrumental music with code in the browser</strong> — plain HTML, CSS, and JavaScript with the Web Audio API. No samples, no libraries, no build step, no server: every note is synthesized live, and each engine runs entirely offline from a single folder.</p>
+
+  <p class="muted">
+    The project is a long-running collaboration between <a href="https://github.com/tkgally">Tom Gally</a>, who directs it and judges the music, and <strong>Claude</strong> (Anthropic's AI), which does all of the research, writing, and engineering across autonomous sessions. Its bet: browser music generators are easy to build but usually musically disappointing, and the cure is <em>knowledge plus iteration</em> — a serious, cited <a href="https://github.com/tkgally/algorithmic-music/tree/main/wiki">knowledge base</a> about how music works and why people enjoy it, driving engine designs that improve through evaluation and listener feedback. Everything here — this page, the engines, and the knowledge base — is written and built by Claude, and dedicated to the public domain (CC0).
+  </p>
+
+  <h2>The engines</h2>
+  <p class="muted">Each engine is a self-contained, deliberately different generative instrument. Pick one and press play; every piece is reproducible from a seed and shareable by link.</p>
+
+  <a class="card" href="engines/01-tonal-classical/index.html">
+    <div class="num">ENGINE 01</div>
+    <h3>Tonal Classical</h3>
+    <p>A short piece in classical style, built to actually <em>finish</em>: a theme (a parallel period that asks and answers with real cadences), a contrasting middle, a varied return of the theme at the climax, and a closing coda that accelerates into a final cadence and a lengthened last chord. Harmony is generated backward from its cadences; melody is shaped contour-first around pinned goal tones. Major or minor, any key, adjustable tempo and reverb.</p>
+    <div class="tags"><span>rounded ternary form</span><span>goal-directed harmony</span><span>real endings</span><span>FM + string synthesis</span></div>
+    <div class="cta">Play engine 01 →</div>
+  </a>
+
+  <div class="card soon">
+    <div class="num">ENGINE 02</div>
+    <h3>More engines coming</h3>
+    <p>The plan is a family of deliberately contrasting engines across different genres and architectures — ambient/generative, groove-based, and non-Western tuning systems among them — each built from the same knowledge base. This catalog will grow; engines are numbered so they are easy to reference and compare.</p>
+  </div>
+
+  <h2>How it works</h2>
+  <ul class="plain muted">
+    <li><strong>Knowledge base.</strong> Claude researches music theory, the psychology of listening, genre traditions, composition craft, algorithmic techniques, Web Audio implementation, and evaluation — every page ending in concrete implications for engines, every claim cited.</li>
+    <li><strong>Engines.</strong> Contrasting generators built from that knowledge, published here on GitHub Pages. Each is fully transparent about being AI-designed, deterministic from a seed, and downloadable to run offline.</li>
+    <li><strong>Improvement loop.</strong> Listener feedback and computational metrics feed findings back into the knowledge base, and the engines get better over time.</li>
+  </ul>
+
+  <p class="foot">
+    Source, knowledge base, and session-by-session history:
+    <a href="https://github.com/tkgally/algorithmic-music">github.com/tkgally/algorithmic-music</a>.
+    All original work is dedicated to the public domain under <a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0 1.0</a>.
+    Built with vanilla HTML/CSS/JS and the Web Audio API — no dependencies.
+  </p>
+</main>
+</body>
+</html>

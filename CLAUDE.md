@@ -12,11 +12,11 @@ Generative instrumental music in the browser (HTML/CSS/vanilla JS + Web Audio on
 | `logs/` | Session logs + `logs/status.md` (current state, task queue) | Update every session |
 | `continue-prompt.md` | Session bootstrap prompt | Keep stable; state lives in `logs/status.md`, not here |
 | `experiments/` | (Phase 1+) private dev-time testbeds and scripts | Not public product; findings go to the wiki |
-| `docs/` | (Phase 2+, **gated on Tom's explicit request**) public engines + site via GitHub Pages | Per `wiki/engine-architecture.md` |
+| `docs/` | **Phase 2 (started 2026-07-08): public engines + hub via GitHub Pages.** Hub `docs/index.html`; numbered self-contained engines in `docs/engines/` | Per `wiki/engine-architecture.md`; engines vendor the shared libs |
 
 ## Hard rules
 
-1. **Don't build public engines (`docs/`) until Tom explicitly asks.** Current phase: knowledge base (see `wiki/project-roadmap.md`).
+1. **Phase 2 has begun (Tom's explicit request, 2026-07-08): public engines now live in `docs/`.** Engine 01 (`docs/engines/01-tonal-classical/`) is the launch engine. New engines are self-contained, **numbered** folders that **vendor** (copy in) the shared libraries from `experiments/lib/`, and are added to the hub `docs/index.html`. Build from `wiki/project-roadmap.md` Phase 2 + `wiki/engine-architecture.md`. (The knowledge base continues to be maintained alongside.)
 2. **Engines and site: vanilla HTML/CSS/JS by default.** Dependency-free at runtime is the strong default (engines must run from `file://`; no build step, no server, no network at runtime). There is no absolute ban on external libraries, but if shared functionality is ever genuinely needed, the strongly preferred path is to build **original, first-party libraries** for this project — original code that relies on no other project's code — which engines vendor (copy in), never fetch. See `wiki/shared-libraries.md`. Instrumental music only.
 3. **Never modify** `previous-experiments/` or `wiki/llm-wiki.md`.
 4. **The wiki is load-bearing.** Substantive work (research, decisions, experiment results) must land in wiki pages per `wiki/conventions.md` — work that isn't filed is lost. Every factual claim needs a source or an explicit "informed speculation" flag.
