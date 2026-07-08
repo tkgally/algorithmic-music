@@ -91,7 +91,8 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Findings (experiment results)
 
-- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) ·reviewed — Results from prototyping all three first-party shared-library foundation modules (seeded rng, lookahead transport, and theory) in experiments/ — what was built, what the 51-test headless suite plus a dev-time Tonal oracle check prove, and the file:// module-format and oracle-practice findings that fix the vendoring and validation approach.
+- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) ·reviewed — Results from prototyping the first-party shared-library foundation modules (seeded rng, lookahead transport, theory, and the analysis measurement core) in experiments/ — what was built, what the 74-test headless suite plus a dev-time Tonal oracle check and an OfflineAudioContext render-and-measure harness prove, and the format/validation/audio-timing findings that fix the vendoring, testing, and audio approach.
+- [findings-tonal-phrase-composer](findings-tonal-phrase-composer.md) ·reviewed — A worked, tested reference composer that assembles theory + rng into a phrase-first melody over a goal-directed, cadence-first progression — the concrete resolution of R1 (phrase-first melody) and R2 (goal-directed harmony) as one eight-bar parallel period.
 
 ## Meta
 

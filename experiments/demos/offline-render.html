@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OfflineAudioContext render-and-measure harness — shared-lib demo</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 15px/1.5 system-ui, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.25rem; }
+  button { font-size: 1rem; padding: .4rem 1rem; border-radius: 6px; cursor: pointer; margin: .2rem .3rem .2rem 0; }
+  canvas { width: 100%; height: 120px; background: #8881; border-radius: 8px; display: block; margin: 1rem 0; }
+  pre { background: #8881; padding: .8rem; border-radius: 8px; overflow-x: auto; font-size: 12.5px; }
+  .muted { color: #8888; font-size: .9em; }
+  code { background: #8882; padding: 0 .3em; border-radius: 3px; }
+</style>
+</head>
+<body>
+<h1>OfflineAudioContext render &amp; measure</h1>
+<p class="muted">
+  The dev-time validation rig for the algorithmic-music project's audio layer
+  (<code>wiki/computational-music-metrics.md</code>,
+  <code>wiki/engine-architecture.md</code> testability requirement #2). It renders
+  faster than real time in an <code>OfflineAudioContext</code>, then measures the
+  buffer with the project's own <code>analysis</code> library. The libraries load
+  as plain <code>&lt;script src&gt;</code> (file://-safe). Headless driver:
+  <code>experiments/tools/render-measure.mjs</code>.
+</p>
+
+<div>
+  <button id="timing">Render timing test</button>
+  <button id="unsafe">Render click control (unsafe)</button>
+  <button id="score">Render a composed period</button>
+</div>
+<canvas id="wave" width="1520" height="240"></canvas>
+<pre id="out">Ready. (These same renders run headless via render-measure.mjs.)</pre>
+
+<!-- Vendored classic scripts: file://-safe, unlike ES-module imports. -->
+<script src="../lib/rng.js"></script>
+<script src="../lib/transport.js"></script>
+<script src="../lib/theory.js"></script>
+<script src="../lib/analysis.js"></script>
+<script src="../composers/tonal-phrase.js"></script>
+<script>
+(function () {
+  'use strict';
+  const { Rng, euclid, onsets } = window.AM.rng;
+  const { MusicClock } = window.AM.transport;
+  const theory = window.AM.theory;
+  const analysis = window.AM.analysis;
+  const composer = window.AM.composers.tonalPhrase;
+
+  // A click-safe percussive blip: gain rises from 0 by a short LINEAR ramp (so
+  // it starts at exactly 0 — no onset discontinuity) then decays. Same shape an
+  // engine would use. The fast attack keeps the detected onset within a hair of
+  // the scheduled sample.
+  function blip(ctx, dest, time, freq, vel, attack) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, time);
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(vel, time + (attack || 0.001));
+    gain.gain.exponentialRampToValueAtTime(0.0002, time + 0.16);
+    osc.connect(gain).connect(dest);
+    osc.start(time);
+    osc.stop(time + 0.2);
+  }
+
+  // A deliberately click-INDUCING blip for the control: a square gated on
+  // instantly (0 -> full step onto a nonzero waveform value) — the classic click.
+  function clickBlip(ctx, dest, time, freq, vel) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, time);
+    gain.gain.setValueAtTime(vel, time);          // hard gate on
+    gain.gain.setValueAtTime(0, time + 0.1);      // hard gate off
+    osc.connect(gain).connect(dest);
+    osc.start(time);
+    osc.stop(time + 0.1);
+  }
+
+  // A soft sustained voice for chords/bass in the composed-score render.
+  function pad(ctx, dest, time, freq, dur, vel) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, time);
+    gain.gain.setValueAtTime(0, time);
+    gain.gain.linearRampToValueAtTime(vel, time + 0.03);
+    gain.gain.setValueAtTime(vel, time + dur * 0.6);
+    gain.gain.exponentialRampToValueAtTime(0.0002, time + dur);
+    osc.connect(gain).connect(dest);
+    osc.start(time);
+    osc.stop(time + dur + 0.05);
+  }
+
+  function mono(buf) {
+    if (buf.numberOfChannels === 1) return buf.getChannelData(0);
+    const a = buf.getChannelData(0), b = buf.getChannelData(1), out = new Float32Array(a.length);
+    for (let i = 0; i < a.length; i++) out[i] = 0.5 * (a[i] + b[i]);
+    return out;
+  }
+
+  function measure(samples, sr) {
+    return {
+      rmsDb: +analysis.rmsDbfs(samples).toFixed(1),
+      peak: +analysis.peak(samples).toFixed(4),
+      maxStep: +analysis.maxStep(samples).toFixed(4),
+      silenceGapSec: +analysis.longestSilenceSec(samples, sr).toFixed(3),
+    };
+  }
+
+  // ---- The three renders, each returning a JSON-serializable report ---------
+
+  // Timing test: schedule a Euclidean blip pattern at exact MusicClock times in
+  // an OfflineAudioContext, render, detect the onsets, and compare against the
+  // scheduled times. Proves the beats->seconds math lands on the right samples.
+  async function renderTiming(opts) {
+    opts = opts || {};
+    const sr = opts.sampleRate || 44100;
+    const bpm = opts.bpm || 120;
+    const pulses = opts.pulses || 5, steps = opts.steps || 8;
+    const nSteps = opts.nSteps || 32;
+    const seed = opts.seed || 'harness';
+    const clock = new MusicClock({ bpm });
+    const stepSeconds = clock.beatsToSeconds(1) / 4;   // 16th-note grid
+    const start = 0.05;
+    const durationSec = start + nSteps * stepSeconds + 0.3;
+
+    const ctx = new OfflineAudioContext(1, Math.ceil(durationSec * sr), sr);
+    const master = ctx.createGain(); master.gain.value = 0.6; master.connect(ctx.destination);
+    const pattern = euclid(pulses, steps);
+    const rng = new Rng(seed).stream('drums');
+    const scheduled = [];
+    for (let i = 0; i < nSteps; i++) {
+      if (!pattern[i % pattern.length]) continue;
+      const t = start + i * stepSeconds;
+      const accent = (i % pattern.length) === 0;
+      scheduled.push(t);
+      (opts.unsafe ? clickBlip : blip)(ctx, master, t, accent ? 330 : 440,
+        rng.float(0.5, 0.85) * (accent ? 1 : 0.8), 0.001);
+    }
+    const buf = await ctx.startRendering();
+    const samples = mono(buf);
+    const detected = analysis.detectOnsets(samples, sr, { thresh: 0.02 });
+    const timing = analysis.onsetTimingError(detected, scheduled);
+    return {
+      mode: opts.unsafe ? 'timing(unsafe control)' : 'timing',
+      bpm, pattern: pattern.join(''), stepMs: +(stepSeconds * 1000).toFixed(3),
+      scheduledOnsets: scheduled.length, timing, metrics: measure(samples, sr),
+      _samples: samples, _sr: sr,
+    };
+  }
+
+  // Composed-score render: the full pipeline — theory+rng -> composer (beats) ->
+  // performer (beats->seconds) -> minimal synth -> offline render -> analysis.
+  async function renderScore(opts) {
+    opts = opts || {};
+    const sr = opts.sampleRate || 44100;
+    const bpm = opts.bpm || 96;
+    const period = composer.composePeriod({ seed: opts.seed || 'demo-1', tonic: opts.tonic || 'C4', mode: opts.mode || 'major' });
+    const clock = new MusicClock({ bpm });
+    const totalBeats = 32 + 2;                          // 8 bars + a little tail
+    const durationSec = clock.beatsToSeconds(totalBeats);
+    const ctx = new OfflineAudioContext(1, Math.ceil(durationSec * sr), sr);
+    const master = ctx.createGain(); master.gain.value = 0.28; master.connect(ctx.destination);
+
+    for (const n of period.notes) {
+      const t = 0.05 + clock.beatsToSeconds(n.beat);
+      const dur = clock.beatsToSeconds(n.durBeats);
+      const freq = theory.midiToFreq(n.midi);
+      if (n.voice === 'melody') blip(ctx, master, t, freq, 0.5, 0.004);
+      else pad(ctx, master, t, freq, dur, n.voice === 'bass' ? 0.32 : 0.16);
+    }
+    const buf = await ctx.startRendering();
+    const samples = mono(buf);
+    const melodyOnsets = period.notes.filter((n) => n.voice === 'melody').length;
+    // Onset recovery over a full mix is APPROXIMATE (a documented hard case —
+    // spectral flux / per-voice tapping do better); energy-rise beats plain
+    // amplitude detection here. Reported as a diagnostic, not a precision claim.
+    const detected = analysis.detectOnsetsEnergy(samples, sr, { factor: 2 });
+    return {
+      mode: 'score', bpm, seed: period.meta.seed, key: period.selfReport.key,
+      progression: period.selfReport.phrases.map((p) => p.chords.join('-')).join(' | '),
+      melodyNotes: melodyOnsets, detectedMelodyOnsets: detected.length,
+      metrics: measure(samples, sr), selfReport: period.selfReport,
+      _samples: samples, _sr: sr,
+    };
+  }
+
+  async function render(opts) {
+    opts = opts || {};
+    if (opts.mode === 'score') return renderScore(opts);
+    return renderTiming(opts);
+  }
+  window.__render = render;   // the headless harness hook
+
+  // ---- Visible demo wiring ---------------------------------------------------
+  const out = document.getElementById('out');
+  const canvas = document.getElementById('wave');
+
+  function drawWave(samples, sr) {
+    const g = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    g.clearRect(0, 0, W, H);
+    g.strokeStyle = '#8886'; g.beginPath(); g.moveTo(0, H / 2); g.lineTo(W, H / 2); g.stroke();
+    g.strokeStyle = '#4a90d9'; g.beginPath();
+    const step = Math.max(1, Math.floor(samples.length / W));
+    for (let x = 0; x < W; x++) {
+      let mn = 1, mx = -1;
+      for (let j = x * step; j < (x + 1) * step && j < samples.length; j++) { if (samples[j] < mn) mn = samples[j]; if (samples[j] > mx) mx = samples[j]; }
+      g.moveTo(x, (1 - (mx * 0.9 + 1) / 2) * H); g.lineTo(x, (1 - (mn * 0.9 + 1) / 2) * H);
+    }
+    g.stroke();
+  }
+
+  async function run(opts, label) {
+    out.textContent = 'rendering ' + label + '…';
+    try {
+      const r = await render(opts);
+      const samples = r._samples, sr = r._sr;
+      delete r._samples; delete r._sr;
+      drawWave(samples, sr);
+      out.textContent = JSON.stringify(r, null, 2);
+    } catch (e) { out.textContent = 'ERROR: ' + (e && e.message || e); }
+  }
+
+  document.getElementById('timing').addEventListener('click', () => run({ mode: 'timing' }, 'timing test'));
+  document.getElementById('unsafe').addEventListener('click', () => run({ mode: 'timing', unsafe: true }, 'click control'));
+  document.getElementById('score').addEventListener('click', () => run({ mode: 'score' }, 'composed period'));
+})();
+</script>
+</body>
+</html>

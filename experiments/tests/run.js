@@ -4,4 +4,6 @@ const { done } = require('./_runner');
 require('./rng.test');
 require('./transport.test');
 require('./theory.test');
+require('./composer.test');
+require('./analysis.test');
 done();
