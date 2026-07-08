@@ -1,6 +1,6 @@
 # Engine 03 — Groove / Lo-Fi
 
-`groove-lofi@0.1.0` — the third engine of the [algorithmic-music](../../../README.md) project, completing the launch trio with a **groove-based** generator: where [Engine 01 (Tonal Classical)](../01-tonal-classical/) is metric-but-through-composed and [Engine 02 (Ambient Drift)](../02-ambient-drift/) is beatless and weightless, this one is a **looped lo-fi hip-hop beat** built to make you nod — the project's first engine with drums, swing, and a backbeat.
+`groove-lofi@0.2.0` — the third engine of the [algorithmic-music](../../../README.md) project, completing the launch trio with a **groove-based** generator: where [Engine 01 (Tonal Classical)](../01-tonal-classical/) is metric-but-through-composed and [Engine 02 (Ambient Drift)](../02-ambient-drift/) is beatless and weightless, this one is a **looped lo-fi hip-hop beat** built to make you nod — the project's first engine with drums, swing, and a backbeat.
 
 Open `index.html` in any browser (works from `file://`, no server, no build, no dependencies).
 

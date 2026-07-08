@@ -60,19 +60,39 @@
   // pitch-fixed — these only give the canvas a lane).
   const DRUM_MIDI = { kick: 36, snare: 38, hat: 42 };
 
-  // ---- Moods: key/mode + a 4-chord jazzy loop (by scale degree) --------------
+  // ---- Moods: key/mode + a BANK of 4-chord jazzy loops (by scale degree) ------
   // Each is a 7-note diatonic scale (so tertian 7th/9th stacking is well-defined)
-  // plus a four-bar progression of scale degrees. Progressions are consonant
-  // lo-fi staples: turnarounds and ii–V motions that loop seamlessly (the last
-  // chord leads back to the first). The tonic is a sensible default the UI can
-  // override.
+  // plus SEVERAL four-bar progressions of scale degrees — one is picked per seed,
+  // so different seeds get genuinely different chord changes (v0.2: before, the
+  // progression was mood-fixed and the upper register sounded the same every seed,
+  // the listener's report). All are consonant lo-fi staples: turnarounds and ii–V
+  // / i–iv motions that loop seamlessly (the last chord leads back to the first).
+  // The tonic is a sensible default the UI can override.
   const MOODS = {
-    mellow: { scale: 'major',        label: 'mellow (major 7ths)',   tonic: 'F3', prog: [2, 5, 1, 6] }, // ii V I vi
-    night:  { scale: 'naturalMinor', label: 'night (minor 9ths)',    tonic: 'D3', prog: [1, 4, 6, 5] }, // i iv VI v
-    warm:   { scale: 'dorian',       label: 'warm (dorian groove)',  tonic: 'G3', prog: [1, 4, 1, 5] }, // i IV i v
-    tape:   { scale: 'major',        label: 'tape (I vi ii V)',      tonic: 'C3', prog: [1, 6, 2, 5] }, // I vi ii V
+    mellow: { scale: 'major',        label: 'mellow (major 7ths)',   tonic: 'F3',
+      progs: [[2, 5, 1, 6], [1, 6, 2, 5], [1, 4, 6, 5], [6, 4, 1, 5]] },        // ii-V-I-vi · I-vi-ii-V · I-IV-vi-V · vi-IV-I-V
+    night:  { scale: 'naturalMinor', label: 'night (minor 9ths)',    tonic: 'D3',
+      progs: [[1, 4, 6, 5], [1, 6, 3, 7], [1, 4, 5, 1], [1, 7, 6, 7]] },        // i-iv-VI-v · i-VI-III-VII · i-iv-v-i · i-VII-VI-VII
+    warm:   { scale: 'dorian',       label: 'warm (dorian groove)',  tonic: 'G3',
+      progs: [[1, 4, 1, 5], [1, 4, 5, 4], [1, 7, 4, 1], [1, 2, 4, 1]] },        // dorian vamps around the i–IV color
+    tape:   { scale: 'major',        label: 'tape (jazzy turnarounds)', tonic: 'C3',
+      progs: [[1, 6, 2, 5], [1, 4, 2, 5], [1, 5, 6, 4], [2, 5, 1, 6]] },        // I-vi-ii-V · I-IV-ii-V · I-V-vi-IV · ii-V-I-vi
   };
   const DEFAULT_MOOD = 'mellow';
+
+  // ---- Comping rhythms (per bar, sixteenth-step + sustain in beats) -----------
+  // The rhodes comp used to be ONE blocky chord struck on every downbeat and held
+  // a bar, which the listener heard as a simple melody. v0.2 picks a comping
+  // rhythm per seed — mostly SUSTAINED and legato (durations ring past the bar so
+  // there is no gap between chords) with gentle syncopation, so the comp is a
+  // continuous bed, not a stab-per-bar. Steps are 0..15 sixteenths; durations in
+  // beats. A soft pad drone (below) carries beat 1 when the comp is pushed off it.
+  const COMP_PATTERNS = [
+    { id: 'held',       hits: [[0, 4.3]] },                 // one chord, held past the bar (a bed)
+    { id: 'charleston', hits: [[0, 2.4], [6, 2.3]] },       // 1 + "& of 2" — the classic soft comp
+    { id: 'one-three',  hits: [[0, 2.3], [8, 2.3]] },       // 1 and beat 3, each ringing on
+    { id: 'pushed',     hits: [[2, 4.2]] },                 // a single laid stab on the "& of 1" (drone holds beat 1)
+  ];
 
   // ---- Kick patterns (per bar, 16 steps): medium syncopation -----------------
   // Every pattern keeps step 0 (beat 1) so the meter stays anchored; the other
@@ -133,11 +153,28 @@
     };
   }
   function normInto(m, lo, hi) { while (m < lo) m += 12; while (m > hi) m -= 12; return m; }
-  function rhodesVoicing(ct, withNinth) {
-    // 3rd / 5th / 7th (+ optional 9th) placed in [57..81], sorted, de-duplicated.
-    const pool = [ct.third, ct.fifth, ct.seventh];
-    if (withNinth) pool.push(ct.ninth);
-    const voiced = pool.map((m) => normInto(m, 57, 81));
+  // VOICE-LED rhodes voicing (v0.2). The old voicing normalized each chord tone
+  // into a wide two-octave window independently, so consecutive chords jumped
+  // register — the listener heard "a chord, then one higher, then one lower," a
+  // blocky melody. Instead we keep the comp in a STABLE band: HOLD common tones at
+  // their previous pitch (a voice that doesn't move), and place genuinely new tones
+  // in the octave nearest the piece's register `center`. Minimal motion between
+  // chords is exactly what makes a comp read as a bed rather than a tune
+  // (wiki/counterpoint-and-voice-leading.md: "the smoothest voice leading moves
+  // each voice the shortest distance"). All tones are chord tones from the mode, so
+  // the voicing stays diatonic.
+  function voiceLead(ct, withNinth, prev, center) {
+    const pcs = [ct.third, ct.fifth, ct.seventh];
+    if (withNinth) pcs.push(ct.ninth);
+    const prevByPc = {};
+    if (prev) for (const m of prev) prevByPc[((m % 12) + 12) % 12] = m;
+    const voiced = pcs.map((m) => {
+      const pc = ((m % 12) + 12) % 12;
+      if (prevByPc[pc] != null) return prevByPc[pc];         // hold a common tone where it was
+      let best = pc + 60, bd = Infinity;                     // else nearest octave to the register center
+      for (let oct = 4; oct <= 7; oct++) { const cand = pc + 12 * oct; const d = Math.abs(cand - center); if (d < bd) { bd = d; best = cand; } }
+      return best;
+    });
     voiced.sort((a, b) => a - b);
     const out = [];
     for (const m of voiced) if (!out.length || m - out[out.length - 1] >= 1) out.push(m);
@@ -171,29 +208,51 @@
     const openHats = dr.bool(0.6);
     const wantLead = lr.bool(0.75);
 
-    const prog = mood.prog;
+    // v0.2 upper-register variety: pick this seed's PROGRESSION, its COMPING RHYTHM,
+    // and the register CENTER the voice-led comp sits in. These are what make one
+    // seed's harmony sound different from another's (before, all were mood-fixed).
+    const prog = hr.pick(mood.progs);
+    const comp = hr.pick(COMP_PATTERNS);
+    const voiceCenter = hr.int(64, 70);          // ~E4..A#4 — a stable ~1-octave band for the comp
+    const alwaysNinth = hr.bool(0.4);            // some seeds are ninthy throughout, some plainer
     const events = [];
     const progression = [];      // roman numerals, for the self-report
     const chordSpans = [];       // {startBar, deg, roman, notes} for the viz/report
+    let prevVoicing = null;      // for voice leading between bars
 
-    // ---- Harmony + bass, every bar (the loop rides the 4-chord progression) --
+    // ---- Harmony + drone bed + bass, every bar (the loop rides the progression) --
     for (let bar = 0; bar < bars; bar++) {
       const deg = prog[bar % prog.length];
       const ct = chordTones(tonicMidi, scaleName, deg);
       const sev = theory.seventh(tonicMidi, scaleName, deg);
       const inMain = bar >= introBars && bar < bars - outroBars;
       const inB = bar >= bHalfStart && bar < bars - outroBars;
-      const withNinth = inB || moodKey === 'night' || moodKey === 'tape'; // richer color later / for jazzier moods
-      const voicing = rhodesVoicing(ct, withNinth);
-
-      // Rhodes chord: struck near the start of the bar, sustained ~ the bar. In
-      // the intro the very first chord swells in a touch softer.
+      const withNinth = alwaysNinth || inB;                 // ninth adds color; some seeds always, else in the B half
+      const voicing = voiceLead(ct, withNinth, prevVoicing, voiceCenter);
+      prevVoicing = voicing;
       const chordBeat = bar * BEATS_PER_BAR;
-      const chordDur = BEATS_PER_BAR * (hr.bool(0.5) ? 1.0 : 0.9);
-      const chordVel = bar < introBars ? 0.42 : 0.5;
-      for (const m of voicing) {
-        events.push({ beat: chordBeat, durBeats: chordDur, midi: m, voice: 'rhodes', role: 'harmony',
-          vel: chordVel, tags: ['chord', 'deg:' + deg, 'sect:' + (inB ? 'B' : bar < introBars ? 'intro' : bar >= bars - outroBars ? 'outro' : 'A')] });
+      const sect = inB ? 'B' : bar < introBars ? 'intro' : bar >= bars - outroBars ? 'outro' : 'A';
+
+      // DRONE BED: a soft, dark, sustained root+fifth in the low-mid register,
+      // held across the bar (ringing into the next) — the continuous lo-fi bed the
+      // listener missed. It changes with the harmony but is voice-quiet, so it reads
+      // as atmosphere under the comp, not a part. On the `pad` voice (slow attack).
+      const droneRoot = normInto(ct.root, 46, 55);
+      const droneFifth = normInto(ct.fifth, droneRoot + 1, droneRoot + 10);
+      for (const m of [droneRoot, droneFifth]) {
+        events.push({ beat: chordBeat, durBeats: BEATS_PER_BAR + 1, midi: m, voice: 'pad', role: 'pad',
+          vel: 0.22, tags: ['drone', 'deg:' + deg, 'sect:' + sect] });
+      }
+
+      // Rhodes comp: struck per the seed's comping rhythm (mostly sustained, soft,
+      // legato) rather than one blocky stab per bar; voice-led so it stays in a
+      // stable band. Softer than v0.1 so it supports the groove instead of leading.
+      const compVel = bar < introBars ? 0.34 : 0.40;
+      for (const [step, dur] of comp.hits) {
+        for (const m of voicing) {
+          events.push({ beat: chordBeat + step * STEP, durBeats: dur, midi: m, voice: 'rhodes', role: 'harmony',
+            vel: compVel, tags: ['chord', 'deg:' + deg, 'sect:' + sect] });
+        }
       }
 
       // Bass: root on beat 1 (low), plus one syncopated movement note (fifth or
@@ -261,8 +320,9 @@
       groove: {
         kickA: kickA.join(','), kickB: kickB.join(','),
         backbeat: 'snare on 2 & 4', ghostNotes: ghost.join(','), openHats, lead: wantLead,
+        comping: comp.id, ninths: alwaysNinth ? 'throughout' : 'B section',
       },
-      idea: 'A looped lo-fi hip-hop groove: backbeat snare on 2 & 4, a medium-syncopation kick, ghost notes and a sparse bell lead in the B half, warm 7th/9th rhodes chords and a weighty bass. Swing and the laid-back feel are added by the performer.',
+      idea: 'A looped lo-fi hip-hop groove: backbeat snare on 2 & 4, a medium-syncopation kick, ghost notes and a sparse bell lead in the B half, a voice-led 7th/9th rhodes comp (a ' + comp.id + ' rhythm) over a soft sustained drone bed and a weighty bass. Swing and the laid-back feel are added by the performer.',
     };
 
     return {

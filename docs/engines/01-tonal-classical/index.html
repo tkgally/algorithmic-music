@@ -243,7 +243,12 @@
 
   // ---- Playback ----
   async function start() {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    // latencyHint 'playback' = larger output buffers, which absorb CPU/GC jitter
+    // and are the documented cure for real-time crackle/underruns on a busy graph
+    // (wiki/web-audio-fundamentals.md; wiki/audio-worklets-and-performance.md flags
+    // crackle correlating with GC) — this background music does not need
+    // interactive low latency.
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' });
     if (ctx.state === 'suspended') await ctx.resume();
     stop();
     player = E.play(ctx, opts(), {
