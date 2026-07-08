@@ -47,7 +47,7 @@
 
   const { composer, theory, transport, synth, fx } = deps;
   const NAME = 'ambient-drift';
-  const VERSION = '0.1.1';
+  const VERSION = '0.1.2';
   const DEFAULTS = { palette: 'warm', tonic: 'D3', durationSec: 150, pace: 1.0, reverb: 0.5, volume: 0.62 };
 
   function jitter(seed, i) {
