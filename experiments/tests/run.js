@@ -6,4 +6,5 @@ require('./transport.test');
 require('./theory.test');
 require('./composer.test');
 require('./analysis.test');
+require('./engine.test');
 done();
