@@ -29,15 +29,23 @@
  *     never i.i.d. per-note noise.
  * The default tempo is raised (a listener found 92 too slow).
  *
- * v0.3 (second feedback pass): two listener notes on v0.2. (1) The residual
- * "static in the middle of sustained notes" was traced to reverb-tail GRAIN and
- * fixed in the shared fx.js (a smoother near-Gaussian impulse response — not more
- * darkening) plus latencyHint:'playback' on the live context to head off real-time
- * underruns; the performer/engine here is unchanged for that. (2) Every seed
- * opened with the same ascending arpeggio and repeated one rise-then-fall arch —
- * fixed in the composer (composer.js), which now varies the melodic CONTOUR
- * archetype (apex early/mid/late; ascending/arch/descending/wave) per piece, with
- * a contrasting shape for the B section (wiki/melody.md).
+ * v0.3 (second feedback pass): two listener notes on v0.2. (1) Reverb-tail GRAIN
+ * was smoothed in the shared fx.js (a near-Gaussian impulse response) and
+ * latencyHint:'playback' added to the live context. (2) Every seed opened with the
+ * same ascending arpeggio and repeated one rise-then-fall arch — fixed in the
+ * composer (composer.js), which now varies the melodic CONTOUR archetype (apex
+ * early/mid/late; ascending/arch/descending/wave) per piece, with a contrasting
+ * shape for the B section (wiki/melody.md).
+ *
+ * v0.3.1 (third feedback pass — the real static fix): with the listener's exact
+ * seed + location ("the extended note at the end of the first two phrases," in ALL
+ * browsers → deterministic), the "static" was finally isolated to the shared synth
+ * ENVELOPE, not the reverb: envGain held the gain perfectly FLAT at the peak and
+ * then switched abruptly to a fast release — a slope discontinuity that splatters a
+ * broadband energy burst at the release onset, which on a long note lands in the
+ * MIDDLE. Fixed in synth.js: struck voices now decay in ONE continuous curve (no
+ * mid-note corner), sustained voices glide (never a flat shelf). The v0.3 reverb
+ * and contour work stands; this is the primary cause the earlier passes missed.
  *
  * Dual-format (UMD-lite): require() in Node (exposes the pure planner + the
  * pure helpers), window.AM.engines.tonalClassical via <script src> in a file://
@@ -67,7 +75,7 @@
 
   const { composer, theory, transport, synth, fx } = deps;
   const NAME = 'tonal-classical';
-  const VERSION = '0.3.0';
+  const VERSION = '0.3.1';
   const DEFAULTS = { bpm: 110, mode: 'major', tonic: 'C4', reverb: 0.24, volume: 0.6 };
   const BEATS_PER_BAR = 4;
   const PHRASE_BEATS = 16; // a 4-bar phrase — the unit of the tempo/dynamic arch
