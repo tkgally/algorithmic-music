@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ambient-drift — offline render self-test (dev only)</title>
+</head>
+<body>
+<!--
+  DEV-ONLY. Not part of the playable engine. Renders the engine's own audio graph
+  (the exact shipped synth.js/fx.js/engine.js/composer.js) through an
+  OfflineAudioContext and exposes window.__renderAmbient() so the headless harness
+  experiments/tools/render-ambient.mjs can measure it (no clipping, click-safe,
+  a continuous bed with no long mid-piece silence, level in the ambient-quiet band).
+-->
+<p>Dev self-test host. Open the harness, or call <code>window.__renderAmbient()</code> in the console.</p>
+<pre id="out">rendering…</pre>
+<script src="lib/rng.js"></script>
+<script src="lib/transport.js"></script>
+<script src="lib/theory.js"></script>
+<script src="lib/synth.js"></script>
+<script src="lib/fx.js"></script>
+<script src="lib/analysis.js"></script>
+<script src="composer.js"></script>
+<script src="engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  const E = window.AM.engines.ambientDrift;
+  const analysis = window.AM.analysis;
+
+  function mono(buf) {
+    const n = buf.length, out = new Float32Array(n);
+    const ch = buf.numberOfChannels;
+    for (let c = 0; c < ch; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) out[i] += d[i] / ch; }
+    return out;
+  }
+
+  window.__renderAmbient = async function (opts) {
+    opts = opts || { seed: 'demo', palette: 'warm', tonic: 'D3', durationSec: 60 };
+    const { buffer, plan } = await E.renderOffline(opts);
+    const samples = mono(buffer);
+    const sr = buffer.sampleRate;
+    return {
+      seed: opts.seed || 'demo', key: plan.selfReport.key, form: plan.selfReport.form,
+      regions: plan.regions.length, loops: plan.loops.length,
+      durationSec: +plan.durationSec.toFixed(2), events: plan.events.length,
+      metrics: {
+        rmsDb: +analysis.rmsDbfs(samples).toFixed(1),
+        peak: +analysis.peak(samples).toFixed(4),
+        maxStep: +analysis.maxStep(samples).toFixed(4),
+        // ignore the final dissolve when checking for mid-piece silence
+        silenceGapSec: +analysis.longestSilenceSec(samples.subarray(0, Math.floor(samples.length * 0.9)), sr, { thresholdDb: -60 }).toFixed(3),
+      },
+    };
+  };
+
+  window.__renderAmbient().then((r) => { document.getElementById('out').textContent = JSON.stringify(r, null, 2); })
+    .catch((e) => { document.getElementById('out').textContent = 'ERROR: ' + (e && e.message || e); });
+})();
+</script>
+</body>
+</html>

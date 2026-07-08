@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engine 02 — Ambient Drift · algorithmic-music</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f8f9; --fg: #17201f; --muted: #63706e; --line: #dde5e4;
+    --panel: #ffffff; --accent: #2f9e8f; --bell: #2f9e8f; --pad: #5a86c9; --drone: #b98a4a;
+    --playhead: #d24a4a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1514; --fg:#e6ecea; --muted:#8a9794; --line:#213029; --panel:#141d1b; --accent:#5fd0bd; --bell:#5fd0bd; --pad:#7fa8e6; --drone:#d9a866; --playhead:#ff6b6b; }
+  }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+  main { max-width: 820px; margin: 0 auto; padding: 1.6rem 1.2rem 4rem; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.5rem; margin: .2rem 0 .1rem; }
+  .sub { color: var(--muted); margin: 0 0 1.2rem; }
+  .badge { display:inline-block; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:.12rem .6rem; vertical-align:middle; margin-left:.4rem; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem; margin: 1rem 0; }
+  .transport { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+  button { font: inherit; font-weight: 600; padding: .55rem 1.1rem; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: grid; grid-template-columns: 7.5rem 1fr auto; gap: .5rem 1rem; align-items: center; margin: .5rem 0; }
+  .row label { color: var(--muted); font-size: .92rem; }
+  .row output { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 3.5rem; text-align: right; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=text], select { font: inherit; padding: .35rem .5rem; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  input[type=text] { width: 8rem; }
+  canvas { width: 100%; height: 190px; display: block; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
+  .legend { display:flex; gap:1rem; font-size:.8rem; color:var(--muted); margin:.5rem 0 0; flex-wrap:wrap; }
+  .swatch { display:inline-block; width:.7rem; height:.7rem; border-radius:2px; vertical-align:middle; margin-right:.3rem; }
+  details { margin-top: .4rem; }
+  summary { cursor: pointer; color: var(--muted); font-size: .92rem; }
+  .report { font-size: .9rem; }
+  .report table { border-collapse: collapse; width: 100%; margin-top: .4rem; }
+  .report th, .report td { text-align: left; padding: .25rem .5rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .report th { color: var(--muted); font-weight: 600; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
+  .sharebar { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+  .sharebar input { flex: 1 1 12rem; min-width: 8rem; }
+  textarea { width:100%; font: inherit; padding:.5rem; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--fg); resize:vertical; }
+  .muted { color: var(--muted); }
+  .foot { color: var(--muted); font-size: .85rem; margin-top: 2rem; border-top:1px solid var(--line); padding-top:1rem; }
+</style>
+</head>
+<body>
+<main>
+  <p class="sub"><a href="../../index.html">← algorithmic-music</a></p>
+  <h1>Ambient Drift <span class="badge" id="ver">engine 02</span></h1>
+  <p class="sub">A slow, weightless ambient texture — sustained tones and sparse bells on periods that never quite line up, over a drone that drifts through a single mode. No beat, no melody to follow; as ignorable as it is interesting. Synthesized live with the Web Audio API from a seed; nothing is a recording.</p>
+
+  <div class="panel">
+    <div class="transport">
+      <button id="play" class="primary">▶ Play</button>
+      <button id="newp">↻ New drift</button>
+      <label class="muted"><input type="checkbox" id="loop"> keep playing (new seed each time)</label>
+    </div>
+    <canvas id="roll" width="1600" height="380" aria-label="visualization of the ambient texture over time"></canvas>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--bell)"></span>bells (incommensurable loops)</span>
+      <span><span class="swatch" style="background:var(--pad)"></span>pad</span>
+      <span><span class="swatch" style="background:var(--drone)"></span>drone</span>
+      <span id="nowlabel" class="mono"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="1" step="0.01" value="0.62"><output id="volOut">0.62</output></div>
+    <div class="row"><label for="rev">Space</label><input type="range" id="rev" min="0.1" max="0.8" step="0.01" value="0.5"><output id="revOut">0.50</output></div>
+    <div class="row"><label for="palette">Mode</label>
+      <select id="palette">
+        <option value="warm">warm (lydian)</option>
+        <option value="calm">calm (major pentatonic)</option>
+        <option value="open">open (dorian)</option>
+        <option value="shadow">shadow (natural minor)</option>
+      </select><span></span></div>
+    <div class="row"><label for="pace">Drift</label><input type="range" id="pace" min="0.6" max="1.6" step="0.05" value="1"><output id="paceOut">1.00×</output></div>
+    <details>
+      <summary>Advanced</summary>
+      <div class="row"><label for="dur">Length</label><input type="range" id="dur" min="90" max="240" step="10" value="150"><output id="durOut">150s</output></div>
+      <div class="row"><label for="tonic">Key center</label>
+        <select id="tonic"></select><span></span></div>
+      <div class="row"><label for="seed">Seed</label><input type="text" id="seed" value="drift-1"><span class="muted" style="font-size:.82rem">any text or number</span></div>
+    </details>
+  </div>
+
+  <div class="panel report" id="reportPanel">
+    <strong>What this texture is doing</strong>
+    <div id="report"></div>
+  </div>
+
+  <div class="panel">
+    <div class="sharebar">
+      <strong style="flex:0 0 auto">Share this exact texture</strong>
+      <input type="text" id="share" readonly>
+      <button id="copy">Copy link</button>
+    </div>
+    <p class="muted" style="margin:.5rem 0 0; font-size:.85rem">The link encodes the seed and all settings — anyone who opens it hears the identical drift.</p>
+  </div>
+
+  <details class="panel">
+    <summary><strong>Leave feedback</strong> — help tune the engine</summary>
+    <div class="row" style="grid-template-columns:7.5rem 1fr; margin-top:.6rem"><label for="rating">Rating</label>
+      <select id="rating"><option value="">—</option><option>1 — poor</option><option>2</option><option>3</option><option>4</option><option>5 — excellent</option></select></div>
+    <p class="muted" style="margin:.3rem 0">What worked, what didn't? (the drift, the bells, the sound, the mood…)</p>
+    <textarea id="fbtext" rows="3" placeholder="e.g. lovely bed but the bells felt too sparse"></textarea>
+    <div style="margin-top:.6rem"><button id="download">Download feedback (JSON)</button>
+      <span class="muted" style="font-size:.82rem">Saves a small file with your notes + this texture's exact settings. No server; nothing is sent anywhere.</span></div>
+  </details>
+
+  <p class="foot">
+    Engine <span class="mono" id="verfoot"></span> · part of <a href="../../index.html">algorithmic-music</a>, a project researched, written, and built entirely by Claude (Anthropic's AI), directed by Tom Gally.
+    Vanilla HTML/CSS/JS + Web Audio, no dependencies, runs offline. Public domain (CC0).
+  </p>
+</main>
+
+<script src="lib/rng.js"></script>
+<script src="lib/transport.js"></script>
+<script src="lib/theory.js"></script>
+<script src="lib/synth.js"></script>
+<script src="lib/fx.js"></script>
+<script src="composer.js"></script>
+<script src="engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  const E = window.AM.engines.ambientDrift;
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    play: $('play'), newp: $('newp'), loop: $('loop'),
+    vol: $('vol'), volOut: $('volOut'), rev: $('rev'), revOut: $('revOut'),
+    palette: $('palette'), pace: $('pace'), paceOut: $('paceOut'), dur: $('dur'), durOut: $('durOut'),
+    tonic: $('tonic'), seed: $('seed'),
+    roll: $('roll'), report: $('report'), share: $('share'), copy: $('copy'),
+    nowlabel: $('nowlabel'), rating: $('rating'), fbtext: $('fbtext'), download: $('download'),
+    ver: $('ver'), verfoot: $('verfoot'),
+  };
+  els.ver.textContent = 'engine 02 · v' + E.VERSION;
+  els.verfoot.textContent = E.NAME + '@' + E.VERSION;
+
+  // low key centers suit drones
+  ['C3','D3','E3','F3','G2','A2','Bb2','D2'].forEach((n) => {
+    const o = document.createElement('option'); o.value = n; o.textContent = n.replace(/(\d)/, ' ($1)'); els.tonic.appendChild(o);
+  });
+  els.tonic.value = 'D3';
+
+  let ctx = null, player = null, plan = null, playing = false;
+
+  function opts() {
+    return {
+      seed: els.seed.value || 'drift-1',
+      palette: els.palette.value, tonic: els.tonic.value,
+      pace: +els.pace.value, durationSec: +els.dur.value,
+      reverb: +els.rev.value, volume: +els.vol.value,
+    };
+  }
+
+  // ---- URL hash state ----
+  function encodeState(o) {
+    const p = new URLSearchParams({ v: E.VERSION, seed: o.seed, palette: o.palette, tonic: o.tonic, pace: o.pace, dur: o.durationSec, rev: o.reverb, vol: o.volume });
+    return '#' + p.toString();
+  }
+  function decodeState() {
+    if (!location.hash || location.hash.length < 2) return;
+    const p = new URLSearchParams(location.hash.slice(1));
+    if (p.get('seed')) els.seed.value = p.get('seed');
+    if (p.get('palette')) els.palette.value = p.get('palette');
+    if (p.get('tonic')) els.tonic.value = p.get('tonic');
+    if (p.get('pace')) els.pace.value = p.get('pace');
+    if (p.get('dur')) els.dur.value = p.get('dur');
+    if (p.get('rev')) els.rev.value = p.get('rev');
+    if (p.get('vol')) els.vol.value = p.get('vol');
+  }
+
+  function syncOutputs() {
+    els.volOut.textContent = (+els.vol.value).toFixed(2);
+    els.revOut.textContent = (+els.rev.value).toFixed(2);
+    els.paceOut.textContent = (+els.pace.value).toFixed(2) + '×';
+    els.durOut.textContent = els.dur.value + 's';
+  }
+
+  // ---- Visualization ----
+  function draw(elapsedSec) {
+    const c = els.roll, g = c.getContext('2d');
+    const W = c.width, H = c.height, pad = 10;
+    g.clearRect(0, 0, W, H);
+    if (!plan) return;
+    const evs = plan.events;
+    const total = plan.durationSec;
+    let lo = Infinity, hi = -Infinity;
+    for (const e of evs) { if (e.midi < lo) lo = e.midi; if (e.midi > hi) hi = e.midi; }
+    const span = Math.max(1, hi - lo);
+    const x = (t) => pad + (t / total) * (W - 2 * pad);
+    const y = (m) => pad + (1 - (m - lo) / span) * (H - 2 * pad);
+    const rowH = Math.max(3, (H - 2 * pad) / (span + 1) - 1);
+    const css = getComputedStyle(document.documentElement);
+    const col = { bell: css.getPropertyValue('--bell'), pad: css.getPropertyValue('--pad'), drone: css.getPropertyValue('--drone') };
+    // region separators (the harmonic drift)
+    g.font = '11px system-ui';
+    for (const r of (plan.regions || [])) {
+      const sx = x(r.startSec / plan.pace);
+      g.globalAlpha = 1; g.strokeStyle = css.getPropertyValue('--line').trim(); g.lineWidth = 1;
+      g.beginPath(); g.moveTo(sx, 0); g.lineTo(sx, H); g.stroke();
+      g.fillStyle = css.getPropertyValue('--muted').trim();
+      g.fillText(r.root, sx + 3, 13);
+    }
+    // draw pads/drones first (long, translucent), bells on top
+    for (const e of evs) {
+      const isBed = e.voice !== 'bell';
+      g.globalAlpha = isBed ? 0.28 : 0.92;
+      g.fillStyle = (col[e.voice] || col.bell).trim();
+      const w = Math.max(isBed ? 3 : 4, (e.durSec / total) * (W - 2 * pad) - 1);
+      g.fillRect(x(e.timeSec), y(e.midi) - rowH / 2, w, rowH);
+    }
+    g.globalAlpha = 1;
+    if (elapsedSec != null && elapsedSec >= 0) {
+      const px = x(Math.min(elapsedSec, total));
+      g.strokeStyle = css.getPropertyValue('--playhead').trim();
+      g.lineWidth = 2; g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H); g.stroke();
+    }
+  }
+
+  function refresh() {
+    plan = E.renderPlan(opts());
+    syncOutputs();
+    draw(playing ? undefined : -1);
+    els.share.value = location.origin + location.pathname + encodeState(opts());
+    if (history.replaceState) history.replaceState(null, '', encodeState(opts()));
+    renderReport();
+    els.nowlabel.textContent = '';
+  }
+
+  function renderReport() {
+    const r = plan.selfReport;
+    const regions = (r.regions || []).map((s) => `<span class="mono">${s.root}</span>`).join(' → ');
+    const loops = (r.loops || []).map((l) => `${l.pitch}<span class="muted">/${l.periodSec}s</span>`).join(', ');
+    els.report.innerHTML =
+      `<p style="margin:.4rem 0"><strong>${r.key}</strong> · ${r.form} · ${r.durationSec}s</p>` +
+      `<table><tbody>` +
+      `<tr><th>harmonic drift</th><td>${regions || '—'}</td></tr>` +
+      `<tr><th>bell loops</th><td class="mono">${loops || '—'}</td></tr>` +
+      `</tbody></table>` +
+      `<p class="muted" style="margin:.5rem 0 0">${r.idea}</p>`;
+  }
+
+  // ---- Playback ----
+  async function start() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (ctx.state === 'suspended') await ctx.resume();
+    stop();
+    player = E.play(ctx, opts(), {
+      onFrame: (elapsed) => { draw(elapsed); els.nowlabel.textContent = 'playing · ' + Math.floor(elapsed) + 's'; },
+      onEnd: () => {
+        playing = false; els.play.textContent = '▶ Play';
+        if (els.loop.checked) { els.seed.value = randomSeed(); refresh(); start(); }
+        else { els.nowlabel.textContent = 'done'; draw(-1); }
+      },
+    });
+    playing = true; els.play.textContent = '⏹ Stop';
+  }
+  function stop() { if (player) { player.stop(); player = null; } playing = false; els.play.textContent = '▶ Play'; }
+
+  function randomSeed() { return Math.random().toString(36).slice(2, 8); }
+
+  // ---- Wiring ----
+  els.play.addEventListener('click', () => { if (playing) { stop(); draw(-1); els.nowlabel.textContent = ''; } else start(); });
+  els.newp.addEventListener('click', () => { els.seed.value = randomSeed(); refresh(); if (playing) start(); });
+  els.vol.addEventListener('input', () => { syncOutputs(); if (player) player.setVolume(+els.vol.value); if (!playing) draw(-1); refreshShare(); });
+  els.rev.addEventListener('input', () => { syncOutputs(); if (player) player.setReverb(+els.rev.value); refreshShare(); });
+  els.pace.addEventListener('input', () => { refresh(); if (playing) start(); });
+  els.dur.addEventListener('input', () => { refresh(); if (playing) start(); });
+  ['palette', 'tonic'].forEach((k) => els[k].addEventListener('change', () => { refresh(); if (playing) start(); }));
+  els.seed.addEventListener('change', () => { refresh(); if (playing) start(); });
+  function refreshShare() { els.share.value = location.origin + location.pathname + encodeState(opts()); if (history.replaceState) history.replaceState(null, '', encodeState(opts())); }
+  els.copy.addEventListener('click', () => { els.share.select(); navigator.clipboard && navigator.clipboard.writeText(els.share.value); els.copy.textContent = 'Copied!'; setTimeout(() => els.copy.textContent = 'Copy link', 1200); });
+  els.download.addEventListener('click', () => {
+    const o = opts();
+    const payload = { engine: E.NAME, version: E.VERSION, seed: o.seed, palette: o.palette, tonic: o.tonic, pace: o.pace, durationSec: o.durationSec, reverb: o.reverb, volume: o.volume, rating: els.rating.value || null, comment: els.fbtext.value || '', form: plan.selfReport.form, key: plan.selfReport.key, submittedAt: new Date().toISOString() };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'feedback-ambient-drift-' + o.seed + '.json'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+  window.addEventListener('resize', () => draw(playing ? undefined : -1));
+
+  decodeState();
+  refresh();
+})();
+</script>
+</body>
+</html>
