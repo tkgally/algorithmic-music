@@ -1,12 +1,12 @@
 # Engine 01 — Tonal Classical
 
-`tonal-classical@0.1.0` — the launch engine of the [algorithmic-music](../../../README.md) project. A short tonal piece in classical style, generated in the browser, that **finishes**: a theme, a contrasting middle, a varied return, and a real ending.
+`tonal-classical@0.2.0` — the launch engine of the [algorithmic-music](../../../README.md) project. A short tonal piece in classical style, generated in the browser, that **finishes**: a theme, a contrasting middle, a varied return, and a real ending.
 
 Open `index.html` in any browser (works from `file://`, no server, no build, no dependencies).
 
 ## What it generates
 
-An **intro + rounded ternary (A B A′) + coda**, ~30 bars / 70–90 s at the default tempo:
+An **intro + rounded ternary (A B A′) + coda**, ~30 bars / ~65–80 s at the default tempo (110 BPM):
 
 - **Intro** (2 bars) — tonic→dominant lead-in with a stepwise anacrusis into the theme.
 - **A** (8-bar parallel period) — an *antecedent* that asks (ends on a half cadence) and a *consequent* that answers (perfect authentic cadence), over harmony generated **backward from its cadences**.
@@ -23,15 +23,24 @@ Follows the project's [engine architecture](../../../wiki/engine-architecture.md
 ```
 composer.js   Planner + Composer — symbolic score in BEATS (rounded ternary, cadence-first
               harmony, contour-first melody, motivic variation, a real coda). Pure, seeded.
-engine.js     Performer (beats→seconds, dynamics from the section intensity curve, a closing
-              ritardando) + Synthesizer wiring + a lookahead Scheduler. renderPlan() is pure.
-synth.js      Instrument voices from stock Web Audio nodes: an FM electric-piano lead, a
-              detuned-triangle string/pad, a sine+triangle bass. Click-safe envelopes.
-fx.js         Master chain: per-voice buses, one synthesized-IR convolution reverb, gentle
-              saturation → glue compressor → safety limiter → trim.
+engine.js     Performer (beats→seconds, an expressive layer — nested phrase-arch tempo +
+              dynamics, high-loud, structured articulation, chord roll, a correlated timing
+              residual, a square-root closing ritardando) + Synthesizer wiring + a lookahead
+              Scheduler. renderPlan() is pure.
+synth.js      Instrument voices from stock Web Audio nodes: an FM electric-piano lead (with
+              delayed vibrato on held notes), a detuned-triangle string/pad, a sine+triangle
+              bass. True-zero, click-safe envelopes.
+fx.js         Master chain: per-voice buses, one synthesized-IR convolution reverb (dark,
+              band-limited return), gentle saturation → glue compressor → safety limiter → trim.
 lib/          Vendored copies of the project's first-party shared libraries (rng, transport,
               theory). Self-contained: the engine fetches nothing at runtime.
 ```
+
+## What changed in 0.2 (listener-feedback pass)
+
+- **A real expressive performance layer** (`wiki/expressive-performance.md`) replaces the old per-note random jitter — nested phrase-arch tempo and dynamics, high-loud, melody emphasis, structured articulation (détaché lead, separated repeats, ringing cadence notes), a subtle chord roll, delayed vibrato on held melody notes, and a small *correlated* timing residual (an AR(1) walk, never i.i.d. "drunk-drummer" noise). The melody phrases rather than marching.
+- **Cleaner sound.** The convolution reverb uses a darker, smoother impulse response with a band-limited return, the master glue is gentler, and every voice's envelope is brought to true zero before its oscillators stop — removing the faint high-frequency "fizz"/click a listener heard on sustained chords and the exposed final note.
+- **Faster default tempo** (110 BPM, up from 92) with a wider tempo range.
 
 The composer and libraries are maintained canonically in the repo's `experiments/` tree (`experiments/composers/tonal-phrase.js`, `experiments/lib/`, `experiments/engines/tonal-classical/engine.js`) and **vendored** (copied) here so this folder is independently downloadable and `file://`-runnable — the project's code-reuse-without-runtime-coupling model.
 

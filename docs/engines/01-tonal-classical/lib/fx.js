@@ -17,6 +17,15 @@
  * window.AM.fx in the browser — its only runtime — require() in Node for
  * inspection (needs a real/offline AudioContext to run; validated via the render
  * harness, not the headless Node suite).
+ *
+ * v0.2 (engine-01 feedback pass): the reverb IR is darker and smoother (two
+ * cascaded one-pole lowpasses over the noise, more damping, a short fade-in), the
+ * reverb RETURN is band-limited (highpass + lowpass) and the master glue is
+ * gentler — together these kill the bright "static/fizz" wash a listener heard on
+ * sustained chords and on the exposed final note (see wiki/findings-tonal-
+ * classical-engine.md). Reverb character is now configurable per engine
+ * (reverbSeconds / reverbDamp / returnLowpassHz) so the ambient engine can use a
+ * long, dark tail while the classical engine stays tight and clean.
  */
 ;(function (global, factory) {
   'use strict';
@@ -30,18 +39,28 @@
   // along the tail (real rooms absorb highs faster), independent per channel so
   // L/R decorrelate — that decorrelation IS the stereo width. wiki/effects-and-
   // mixing.md "Reverb 1". `rand` is a () => [0,1) source (seed it for determinism).
+  //
+  // The noise is smoothed by TWO cascaded one-pole lowpasses rather than one: a
+  // single pole leaves audible high-frequency grit that reads as "static" when a
+  // sustained chord is convolved with it, especially on an exposed final note.
+  // A steeper, darker tail sounds like a room, not like hiss.
   function makeIR(ctx, rand, seconds, decayPow, damp) {
-    seconds = seconds || 2.2; decayPow = decayPow || 2.6; damp = damp == null ? 0.25 : damp;
+    seconds = seconds || 2.4; decayPow = decayPow || 3.0; damp = damp == null ? 0.5 : damp;
     const n = Math.max(1, Math.ceil(ctx.sampleRate * seconds));
+    const fadeIn = Math.min(n, Math.round(ctx.sampleRate * 0.004)); // 4 ms fade-in: no pre-echo click
     const buf = ctx.createBuffer(2, n, ctx.sampleRate);
     for (let ch = 0; ch < 2; ch++) {
       const d = buf.getChannelData(ch);
-      let lp = 0;
+      let lp1 = 0, lp2 = 0;
       for (let i = 0; i < n; i++) {
         const x = i / n;                                 // 0..1 along the tail
-        const k = damp + x * (0.985 - damp);             // one-pole darkens over time
-        lp = k * lp + (1 - k) * (rand() * 2 - 1);
-        d[i] = lp * Math.pow(1 - x, decayPow);
+        const k = damp + x * (0.9 - damp);               // darkens over time, capped darker than before
+        const src = rand() * 2 - 1;
+        lp1 = k * lp1 + (1 - k) * src;                   // one-pole
+        lp2 = k * lp2 + (1 - k) * lp1;                   // second one-pole (steeper rolloff, smoother)
+        let env = Math.pow(1 - x, decayPow);
+        if (i < fadeIn) env *= i / fadeIn;
+        d[i] = lp2 * env;
       }
     }
     return buf;
@@ -60,26 +79,34 @@
     const rand = opts.rand || Math.random;
     const reverbAmount = opts.reverbAmount == null ? 0.22 : opts.reverbAmount;
     const volume = opts.volume == null ? 0.8 : opts.volume;
+    const chordSendScale = opts.chordSendScale == null ? 0.6 : opts.chordSendScale; // pads wash easily — send them less
 
     // Mix sum -> saturation -> glue compressor -> safety limiter -> master trim.
     const sum = ctx.createGain();
-    const sat = ctx.createWaveShaper(); sat.curve = softClipCurve(0.1); sat.oversample = '2x';
+    const sat = ctx.createWaveShaper(); sat.curve = softClipCurve(0.06); sat.oversample = '2x'; // very gentle glue
+    // Gentle glue: high threshold + low ratio so it is NOT compressing most of the
+    // time. A hard bus compressor (the old ratio-3 @ -20 dB) pumps the reverb/noise
+    // floor up as notes decay — audible as a "breathing" swell on the final note.
     const glue = ctx.createDynamicsCompressor();
-    glue.threshold.value = -20; glue.knee.value = 25; glue.ratio.value = 3; glue.attack.value = 0.02; glue.release.value = 0.2;
+    glue.threshold.value = -12; glue.knee.value = 24; glue.ratio.value = 2; glue.attack.value = 0.03; glue.release.value = 0.28;
     const limiter = ctx.createDynamicsCompressor();
-    limiter.threshold.value = -3; limiter.knee.value = 0; limiter.ratio.value = 20; limiter.attack.value = 0.002; limiter.release.value = 0.1;
+    limiter.threshold.value = -1.5; limiter.knee.value = 2; limiter.ratio.value = 14; limiter.attack.value = 0.004; limiter.release.value = 0.14;
     const master = ctx.createGain(); master.gain.value = volume;
     // A quasi-static master tone tilt (quiet-listening compensation lives here).
     const tone = ctx.createBiquadFilter(); tone.type = 'highshelf'; tone.frequency.value = 3000; tone.gain.value = 0;
     sum.connect(sat); sat.connect(glue); glue.connect(limiter); limiter.connect(tone); tone.connect(master); master.connect(ctx.destination);
 
     // Reverb send/return: one convolver shared by all sends, with a short
-    // pre-delay so dry transients stay up front.
+    // pre-delay so dry transients stay up front. The return is BAND-LIMITED — a
+    // highpass keeps low rumble out of the tail, and a lowpass keeps the tail warm
+    // (a bright convolution tail is exactly the "static" a listener flagged).
     const conv = ctx.createConvolver();
-    conv.buffer = makeIR(ctx, rand, opts.reverbSeconds || 2.4, 2.6, 0.28);
-    const preDelay = ctx.createDelay(0.1); preDelay.delayTime.value = 0.02;
-    const reverbReturn = ctx.createGain(); reverbReturn.gain.value = 0.9;
-    preDelay.connect(conv); conv.connect(reverbReturn); reverbReturn.connect(sum);
+    conv.buffer = makeIR(ctx, rand, opts.reverbSeconds || 2.4, opts.reverbDecayPow || 3.0, opts.reverbDamp);
+    const preDelay = ctx.createDelay(0.2); preDelay.delayTime.value = opts.preDelay == null ? 0.02 : opts.preDelay;
+    const returnHP = ctx.createBiquadFilter(); returnHP.type = 'highpass'; returnHP.frequency.value = 180; returnHP.Q.value = 0.5;
+    const returnLP = ctx.createBiquadFilter(); returnLP.type = 'lowpass'; returnLP.frequency.value = opts.returnLowpassHz || 4200; returnLP.Q.value = 0.4;
+    const reverbReturn = ctx.createGain(); reverbReturn.gain.value = opts.returnGain == null ? 0.8 : opts.returnGain;
+    preDelay.connect(conv); conv.connect(returnHP); returnHP.connect(returnLP); returnLP.connect(reverbReturn); reverbReturn.connect(sum);
 
     // Per-voice buses. Non-bass buses are high-passed (cumulative low-mid mud is
     // the default enemy); the bass bus stays full-range and mono-centered.
@@ -93,19 +120,26 @@
       return { input: bus, send };
     }
     const melodyBus = makeBus(90, reverbAmount);
-    const chordBus = makeBus(110, reverbAmount * 0.8);
-    const bassBus = makeBus(0, 0.0);                    // lows: no HP, no reverb (mono, dry)
+    const chordBus = makeBus(110, reverbAmount * chordSendScale);
+    const bassBus = makeBus(0, opts.bassSend || 0.0);   // lows: no HP, dry by default (mono)
+    // Extra ambient voices reuse the same bus factory; unknown voices fall back
+    // to the melody bus (see input()).
+    const bellBus = makeBus(90, reverbAmount * 1.1);
+    const padBus = makeBus(90, reverbAmount * chordSendScale);
+    const droneBus = makeBus(0, opts.bassSend || 0.0);
 
-    const buses = { melody: melodyBus, chord: chordBus, bass: bassBus };
+    const buses = { melody: melodyBus, chord: chordBus, bass: bassBus, bell: bellBus, pad: padBus, drone: droneBus };
 
     return {
       master, sum, buses,
-      /** Input node for a composer voice ('melody'|'chord'|'bass'). */
+      /** Input node for a composer voice ('melody'|'chord'|'bass'|'bell'|'pad'|'drone'). */
       input(voice) { return (buses[voice] || melodyBus).input; },
       setVolume(v) { master.gain.setTargetAtTime(v, ctx.currentTime, 0.02); },
       setReverb(v) {
         melodyBus.send.gain.setTargetAtTime(v, ctx.currentTime, 0.05);
-        chordBus.send.gain.setTargetAtTime(v * 0.8, ctx.currentTime, 0.05);
+        chordBus.send.gain.setTargetAtTime(v * chordSendScale, ctx.currentTime, 0.05);
+        bellBus.send.gain.setTargetAtTime(v * 1.1, ctx.currentTime, 0.05);
+        padBus.send.gain.setTargetAtTime(v * chordSendScale, ctx.currentTime, 0.05);
       },
       /** Quiet-listening tone tilt: +dB high shelf as playback gets quieter. */
       setTone(db) { tone.gain.setTargetAtTime(db, ctx.currentTime, 0.05); },
