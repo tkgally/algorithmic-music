@@ -146,6 +146,63 @@
   const CONT_CONS = [[8, 1], [9, 1], [10, 1], [11, 1], [12, 4]];  // -> PAC, whole note (strong close)
   const APEX_SLOT = 6; // index into the phrase's onset list: the long note ending the basic idea
 
+  // ---- Melodic contour archetypes (variety across pieces — v0.3) -------------
+  // wiki/melody.md: contour is "the most memorable and most cross-culturally
+  // robust feature of a melody," and Huron's nine classes reduce to a few that
+  // dominate — the convex ARCH (rise-fall) and the DESCENDING shape — with the
+  // apex POSITION itself expressive ("apexes clustered late read as 'building';
+  // early apexes read as 'releasing'"). The launch composer hard-coded ONE shape:
+  // a straight rise to a late apex fixed at the last basic-idea slot, so every
+  // seed opened with the same ascending arpeggio and every phrase was the same
+  // rise-then-fall (the listener's v0.2 feedback). v0.3 picks a contour archetype
+  // per piece (and a CONTRASTING one for the B section), varying the apex slot and
+  // the pre/post-apex shape while keeping the arch/descending bias the page
+  // recommends (melody.md warns against hard-coding discrete classes, so these are
+  // weighted targets, not rigid categories). Contour is only a target ENVELOPE —
+  // fillContour still enforces chord-tones-on-strong-beats, the step bias, the
+  // post-leap reversal, and apex uniqueness — so the line stays idiomatic whatever
+  // its overall shape. Weights bias toward the two dominant Huron types.
+  // startOffset shifts the phrase's FIRST note within the register (semitones from
+  // center): descending shapes start high so the outset falls; ascending shapes
+  // start low so it climbs — this is what breaks the "same ascending arpeggio at
+  // the outset every time" the listener heard. Kept modest so phrases still "rarely
+  // begin at registral extremes" (melody.md).
+  const CONTOUR_ARCHETYPES = [
+    { id: 'arch',       apexSlot: 3, shape: 'arch', startOffset: -1, weight: 3 }, // convex arch, mid peak (Huron's default prior)
+    { id: 'arch-late',  apexSlot: 5, shape: 'arch', startOffset: -3, weight: 2 }, // builds to a late peak, eases before the cadence
+    { id: 'descending', apexSlot: 0, shape: 'ramp', startOffset: -2, weight: 3 }, // opens ON the peak and falls throughout ("releasing")
+    { id: 'ascending',  apexSlot: 6, shape: 'ramp', startOffset: -5, weight: 2 }, // starts low, straight rise to a late apex ("building")
+    { id: 'wave',       apexSlot: 4, shape: 'wave', startOffset: -1, weight: 2 }, // undulating climb to a mid-late apex
+  ];
+  function pickArchetype(r, avoidId) {
+    const items = [], weights = [];
+    for (const a of CONTOUR_ARCHETYPES) { items.push(a); weights.push(a.id === avoidId ? a.weight * 0.02 : a.weight); }
+    return r.weighted(items, weights);
+  }
+  // Target MIDI envelope for an n-slot basic idea: rise from startMidi to apexMidi
+  // at the archetype's apexSlot, then (unless the apex is the last slot) descend to
+  // a tail level. 'arch' settles below the start; 'ramp'/'wave' settle just above
+  // it; 'wave' dips once on the climb. Only an envelope — fillContour does the rest.
+  function archetypeContour(n, startMidi, apexMidi, arche) {
+    const apexSlot = Math.min(arche.apexSlot, n - 1);
+    const rise = apexMidi - startMidi;
+    const tail = arche.shape === 'arch' ? startMidi - Math.min(3, Math.round(rise * 0.4))
+      : startMidi + Math.round(rise * 0.15);
+    const out = new Array(n);
+    for (let i = 0; i < n; i++) {
+      if (i <= apexSlot) {
+        const t = apexSlot === 0 ? 1 : i / apexSlot;
+        let v = startMidi + rise * t;
+        if (arche.shape === 'wave' && i > 0 && i < apexSlot) v -= Math.sin(t * Math.PI) * rise * 0.28; // dip on the climb
+        out[i] = v;
+      } else {
+        const t = (i - apexSlot) / (n - 1 - apexSlot);
+        out[i] = apexMidi + (tail - apexMidi) * t;
+      }
+    }
+    return out;
+  }
+
   function chordPitchClasses(chord) { return chord.notes.map((m) => ((m % 12) + 12) % 12); }
 
   // Scale-tone MIDI pool for the melody register (roughly an octave-and-a-bit
@@ -243,13 +300,20 @@
     const pool = melodyPool(tonicMidi, scaleName);
     const center = tonicMidi + 12 + 5 + (pinOpts.centerOffset || 0); // ~a fifth above the octave-up tonic (shift for sectional register contrast)
     const firstChord = chordTable[phrasePlan.chords[0]];
-    const startMidi = nearestInPool(pool, center, new Set(chordPitchClasses(firstChord)));
+    // v0.3: the archetype shifts the START within the register (descending shapes
+    // start high, ascending shapes start low) so the outset isn't the same arpeggio.
+    const startMidi = nearestInPool(pool, center + (pinOpts.startOffset || 0), new Set(chordPitchClasses(firstChord)));
 
     // Apex: a chord tone of the apex bar's chord, high in the register but not
-    // at the very ceiling; one clear peak per phrase (wiki/melody.md).
-    const apexBeat = BASIC_IDEA[APEX_SLOT][0];
+    // at the very ceiling; one clear peak per phrase (wiki/melody.md). The apex
+    // SLOT is set by the contour archetype (v0.3) — default = the original late
+    // slot so composePeriod (and its tests) are unchanged. The apex floor is kept
+    // clearly above the (possibly high) start so the apex is always the true peak.
+    const apexSlot = pinOpts.apexSlot == null ? APEX_SLOT : Math.min(pinOpts.apexSlot, BASIC_IDEA.length - 1);
+    const apexBeat = BASIC_IDEA[apexSlot][0];
     const apexChord = chordTable[phrasePlan.chords[Math.floor(apexBeat / BEATS_PER_BAR)]];
-    const apexTargets = pool.filter((m) => m >= center + 3 && m <= pool[pool.length - 1] - 1
+    const apexFloor = Math.max(center + 3, startMidi + 2);
+    const apexTargets = pool.filter((m) => m >= apexFloor && m <= pool[pool.length - 1] - 1
       && chordPitchClasses(apexChord).includes(((m % 12) + 12) % 12));
     const apexMidi = apexTargets.length ? r.pick(apexTargets) : pool[pool.length - 2];
 
@@ -430,26 +494,31 @@
   function generatePhrase(phrasePlan, cctx, o) {
     const { chordTable, tonicMidi, scaleName, mode } = cctx;
     const r = o.rng;
-    const pins = pinsForPhrase(phrasePlan, chordTable, tonicMidi, scaleName, mode, r, { centerOffset: o.centerOffset || 0 });
+    const arche = o.archetype || CONTOUR_ARCHETYPES[0];              // v0.3: contour shape/apex-slot per piece
+    const apexSlot = Math.min(arche.apexSlot, BASIC_IDEA.length - 1);
+    const pins = pinsForPhrase(phrasePlan, chordTable, tonicMidi, scaleName, mode, r, { centerOffset: o.centerOffset || 0, apexSlot, startOffset: arche.startOffset || 0 });
     const pool = pins.pool;
     const scalePcs = new Set(theory.scale(tonicMidi, scaleName).map((m) => ((m % 12) + 12) % 12));
     const chordForBeat = (beat) => chordTable[phrasePlan.chords[Math.min(PHRASE_BARS - 1, Math.floor(beat / BEATS_PER_BAR))]];
     const basicPitches = o.basicPitchesIn ? o.basicPitchesIn.slice() : fillContour(BASIC_IDEA, {
       pool, scalePcs, chordForBeat,
-      contour: lineContour(BASIC_IDEA.length, pins.startMidi, pins.apexMidi),
-      pins: { 0: pins.startMidi, [APEX_SLOT]: pins.apexMidi },
+      contour: archetypeContour(BASIC_IDEA.length, pins.startMidi, pins.apexMidi, arche),
+      pins: { 0: pins.startMidi, [apexSlot]: pins.apexMidi },
       ceiling: pins.apexMidi - 1,
     }, r);
-    const apexMidi = basicPitches[APEX_SLOT];
-    const moveIntoCont = apexMidi - basicPitches[APEX_SLOT - 1];
+    const apexMidi = basicPitches[apexSlot];                        // the pinned peak (or the restated theme's peak)
+    // The continuation flows from wherever the basic idea LANDED (not always the
+    // apex now that the apex can sit early/mid) down to the cadence goal tone.
+    const lastBasic = basicPitches[basicPitches.length - 1];
+    const prevBasic = basicPitches[basicPitches.length - 2];
     const contOnsets = o.contOnsets || CONT_ANTE;
     const contPitches = fillContour(contOnsets, {
       pool, scalePcs, chordForBeat,
-      contour: lineContour(contOnsets.length, apexMidi - 2, pins.finalMidi),
+      contour: lineContour(contOnsets.length, Math.min(apexMidi - 1, lastBasic), pins.finalMidi),
       pins: { [contOnsets.length - 1]: pins.finalMidi },
-      ceiling: apexMidi - 1, precededBy: apexMidi, precededByMove: moveIntoCont,
+      ceiling: apexMidi - 1, precededBy: lastBasic, precededByMove: lastBasic - prevBasic,
     }, r);
-    return { pins, basicPitches, apexMidi, contOnsets, contPitches, pool };
+    return { pins, basicPitches, apexMidi, apexSlot, contOnsets, contPitches, pool };
   }
 
   // One scale-step neighbor in `pool` (sorted ascending) from `from`, direction dir.
@@ -467,9 +536,17 @@
   // elaborated (diminution — wiki/melody.md). Never splits the apex or the note
   // before it, and never inserts a tone at/above the apex, so the apex stays the
   // phrase's unique peak.
-  function ornamentedBasic(pitches, pool, apexMidi, r) {
+  function ornamentedBasic(pitches, pool, apexMidi, r, apexSlot) {
+    apexSlot = apexSlot == null ? APEX_SLOT : apexSlot;
     const cands = [];
-    for (let i = 1; i < APEX_SLOT - 1; i++) if (pitches[i] !== undefined) cands.push(i);
+    // Any interior quarter-note slot that is not the apex or immediately adjacent
+    // to it (so the peak and its approach stay clean). Works for early, mid, or
+    // late apexes (v0.3): a late apex leaves candidates before it, an early apex
+    // leaves candidates after it.
+    for (let i = 1; i < BASIC_IDEA.length; i++) {
+      if (i === apexSlot || i === apexSlot - 1 || i === apexSlot + 1) continue;
+      if (BASIC_IDEA[i][1] === 1 && pitches[i] !== undefined) cands.push(i);
+    }
     const chosen = new Set(r.shuffle(cands).slice(0, Math.min(2, cands.length)));
     if (!chosen.size && cands.length) chosen.add(cands[0]);
     const onsets = [], out = [];
@@ -495,9 +572,15 @@
     const master = new Rng(seed);
     const hr = master.stream('harmony');
     const mr = master.stream('melody');
+    const cr = master.stream('contour');                            // v0.3: melodic-contour variety
     const chordTable = buildChordTable(tonicMidi, mode);
     const cctx = { chordTable, tonicMidi, scaleName, mode };
     const T = mode === 'major' ? 'I' : 'i';
+    // One contour archetype for A (restated by A′), a CONTRASTING one for B — so
+    // the piece's shape varies across seeds and the middle section departs in
+    // contour as well as register and harmony (wiki/melody.md, wiki/form-and-structure.md).
+    const archA = pickArchetype(cr);
+    const archB = pickArchetype(cr, archA.id);
 
     // Section layout (bars).
     const introStart = 0;
@@ -553,24 +636,25 @@
       for (let b = 0; b < PHRASE_BARS; b++) emitChordBar(consChords[b], startBar + PHRASE_BARS + b, sect, 0, BEATS_PER_BAR, b === PHRASE_BARS - 1 ? consPhrase.cadence : null);
 
       const theme = o.theme || null;
-      const ante = generatePhrase(antePhrase, cctx, { rng: mr, centerOffset: o.centerOffset || 0, basicPitchesIn: theme ? theme.basicPitches : null });
-      const basicPitches = ante.basicPitches, apexMidi = ante.apexMidi, pool = ante.pool;
-      const cons = generatePhrase(consPhrase, cctx, { rng: mr, centerOffset: o.centerOffset || 0, basicPitchesIn: basicPitches, contOnsets: isB ? CONT_ANTE : CONT_CONS });
+      const arche = o.archetype || CONTOUR_ARCHETYPES[0];
+      const ante = generatePhrase(antePhrase, cctx, { rng: mr, centerOffset: o.centerOffset || 0, archetype: arche, basicPitchesIn: theme ? theme.basicPitches : null });
+      const basicPitches = ante.basicPitches, apexMidi = ante.apexMidi, pool = ante.pool, apexSlot = ante.apexSlot;
+      const cons = generatePhrase(consPhrase, cctx, { rng: mr, centerOffset: o.centerOffset || 0, archetype: arche, basicPitchesIn: basicPitches, contOnsets: isB ? CONT_ANTE : CONT_CONS });
 
       let baO = BASIC_IDEA.map((x) => x.slice()), baP = basicPitches.slice();
-      if (o.ornament) { const orn = ornamentedBasic(basicPitches, pool, apexMidi, mr); baO = orn.onsets; baP = orn.pitches; }
+      if (o.ornament) { const orn = ornamentedBasic(basicPitches, pool, apexMidi, mr, apexSlot); baO = orn.onsets; baP = orn.pitches; }
 
       const aOn = baO.concat(ante.contOnsets), aPi = baP.concat(ante.contPitches);
       const cOn = baO.concat(cons.contOnsets), cPi = baP.concat(cons.contPitches);
       emitMelody(startBar, aOn, aPi, sect, sect, { finalCad: antePhrase.cadence, apexIndex: aPi.indexOf(Math.max(...aPi)) });
       emitMelody(startBar + PHRASE_BARS, cOn, cPi, sect, sect, { finalCad: consPhrase.cadence, apexIndex: cPi.indexOf(Math.max(...cPi)) });
 
-      return { basicPitches, apexMidi, pool, anteChords, consChords, cadences: [antePhrase.cadence, consPhrase.cadence] };
+      return { basicPitches, apexMidi, apexSlot, pool, anteChords, consChords, cadences: [antePhrase.cadence, consPhrase.cadence], contour: arche.id };
     }
 
-    const A = buildSection(aStart, 'A', { centerOffset: 0 });
-    const B = buildSection(bStart, 'B', { centerOffset: -3 });                 // contrast: lower tessitura + off-tonic harmony
-    const Ap = buildSection(apStart, "A'", { theme: A, ornament: true });       // varied return (climax)
+    const A = buildSection(aStart, 'A', { centerOffset: 0, archetype: archA });
+    const B = buildSection(bStart, 'B', { centerOffset: -3, archetype: archB });        // contrast: lower tessitura + off-tonic harmony + a different contour
+    const Ap = buildSection(apStart, "A'", { theme: A, ornament: true, archetype: archA }); // varied return (climax) — A's shape, ornamented
 
     // INTRO — I then V (a lead-in), thin (bass + chords), with a stepwise
     // two-note anacrusis rising into A's first melody note.
@@ -615,7 +699,7 @@
       bars: totalBars, beatsPerBar: BEATS_PER_BAR,
       key: theory.midiToNoteName(tonicMidi).replace(/-?\d+$/, '') + ' ' + mode,
       sections: sections.map((s) => ({ role: s.role, bars: s.bars, startBar: s.startBar, intensity: s.intensity, harmony: s.harmony, cadences: s.cadences, contrast: s.contrast, variation: s.variation, ending: s.ending })),
-      theme: { basicIdea: A.basicPitches.map((m) => theory.midiToNoteName(m)), apex: theory.midiToNoteName(A.apexMidi) },
+      theme: { basicIdea: A.basicPitches.map((m) => theory.midiToNoteName(m)), apex: theory.midiToNoteName(A.apexMidi), contour: A.contour, contourB: B.contour },
       climax: "A′ (the varied return), placed in the second half — a late climax, not hard-coded to any ratio",
       ending: 'coda: whole-bar I–IV broadening to a mid-bar ii–V, resolving to a lengthened final tonic (the piece finishes)',
     };

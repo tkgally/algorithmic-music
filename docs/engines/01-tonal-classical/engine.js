@@ -29,6 +29,16 @@
  *     never i.i.d. per-note noise.
  * The default tempo is raised (a listener found 92 too slow).
  *
+ * v0.3 (second feedback pass): two listener notes on v0.2. (1) The residual
+ * "static in the middle of sustained notes" was traced to reverb-tail GRAIN and
+ * fixed in the shared fx.js (a smoother near-Gaussian impulse response — not more
+ * darkening) plus latencyHint:'playback' on the live context to head off real-time
+ * underruns; the performer/engine here is unchanged for that. (2) Every seed
+ * opened with the same ascending arpeggio and repeated one rise-then-fall arch —
+ * fixed in the composer (composer.js), which now varies the melodic CONTOUR
+ * archetype (apex early/mid/late; ascending/arch/descending/wave) per piece, with
+ * a contrasting shape for the B section (wiki/melody.md).
+ *
  * Dual-format (UMD-lite): require() in Node (exposes the pure planner + the
  * pure helpers), window.AM.engines.tonalClassical via <script src> in a file://
  * browser, where window.AM.{composers,theory,transport,synth,fx} are already set.
@@ -57,7 +67,7 @@
 
   const { composer, theory, transport, synth, fx } = deps;
   const NAME = 'tonal-classical';
-  const VERSION = '0.2.0';
+  const VERSION = '0.3.0';
   const DEFAULTS = { bpm: 110, mode: 'major', tonic: 'C4', reverb: 0.24, volume: 0.6 };
   const BEATS_PER_BAR = 4;
   const PHRASE_BEATS = 16; // a 4-bar phrase — the unit of the tempo/dynamic arch

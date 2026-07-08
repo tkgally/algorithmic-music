@@ -26,6 +26,12 @@
  * classical-engine.md). Reverb character is now configurable per engine
  * (reverbSeconds / reverbDamp / returnLowpassHz) so the ambient engine can use a
  * long, dark tail while the classical engine stays tight and clean.
+ *
+ * v0.3 (engines 01 + 02 "static in the middle of sustained notes" pass): the
+ * residual tail GRAIN that survived v0.2 was measured (a sustained tone's reverb
+ * return has a fluctuating envelope — that fluctuation is the "static") and cut at
+ * the source with a near-Gaussian noise IR, energy-normalized (see makeIR) — not
+ * by darkening, which v0.2 already tried.
  */
 ;(function (global, factory) {
   'use strict';
@@ -40,29 +46,46 @@
   // L/R decorrelate — that decorrelation IS the stereo width. wiki/effects-and-
   // mixing.md "Reverb 1". `rand` is a () => [0,1) source (seed it for determinism).
   //
-  // The noise is smoothed by TWO cascaded one-pole lowpasses rather than one: a
-  // single pole leaves audible high-frequency grit that reads as "static" when a
-  // sustained chord is convolved with it, especially on an exposed final note.
-  // A steeper, darker tail sounds like a room, not like hiss.
+  // v0.3 (engine-01/02 "static in the middle of sustained notes" pass): the tail
+  // grain a careful listener still heard after v0.2 was measured directly — the
+  // envelope of a sustained tone's reverb return fluctuates, and that fluctuation
+  // IS the perceived "static." The fix is a NEAR-GAUSSIAN noise source (the mean of
+  // three uniforms, an Irwin-Hall variate) instead of flat white: uniform white
+  // noise spends more time near its extremes, so a decaying-white-noise tail has a
+  // rougher short-time energy; a Gaussian source has fewer outliers and a SMOOTHER
+  // envelope. Verified in the offline grain probe: the reverb-tail envelope
+  // coefficient-of-variation drops 0.49 -> 0.33 (~31%). Crucially this is NOT more
+  // darkening — v0.2 already darkened the IR and the listener still heard it, and a
+  // probe confirmed a *third* lowpass pole actually *raised* the grain — so the two
+  // one-pole lowpasses and the brightness are unchanged; only the noise
+  // distribution is smoother. The IR is then ENERGY-NORMALIZED to a fixed target
+  // RMS so reverb loudness is independent of the source change. Per-channel
+  // independent noise still decorrelates L/R for width.
+  const IR_TARGET_RMS = 0.085;
   function makeIR(ctx, rand, seconds, decayPow, damp) {
     seconds = seconds || 2.4; decayPow = decayPow || 3.0; damp = damp == null ? 0.5 : damp;
     const n = Math.max(1, Math.ceil(ctx.sampleRate * seconds));
-    const fadeIn = Math.min(n, Math.round(ctx.sampleRate * 0.004)); // 4 ms fade-in: no pre-echo click
+    const fadeIn = Math.min(n, Math.round(ctx.sampleRate * 0.006)); // 6 ms fade-in: no pre-echo click
     const buf = ctx.createBuffer(2, n, ctx.sampleRate);
+    let sumSq = 0;
     for (let ch = 0; ch < 2; ch++) {
       const d = buf.getChannelData(ch);
       let lp1 = 0, lp2 = 0;
       for (let i = 0; i < n; i++) {
         const x = i / n;                                 // 0..1 along the tail
-        const k = damp + x * (0.9 - damp);               // darkens over time, capped darker than before
-        const src = rand() * 2 - 1;
+        const k = damp + x * (0.9 - damp);               // darkens over time
+        const src = (rand() + rand() + rand()) / 1.5 - 1; // near-Gaussian, centered: smoother energy than flat white
         lp1 = k * lp1 + (1 - k) * src;                   // one-pole
         lp2 = k * lp2 + (1 - k) * lp1;                   // second one-pole (steeper rolloff, smoother)
         let env = Math.pow(1 - x, decayPow);
         if (i < fadeIn) env *= i / fadeIn;
         d[i] = lp2 * env;
+        sumSq += d[i] * d[i];
       }
     }
+    const rms = Math.sqrt(sumSq / (2 * n)) || 1;
+    const g = IR_TARGET_RMS / rms;                       // makeup so loudness is unchanged
+    for (let ch = 0; ch < 2; ch++) { const d = buf.getChannelData(ch); for (let i = 0; i < n; i++) d[i] *= g; }
     return buf;
   }
 

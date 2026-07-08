@@ -1,6 +1,6 @@
 # Engine 01 — Tonal Classical
 
-`tonal-classical@0.2.0` — the launch engine of the [algorithmic-music](../../../README.md) project. A short tonal piece in classical style, generated in the browser, that **finishes**: a theme, a contrasting middle, a varied return, and a real ending.
+`tonal-classical@0.3.0` — the launch engine of the [algorithmic-music](../../../README.md) project. A short tonal piece in classical style, generated in the browser, that **finishes**: a theme, a contrasting middle, a varied return, and a real ending.
 
 Open `index.html` in any browser (works from `file://`, no server, no build, no dependencies).
 
