@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>cantabile — offline render self-test (dev only)</title>
+</head>
+<body>
+<!--
+  DEV-ONLY. Not part of the playable engine. Renders the engine's own audio graph
+  (the exact shipped synth.js/fx.js/engine.js/composer.js — including the new
+  expressive voices) through an OfflineAudioContext and exposes
+  window.__renderEngine() so experiments/tools/render-cantabile.mjs can measure it
+  (no clipping, click-safe, no silent gap, level in band) — engine-architecture.md
+  testability requirement #2.
+-->
+<p>Dev self-test host. Open the harness, or call <code>window.__renderEngine()</code> in the console.</p>
+<pre id="out">rendering…</pre>
+<script src="lib/rng.js"></script>
+<script src="lib/transport.js"></script>
+<script src="lib/theory.js"></script>
+<script src="lib/synth.js"></script>
+<script src="lib/fx.js"></script>
+<script src="lib/analysis.js"></script>
+<script src="composer.js"></script>
+<script src="engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  const E = window.AM.engines.cantabile;
+  const analysis = window.AM.analysis;
+
+  function mono(buf) {
+    const n = buf.length, out = new Float32Array(n);
+    const ch = buf.numberOfChannels;
+    for (let c = 0; c < ch; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) out[i] += d[i] / ch; }
+    return out;
+  }
+
+  window.__renderEngine = async function (opts) {
+    opts = opts || { seed: 'demo-1' };
+    const { buffer, plan } = await E.renderOffline(opts);
+    const samples = mono(buffer);
+    const sr = buffer.sampleRate;
+    return {
+      seed: opts.seed || 'demo-1', key: plan.selfReport.key, mode: plan.meta.mode,
+      ensemble: plan.ensemble, bars: plan.meta.bars,
+      durationSec: +plan.durationSec.toFixed(2), events: plan.events.length,
+      metrics: {
+        rmsDb: +analysis.rmsDbfs(samples).toFixed(1),
+        peak: +analysis.peak(samples).toFixed(4),
+        maxStep: +analysis.maxStep(samples).toFixed(4),
+        silenceGapSec: +analysis.longestSilenceSec(samples, sr, { thresholdDb: -55 }).toFixed(3),
+      },
+    };
+  };
+
+  window.__renderEngine().then((r) => { document.getElementById('out').textContent = JSON.stringify(r, null, 2); })
+    .catch((e) => { document.getElementById('out').textContent = 'ERROR: ' + (e && e.message || e); });
+})();
+</script>
+</body>
+</html>
