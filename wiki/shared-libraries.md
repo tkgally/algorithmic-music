@@ -3,7 +3,7 @@ title: Shared libraries
 tags: [implementation, project]
 status: reviewed
 created: 2026-07-07
-updated: 2026-07-07
+updated: 2026-07-08
 summary: The plan for this project's own original, first-party libraries — the reusable core (theory, timing, seeded RNG, synthesis, effects, analysis) that engines vendor instead of importing outside code, why they are built from scratch, and in what order.
 ---
 
@@ -59,26 +59,28 @@ The first three (`theory`, `transport`, `rng`) are the foundation: the composer 
 
 ## Build order
 
-1. **Foundation** — `theory`, `transport`, `rng`. These gate the first engine and several research questions: R1 (phrase-first melody) and R2 (goal-directed harmony) sit on `theory` + `rng`; R4 (cadence detector + motif-recurrence metric) needs the symbolic representation these establish. Prove each in an `experiments/` testbed (Phase 1 permits non-public prototypes) before any engine depends on it.
+1. **Foundation — `theory`, `transport`, `rng` — all three prototyped and validated as of 2026-07-08.** These gate the first engine and several research questions: R1 (phrase-first melody) and R2 (goal-directed harmony) sit on `theory` + `rng` — `theory.pistonSuccessors()` + `rng.weighted()` is a directly usable pair for R2's goal-directed chord walk, and `theory.stability()` gives R1 a phrase-final-note quality test; R4 (cadence detector + motif-recurrence metric) needs the symbolic representation these establish. Proven in `experiments/` testbeds (Phase 1 permits non-public prototypes; see [findings-shared-lib-foundation](findings-shared-lib-foundation.md)) — the remaining validation gap before an engine depends on them is real-audio timing (item 2 below), not the pure logic.
 2. **Audible layer** — `synth`, `fx`. Needed for anything that makes level-matched sound; validate against the parameter tables in [synthesis-recipes](synthesis-recipes.md) and the loudness targets in [effects-and-mixing](effects-and-mixing.md), ideally with the OfflineAudioContext render-and-measure harness.
 3. **Improvement loop** — `analysis`. Render → extract features → score, per [computational-music-metrics](computational-music-metrics.md); this is what lets the engine (and future sessions) measure output, not just hear it.
 4. **Optional** — `pattern`, and any DSP-heavy `AudioWorklet` voices (the [worklet](audio-worklets-and-performance.md) escape hatch), adopted only when a specific engine needs them.
 
 None of this is public engine code — it is dev-time design and prototyping, allowed in Phase 1. The libraries become real code when the first engine is built (Phase 2, gated on Tom).
 
-## Prototype status (2026-07-07)
+## Prototype status (2026-07-08)
 
-The two cheapest foundation modules are prototyped and validated headless in `experiments/lib/` — see [findings-shared-lib-foundation](findings-shared-lib-foundation.md) for the full results:
+**All three foundation modules are now prototyped and validated headless in `experiments/lib/`** — see [findings-shared-lib-foundation](findings-shared-lib-foundation.md) for the full results:
 
 - **`rng`** (`experiments/lib/rng.js`) — seeded PRNG (mulberry32), named independent streams, the distributions (uniform, weighted, Gaussian, 1/f pink noise), and Euclidean rhythm (Bjorklund). Euclidean output proven maximally even for all E(k,n), 1 ≤ k ≤ n ≤ 32; determinism and named-stream independence tested.
 - **`transport`** (`experiments/lib/transport.js`) — `MusicClock` (beats↔seconds) and a lookahead `Scheduler` with injected clock/timer so the same code is headless-testable in Node and drives a real `AudioContext` in the browser.
+- **`theory`** (`experiments/lib/theory.js`, added 2026-07-08) — note-name/MIDI/frequency conversion, size-only interval naming, 13 named 12-TET scales, Krumhansl-Kessler tonal-hierarchy weights, generic tertian chord construction (triads/sevenths/roman numerals from any 7-note scale), T/S/D functional labels, Piston's root-progression table and rock-corpus chord priors pre-weighted for a seeded picker, and cents-based tuning tables (slendro, a rast-like approximation, JI ratios) for the non-12-TET traditions. Cross-checked at dev time against Tonal (oracle only, never a dependency) across all 12 tonics for every scale and for major/natural-minor diatonic chords: zero mismatches.
 
-`node experiments/tests/run.js` runs 25 passing tests (several containing many internal checks — e.g. the Euclidean-evenness test alone checks all 528 `(k,n)` pairs with 1 ≤ k ≤ n ≤ 32). Two things the prototype settled:
+`node experiments/tests/run.js` runs 51 passing tests (several containing many internal checks — e.g. the Euclidean-evenness test alone checks all 528 `(k,n)` pairs with 1 ≤ k ≤ n ≤ 32). Things the prototypes settled:
 
 - **Format = dual-format (UMD-lite) classic scripts, not ES modules.** A vendored library must load from `file://`; a classic `<script src>` does, but a cross-file ES-module `import` is CORS-blocked under `file://`. So each module is one file that works as both a Node `require` and a browser global (`window.AM.*`). This resolves the granularity/format open question below.
 - **Injected dependencies** (pass the `AudioContext`/timing source in; no globals) is the standing pattern for the Web-Audio libraries, and is what makes them testable.
+- **Oracle practice** (resolved, see below): a dev-time-only `npm install` of a reference library into a scratch directory outside the repo, used to compare *outputs* (never code) at a wide sweep, backed by a smaller set of committed, dependency-free regression tests that encode the facts that matter.
 
-Still open before an engine depends on these: the `theory` module (the third foundation piece), and validating the audio layer's *real* timing with an OfflineAudioContext render-and-measure harness (queue item 7) — the Node suite proves the logic, not the audio.
+Still open before an engine depends on these: validating the audio layer's *real* timing with an OfflineAudioContext render-and-measure harness (queue item 7) — the Node suite proves the logic, not the audio. This is now the only remaining item before the foundation trio is engine-ready.
 
 ## Implications for generative engines
 
@@ -92,11 +94,11 @@ Still open before an engine depends on these: the `theory` module (the third fou
 - **Where does the canonical source live?** A dev-time `lib/` at the repo root, a `docs/lib/` promoted at Phase 2, or authored inside the first engine and extracted once a second engine needs it? Decide at first engine build; leaning toward extract-on-second-use to avoid speculative abstraction.
 - **Granularity.** One "std" library or several small modules? *Resolved toward several small modules* by the 2026-07-07 prototype ([findings-shared-lib-foundation](findings-shared-lib-foundation.md)): each is one dual-format (UMD-lite) file that an engine vendors by copy and loads with a classic `<script src>` (the file://-safe format).
 - **Shared vs specialized.** How much synthesis is genuinely shareable when a lo-fi engine and a classical engine want very different timbres? Working answer: shared primitives (`synth`'s voice factories, envelopes) with engine-specific presets and voices layered on top.
-- **Oracle practice.** Formalize keeping Tonal (and similar) as dev-only test oracles — recorded here so a future session does not mistake an oracle for a shipped dependency.
+- **Oracle practice** *(resolved 2026-07-08)*: keep the reference library entirely outside the repo (a scratch-directory `npm install`, no `package.json`/`node_modules` committed), compare only its *outputs* against the module's outputs in a wide dev-time sweep, then encode the facts that matter as permanent, dependency-free, committed test assertions. Full method and results in [findings-shared-lib-foundation](findings-shared-lib-foundation.md)'s "Oracle validation" section (used for `theory` against Tonal, zero mismatches across 128 MIDI notes, 156 scale instances, 24 diatonic-key instances).
 
 ## Related pages
 
-- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) — the 2026-07-07 prototype of `rng` + `transport` and its validation
+- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) — the `rng` + `transport` + `theory` prototypes and their validation (Tonal oracle results for `theory`)
 - [javascript-music-libraries](javascript-music-libraries.md) — the third-party survey these lessons are mined from
 - [engine-architecture](engine-architecture.md) — the module pipeline these libraries populate
 - [scheduling-and-timing](scheduling-and-timing.md), [synthesis-recipes](synthesis-recipes.md), [effects-and-mixing](effects-and-mixing.md), [web-audio-fundamentals](web-audio-fundamentals.md) — implementation sources for `transport`, `synth`, `fx`

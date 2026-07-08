@@ -3,6 +3,10 @@
 Append-only chronological record of wiki operations, newest first. Entry format per [conventions](conventions.md):
 `## [YYYY-MM-DD] op | Title` where op ∈ session · create · update · ingest · lint · query · findings.
 
+## [2026-07-08] findings | theory module built, tested, and Tonal-oracle-validated; foundation trio complete
+
+Built `experiments/lib/theory.js` (session 016), the third and last shared-library foundation module named in `shared-libraries.md`: note/MIDI/frequency conversion, interval naming, 13 named 12-TET scales, Krumhansl-Kessler tonal-hierarchy weights, generic tertian chord construction (any 7-note scale, not per-scale lookup tables), T/S/D functional labels, Piston's root-progression table and rock-corpus priors pre-weighted for a seeded picker, and cents-based tuning tables for non-12-TET traditions — all transcribed from `harmony.md` and `tuning-and-scales.md`. Added 26 tests (`experiments/tests/theory.test.js`, `node experiments/tests/run.js` → 51 total passing) plus a dev-time-only cross-check against Tonal (`@tonaljs/tonal`, installed to a scratch directory outside the repo, never committed) covering all 128 MIDI notes, every scale across all 12 tonics, and major/natural-minor diatonic chords across all 12 tonics: zero mismatches. Updated `findings-shared-lib-foundation.md` with the new module and an "Oracle validation" section that resolves `shared-libraries.md`'s open "oracle practice" question. Full narrative: `logs/sessions/016-2026-07-08.md`.
+
 ## [2026-07-07] session | Session 015 — verify the last 3 draft pages (improvement-loop, shared-libraries, indian-popular-and-film-music); all 63 wiki pages now reviewed
 
 Closed out the standing verify-and-mature queue item (task-queue item 1): the three pages still `draft` — `improvement-loop.md`, `shared-libraries.md`, `indian-popular-and-film-music.md` — were each checked by a dedicated parallel subagent and promoted to `reviewed`. This completes the first full pass over the entire wiki: every one of the 60 content pages plus the `findings` page is now `reviewed`. Individual page entries below; full narrative: `logs/sessions/015-2026-07-07.md`.

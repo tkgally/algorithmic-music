@@ -91,7 +91,7 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Findings (experiment results)
 
-- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) ·reviewed — Results from prototyping the first two first-party shared-library modules (seeded rng + lookahead transport) in experiments/ — what was built, what the 25-test headless suite proves, and the file:// module-format finding that fixes the vendoring format.
+- [findings-shared-lib-foundation](findings-shared-lib-foundation.md) ·reviewed — Results from prototyping all three first-party shared-library foundation modules (seeded rng, lookahead transport, and theory) in experiments/ — what was built, what the 51-test headless suite plus a dev-time Tonal oracle check prove, and the file:// module-format and oracle-practice findings that fix the vendoring and validation approach.
 
 ## Meta
 
