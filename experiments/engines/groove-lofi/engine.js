@@ -56,7 +56,7 @@
 
   const { composer, theory, transport, synth, fx } = deps;
   const NAME = 'groove-lofi';
-  const VERSION = '0.2.0';
+  const VERSION = '0.2.1';
   const BEATS_PER_BAR = 4;
   const DEFAULTS = { bpm: 82, mood: 'mellow', tonic: null, bars: 24, swing: 0.6, reverb: 0.24, volume: 0.62, vinyl: 0.5 };
 

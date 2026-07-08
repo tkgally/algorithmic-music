@@ -32,23 +32,56 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  // Clamp a gain ramp so the envelope always starts from true zero (no click),
-  // schedule the standard attack/decay/release shape used by every voice, and
-  // bring the tail to EXACT zero with a short linear ramp before stop (an
-  // exponential ramp cannot reach 0; stopping at ~-56 dB leaves a faint click on
-  // exposed notes — the very artifact reported on engine 01's final note).
-  // Returns { gain, stopAt }. `peak` target level; `attack`/`release` in seconds.
-  function envGain(ctx, t, durSec, peak, attack, release) {
+  // The output-gain envelope shared by most voices. Two anti-artifact disciplines:
+  //
+  // (1) TRUE-ZERO tail: an exponential ramp cannot reach 0, and stopping at ~-56 dB
+  //     leaves a faint click on exposed notes; a short final LINEAR ramp to exact 0
+  //     before the source stops removes it (the v0.2 final-note fix).
+  //
+  // (2) NO FLAT-HOLD CORNER (v0.3.1): the old shape held the gain perfectly FLAT at
+  //     the peak and then switched abruptly to a fast exponential release. That
+  //     slope discontinuity splatters a broadband energy burst — an audible
+  //     "static" puff — at the release onset, which on a long note falls in the
+  //     MIDDLE of the note (the artifact a listener localized to the extended notes
+  //     at phrase ends). The fix is to GLIDE, never hold flat: setTargetAtTime eases
+  //     the gain from the attack peak toward a sustain level, then eases it toward
+  //     silence at the release — both are smooth (no corner). `sustain` (0..1, of
+  //     peak) picks the character: low = a struck voice that decays like a real
+  //     electric piano; high = a sustained pad that barely droops. Either way there
+  //     is no discontinuity in the envelope OR its slope, so no puff.
+  //
+  // Returns { gain, stopAt }. `peak` target level; `attack`/`release` in seconds;
+  // `sustain` fraction of peak held (default 0.85 — gently sustained, corner-free).
+  // Implemented with ONLY exponential ramps (each has a defined endpoint), never a
+  // ramp after setTargetAtTime — that transition has an implementation-defined
+  // start value that differs between Chrome/Firefox/Safari, and the output must be
+  // identical in every browser.
+  function envGain(ctx, t, durSec, peak, attack, release, sustain) {
     const g = ctx.createGain();
     const p = Math.max(peak, 0.0002);
+    sustain = sustain == null ? 0.85 : sustain;
     const atkEnd = t + attack;
     const end = t + Math.max(durSec, attack + 0.02);
-    const relStart = Math.max(atkEnd, end - release);
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(p, atkEnd);
-    g.gain.setValueAtTime(p, relStart);
-    g.gain.exponentialRampToValueAtTime(0.0016, end);          // release to ~-56 dB
-    g.gain.linearRampToValueAtTime(0, end + 0.006);            // then to TRUE zero — no stop click
+    g.gain.exponentialRampToValueAtTime(p, atkEnd);            // attack
+    if (sustain <= 0.35) {
+      // STRUCK voices (electric piano, plucked bass): ONE continuous exponential
+      // decay from the attack peak to a low floor across the whole note. There is
+      // NO sustain shelf and therefore NO mid-note corner — the only slope change
+      // is the final ramp to zero, which is at the note's quiet end, not its
+      // middle. This is what removes the release-onset "static" puff on the
+      // exposed melody, and it is also the natural amplitude shape of a real EP.
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0016, 0.04 * p), end);
+    } else {
+      // SUSTAINED voices (pad/strings/drone): a GENTLE decay to the sustain level
+      // (never a flat shelf) then a release that continues the decay — the corner
+      // is small (decay->decay, not flat->steep) and these voices have long
+      // releases, so any residual is negligible.
+      const relStart = Math.max(atkEnd + 0.01, end - release);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0016, sustain * p), relStart);
+      g.gain.exponentialRampToValueAtTime(0.0016, end);
+    }
+    g.gain.linearRampToValueAtTime(0, end + 0.008);           // then to TRUE zero — no stop click
     return { gain: g, stopAt: end + 0.02 };
   }
 
@@ -96,7 +129,7 @@
     const index = 1.0 + 1.5 * vel;                     // brighter when louder (kept moderate: a soft, singing lead)
     dev.gain.setValueAtTime(index * freq, time);
     dev.gain.setTargetAtTime(index * freq * 0.12, time, Math.max(0.06, durSec * 0.25)); // brightness decay
-    const env = envGain(ctx, time, durSec, 0.34 * (0.5 + 0.5 * vel), 0.006, Math.min(0.5, 0.25 + durSec * 0.3));
+    const env = envGain(ctx, time, durSec, 0.34 * (0.5 + 0.5 * vel), 0.006, Math.min(0.5, 0.25 + durSec * 0.3), 0.22); // struck EP: decays
     mod.connect(dev); dev.connect(car.frequency); car.connect(env.gain); env.gain.connect(dest);
     car.start(time); mod.start(time);
     car.stop(env.stopAt); mod.stop(env.stopAt);
@@ -143,7 +176,7 @@
     lp.Q.setValueAtTime(0.7, time);
     // slow cutoff drift DOWNWARD so the pad settles and darkens as it rings
     lp.frequency.setTargetAtTime(Math.max(650, freq * 2.6), time + durSec * 0.3, durSec * 0.6);
-    const env = envGain(ctx, time, durSec, 0.20 * (0.6 + 0.4 * vel), Math.min(0.5, 0.12 + durSec * 0.15), Math.min(1.2, 0.3 + durSec * 0.5));
+    const env = envGain(ctx, time, durSec, 0.20 * (0.6 + 0.4 * vel), Math.min(0.5, 0.12 + durSec * 0.15), Math.min(1.2, 0.3 + durSec * 0.5), 0.86); // ensemble pad: sustained
     mix.connect(lp); lp.connect(env.gain); env.gain.connect(dest);
     for (const o of oscs) o.start(time);
     for (const o of oscs) o.stop(env.stopAt);
@@ -166,7 +199,7 @@
     lp.type = 'lowpass';
     lp.frequency.setValueAtTime(Math.max(160, freq * 2.4), time);
     lp.Q.setValueAtTime(0.6, time);
-    const env = envGain(ctx, time, durSec, 0.42 * (0.7 + 0.3 * vel), 0.012, Math.min(0.4, 0.2 + durSec * 0.2));
+    const env = envGain(ctx, time, durSec, 0.42 * (0.7 + 0.3 * vel), 0.012, Math.min(0.4, 0.2 + durSec * 0.2), 0.4); // bass: partial decay
     saw.connect(sawG); sawG.connect(lp); sine.connect(lp); lp.connect(env.gain); env.gain.connect(dest);
     sine.start(time); saw.start(time);
     sine.stop(env.stopAt); saw.stop(env.stopAt);
@@ -227,7 +260,7 @@
     const cdepth = ctx.createGain(); cdepth.gain.setValueAtTime(baseCut * 0.35, time);
     clfo.connect(cdepth); cdepth.connect(lp.frequency);
     const env = envGain(ctx, time, durSec, 0.17 * (0.6 + 0.4 * vel),
-      Math.min(2.2, 0.6 + durSec * 0.25), Math.min(4.0, 1.0 + durSec * 0.5));
+      Math.min(2.2, 0.6 + durSec * 0.25), Math.min(4.0, 1.0 + durSec * 0.5), 0.92); // ambient pad: fully sustained
     mix.connect(lp); lp.connect(env.gain); env.gain.connect(dest);
     for (const o of oscs) o.start(time);
     clfo.start(time);
@@ -248,7 +281,7 @@
     const fifthG = ctx.createGain(); fifthG.gain.value = 0.16;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.max(220, freq * 4); lp.Q.value = 0.5;
     const env = envGain(ctx, time, durSec, 0.4 * (0.7 + 0.3 * vel),
-      Math.min(2.0, 0.5 + durSec * 0.2), Math.min(3.0, 0.8 + durSec * 0.4));
+      Math.min(2.0, 0.5 + durSec * 0.2), Math.min(3.0, 0.8 + durSec * 0.4), 0.92); // drone: fully sustained
     sub.connect(lp); fifth.connect(fifthG); fifthG.connect(lp); lp.connect(env.gain); env.gain.connect(out); out.connect(dest);
     sub.start(time); fifth.start(time);
     sub.stop(env.stopAt); fifth.stop(env.stopAt);
@@ -358,7 +391,7 @@
     dev.gain.setTargetAtTime(index * freq * 0.1, time, Math.max(0.05, durSec * 0.2));
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
     lp.frequency.setValueAtTime(Math.min(2600, freq * 6), time); lp.Q.setValueAtTime(0.4, time);
-    const env = envGain(ctx, time, durSec, 0.2 * (0.5 + 0.5 * vel), 0.006, Math.min(0.7, 0.25 + durSec * 0.35));
+    const env = envGain(ctx, time, durSec, 0.2 * (0.5 + 0.5 * vel), 0.006, Math.min(0.7, 0.25 + durSec * 0.35), 0.24); // struck lo-fi EP: decays
     mod.connect(dev); dev.connect(car.frequency); car.connect(lp); lp.connect(env.gain); env.gain.connect(dest);
     car.start(time); mod.start(time);
     car.stop(env.stopAt); mod.stop(env.stopAt);
