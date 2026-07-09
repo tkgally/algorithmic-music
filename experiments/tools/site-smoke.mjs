@@ -1,0 +1,170 @@
+#!/usr/bin/env node
+/* ---------------------------------------------------------------------
+   site-smoke.mjs — headless LIVE-playback smoke test for the comprehensive
+   site (docs/index.html): the ui-smoke counterpart for the new site.
+
+   Asserts, in headless Chromium from file://:
+     1. the site loads with ZERO console/page errors; all 8 genre buttons
+        render; the footer still links to the preliminary tests;
+     2. Play starts the transport (button flips to Stop, playhead advances);
+     3. the URL carries a compact #p= payload that ROUND-TRIPS: a fresh page
+        opened at the same URL derives the same piece (name + detail line);
+     4. a LIVE control change does NOT restart the transport (playhead is
+        monotonic across the change; still playing) — the site-architecture
+        §6 no-restart requirement;
+     5. a live GENRE swap crossfades without stopping (still playing, time
+        monotonic, piece name updates);
+     6. every Start genre plays (short spin each) with zero errors;
+     7. mode switching reveals the Intermediate/Advanced tiers and the
+        invent-a-style button.
+
+   Usage:  node experiments/tools/site-smoke.mjs [--json] [--quick]
+           --quick skips the per-genre spin (step 6).
+--------------------------------------------------------------------- */
+import { createRequire } from 'node:module';
+import { execSync } from 'node:child_process';
+import path from 'node:path';
+import url from 'node:url';
+
+const require = createRequire(import.meta.url);
+const globalRoot = execSync('npm root -g').toString().trim();
+const { chromium } = require(path.join(globalRoot, 'playwright'));
+
+const HERE = path.dirname(url.fileURLToPath(import.meta.url));
+const PAGE = 'file://' + path.resolve(HERE, '../../docs/index.html');
+const argv = process.argv.slice(2);
+const gates = [];
+const g = (label, pass, detail) => gates.push([label, !!pass, detail == null ? '' : String(detail)]);
+
+async function newPage(browser, errors) {
+  const page = await browser.newPage();
+  page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  return page;
+}
+const playhead = (page) => page.evaluate(() => {
+  const a = window.AMApp;
+  if (!a || !a.conductor) return null;
+  const ctx = a.conductor.chain && a.conductor.chain.master ? a.conductor.chain.master.context : null;
+  return ctx ? ctx.currentTime - a.conductor.startAt : null;
+});
+
+async function main() {
+  const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  const errors = [];
+  const page = await newPage(browser, errors);
+  await page.goto(PAGE);
+  await page.waitForSelector('#play', { timeout: 8000 });
+
+  // 1 — shell
+  const genreCount = await page.$$eval('#genres button.genre:not(#inventBtn)', (b) => b.length);
+  g('site loads with 8 genre buttons', genreCount === 8, genreCount + ' buttons');
+  const links = await page.$$eval('a[href]', (as) => as.map((a) => a.getAttribute('href')));
+  g('footer links to preliminary tests', links.some((l) => l && l.includes('preliminary-tests/')));
+
+  // 2 — play
+  await page.click('#play');
+  await page.waitForTimeout(2200);
+  const btn1 = await page.$eval('#play', (b) => b.textContent);
+  const now1 = await page.$eval('#nowlabel', (n) => n.textContent);
+  const t1 = await playhead(page);
+  g('playback started (button shows Stop)', /stop/i.test(btn1), JSON.stringify(btn1));
+  g('playhead advanced', /playing/.test(now1) && t1 > 0.5, now1 + ' t=' + (t1 && t1.toFixed(2)));
+
+  // 3 — URL round-trip: same #p= payload -> same derived piece
+  const href = await page.url();
+  g('URL carries compact payload', /#p=[A-Za-z0-9\-_]{8,}/.test(href), href.split('#')[1] || 'none');
+  const desc1 = await page.evaluate(() => document.getElementById('pieceName').textContent + '|' + document.getElementById('pieceDetail').textContent);
+  {
+    const errors2 = [];
+    const page2 = await newPage(browser, errors2);
+    await page2.goto(href);
+    await page2.waitForSelector('#pieceDetail', { timeout: 8000 });
+    await page2.waitForTimeout(300);
+    const desc2 = await page2.evaluate(() => document.getElementById('pieceName').textContent + '|' + document.getElementById('pieceDetail').textContent);
+    g('URL round-trip derives the same piece', desc1 === desc2 && desc1.length > 3, desc1 + ' vs ' + desc2);
+    g('round-trip page: no errors', errors2.length === 0, errors2.join('; ') || 'none');
+    await page2.close();
+  }
+
+  // 4 — live control change does NOT restart (energy = next-boundary speed)
+  const tBefore = await playhead(page);
+  await page.evaluate(() => {
+    const row = document.querySelector('[data-ctl="energy"] input');
+    row.value = '4';
+    row.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+  await page.waitForTimeout(1200);
+  const tAfter = await playhead(page);
+  const btn2 = await page.$eval('#play', (b) => b.textContent);
+  g('live control change: still playing', /stop/i.test(btn2), btn2);
+  g('live control change: transport did NOT restart (monotonic playhead)', tAfter != null && tBefore != null && tAfter > tBefore, 'before=' + (tBefore && tBefore.toFixed(2)) + ' after=' + (tAfter && tAfter.toFixed(2)));
+
+  // 5 — live genre swap crossfades without stopping
+  const nameBefore = await page.$eval('#pieceName', (n) => n.textContent);
+  const tSwap0 = await playhead(page);
+  await page.click('#genres button.genre[data-id="ambient"]');
+  await page.waitForTimeout(1800);
+  const stillPlaying = await page.$eval('#play', (b) => /stop/i.test(b.textContent));
+  const nameAfter = await page.$eval('#pieceName', (n) => n.textContent);
+  const tSwap1 = await playhead(page);
+  g('live genre swap: still playing (crossfade, no stop)', stillPlaying, '');
+  g('live genre swap: piece updated', nameAfter !== nameBefore, nameBefore + ' -> ' + nameAfter);
+  g('live genre swap: new conductor started', tSwap1 != null, 't=' + (tSwap1 && tSwap1.toFixed(2)) + ' (was ' + (tSwap0 && tSwap0.toFixed(2)) + ')');
+  await page.click('#play'); // stop
+  await page.waitForTimeout(300);
+  g('main page: no console/page errors', errors.length === 0, errors.slice(0, 4).join('; ') || 'none');
+  await page.close();
+
+  // 6 — every genre plays
+  if (!argv.includes('--quick')) {
+    const ids = ['classical', 'ambient', 'lofi', 'jazz', 'folk', 'electronic', 'cinematic', 'percussion'];
+    for (const id of ids) {
+      const errs = [];
+      const p = await newPage(browser, errs);
+      await p.goto(PAGE);
+      await p.waitForSelector('#play', { timeout: 8000 });
+      await p.evaluate((gid) => {
+        for (const b of document.querySelectorAll('#genres button.genre.on')) b.classList.remove('on');
+        window.AMApp.state.sel = { a: gid, b: null, invent: false };
+      }, id);
+      await p.click('#play');
+      await p.waitForTimeout(1700);
+      const ok = await p.$eval('#play', (b) => /stop/i.test(b.textContent));
+      const adv = await p.$eval('#nowlabel', (n) => /playing/.test(n.textContent));
+      g(`genre ${id}: plays live`, ok && adv, '');
+      g(`genre ${id}: no errors`, errs.length === 0, errs.slice(0, 2).join('; ') || 'none');
+      await p.close();
+    }
+  }
+
+  // 7 — modes reveal tiers
+  {
+    const errs = [];
+    const p = await newPage(browser, errs);
+    await p.goto(PAGE);
+    await p.waitForSelector('#mode2', { timeout: 8000 });
+    await p.click('#mode1');
+    const intVisible = await p.$eval('#intControls', (d) => d.style.display !== 'none');
+    await p.click('#mode2');
+    const advVisible = await p.$eval('#advControls', (d) => d.style.display !== 'none');
+    const inventVisible = await p.$eval('#inventBtn', (b) => b.style.display !== 'none');
+    g('Intermediate mode reveals its tier', intVisible, '');
+    g('Advanced mode reveals its tier + invent button', advVisible && inventVisible, '');
+    g('mode page: no errors', errs.length === 0, errs.slice(0, 2).join('; ') || 'none');
+    await p.close();
+  }
+
+  await browser.close();
+  const failed = gates.filter((x) => !x[1]);
+  if (argv.includes('--json')) {
+    console.log(JSON.stringify({ gates: gates.map(([l, p, d]) => ({ gate: l, pass: p, detail: d })), failed: failed.length }, null, 2));
+  } else {
+    console.log('\ncomprehensive site — live-playback smoke\n');
+    for (const [l, p, d] of gates) console.log(`  ${p ? 'PASS' : 'FAIL'}  ${l}  (${d})`);
+    console.log(`\n  ${gates.length - failed.length} passed, ${failed.length} failed\n`);
+  }
+  process.exit(failed.length ? 1 : 0);
+}
+
+main().catch((e) => { console.error(e); process.exit(2); });

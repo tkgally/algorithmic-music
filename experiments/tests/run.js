@@ -11,4 +11,5 @@ require('./ambient.test');
 require('./groove.test');
 require('./expressive.test');
 require('./percussion.test');
+require('./site.test');
 done();
