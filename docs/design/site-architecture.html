@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site &amp; library architecture — algorithmic-music design doc</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#faf9f7; --fg:#1c1a17; --muted:#6d675f; --line:#e5e1da; --panel:#ffffff; --accent:#6a5acd;
+    --soft:#f3f1ec; --th:#efece6; --ok:#3a8a5a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17151a; --fg:#ece9e4; --muted:#9a938a; --line:#2c2833; --panel:#201d26; --accent:#9d8cff; --soft:#1c1a22; --th:#26222e; --ok:#6fce97; }
+  }
+  * { box-sizing: border-box; }
+  body { font: 16px/1.62 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+  main { max-width: 880px; margin: 0 auto; padding: 2.2rem 1.2rem 5rem; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.9rem; margin: .2rem 0 .3rem; letter-spacing: -0.01em; }
+  h2 { font-size: 1.3rem; margin: 2.6rem 0 .5rem; padding-top: .6rem; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+  p { margin: .6rem 0; }
+  .lede { color: var(--fg); font-size: 1.06rem; }
+  .muted { color: var(--muted); }
+  .up { font-size: .9rem; margin: 0 0 1rem; }
+  .ok { background: var(--soft); border: 1px solid var(--line); border-left: 3px solid var(--ok); border-radius: 8px; padding: .55rem .95rem; margin: .9rem 0; font-size: .95rem; }
+  .ok b { color: var(--fg); }
+  .note { background: var(--soft); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: .6rem .95rem; margin: 1rem 0; font-size: .95rem; }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0 1.2rem; font-size: .88rem; }
+  .scroll { overflow-x: auto; }
+  th, td { text-align: left; vertical-align: top; padding: .42rem .55rem; border-bottom: 1px solid var(--line); }
+  th { background: var(--th); font-size: .8rem; }
+  td code, p code, li code, pre code { background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 0 .3rem; font-size: .86em; }
+  pre { background: var(--soft); border: 1px solid var(--line); border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .84rem; line-height: 1.5; }
+  pre code { background: none; border: none; padding: 0; }
+  ul, ol { padding-left: 1.25rem; }
+  li { margin: .3rem 0; }
+  .toc { columns: 2; column-gap: 1.4rem; font-size: .93rem; margin: 1rem 0 0; }
+  .toc a { display: block; padding: .12rem 0; }
+  .foot { color: var(--muted); font-size: .87rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: 1.1rem; }
+  .status { display:inline-block; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:999px; padding:.08rem .55rem; vertical-align: middle; }
+  .mile { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; }
+  @media (max-width: 640px){ .toc { columns: 1; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="up muted"><a href="../index.html">← algorithmic-music</a> · <a href="index.html">design docs</a></p>
+  <h1>Site &amp; library architecture <span class="status">Draft for review</span></h1>
+  <p class="lede">The third and final Phase-3b design document: how the comprehensive site is actually organized as files and modules, and — the load-bearing part — the <b>just-in-time composition loop</b> that lets a piece play forever, respond to live control changes without restarting, and still be perfectly reproducible from a seed. It turns the <a href="control-taxonomy.html">control taxonomy</a> (what the user sets) and the <a href="style-vector-schema.html">style-vector schema</a> (the data those settings become) into a buildable plan.</p>
+
+  <div class="ok">
+    <b>Purpose.</b> This is the blueprint a build session works from. It fixes the folder layout, the shared-library module list, the runtime pipeline, the determinism rules, and a <b>walking-skeleton-first build order</b> so that a working site exists early and widens from there. It defers only tuning (the exact preset numbers) and content polish to the build and to later improvement loops.
+  </div>
+
+  <nav class="toc">
+    <a href="#scope">1 · Scope &amp; constraints</a>
+    <a href="#layout">2 · Folder layout</a>
+    <a href="#modules">3 · The module list</a>
+    <a href="#pipeline">4 · The runtime pipeline</a>
+    <a href="#jit">5 · The just-in-time loop</a>
+    <a href="#live">6 · Live changes in the loop</a>
+    <a href="#determinism">7 · Determinism &amp; seeding</a>
+    <a href="#url">8 · Compact URL state</a>
+    <a href="#reuse">9 · Reusing the engines</a>
+    <a href="#build">10 · Build order &amp; validation</a>
+    <a href="#decisions">11 · Decisions &amp; open questions</a>
+  </nav>
+
+  <h2 id="scope">1 · Scope &amp; constraints</h2>
+  <p>The hard constraints, unchanged from <code>engine-architecture.md</code> and the vision:</p>
+  <ul>
+    <li><b>One self-contained folder, no build step, no server, no network at runtime.</b> The site runs by opening <code>docs/index.html</code> from <code>file://</code> or GitHub Pages.</li>
+    <li><b>Vanilla HTML/CSS/JS + Web Audio only.</b> All libraries are original, first-party, and loaded as <b>classic scripts</b> via <code>&lt;script src&gt;</code> into one global namespace — <i>not</i> ES modules, because cross-file <code>import</code> is CORS-blocked under <code>file://</code> (the settled finding in <code>findings-shared-lib-foundation.md</code>). Instrumental only. Public-domain CC0; the UI is upfront that everything is built by Claude.</li>
+    <li><b>Determinism:</b> <code>(version, seed, pinned settings) → piece</code>, exactly — the one exception being live tweaks (§6), which is why the shared link is a destination snapshot (schema §8).</li>
+  </ul>
+
+  <h2 id="layout">2 · Folder layout</h2>
+  <p>The site is <code>docs/index.html</code> plus its own subfolders. The preliminary-test engines and the design docs are separate auxiliary folders that happen to share the <code>docs/</code> root (they are not part of the site and the site never depends on them).</p>
+  <div class="scroll">
+  <pre><code>docs/
+  index.html            ← the site: UI shell + &lt;script&gt; includes (the entry point)
+  css/
+    site.css            ← styling (or inline in index.html)
+  lib/                  ← original shared libraries (the reusable core)
+    rng.js  transport.js  theory.js  synth.js  fx.js  analysis.js
+    generators.js  style.js  compose.js  perform.js  serialize.js
+  styles/               ← the eight genre packs (data + any per-genre hooks)
+    classical.js  ambient.js  lofi.js  jazz.js  folk.js
+    electronic.js  cinematic.js  percussion.js  registry.js
+  app.js                ← top-level wiring (URL ↔ state, transport loop, UI events)
+  _selftest.html        ← headless offline-render harness (dev-time, like the engines)
+
+  preliminary-tests/    ← the five engines (auxiliary, unchanged)
+  design/               ← these design docs (auxiliary)</code></pre>
+  </div>
+  <p class="muted">One global namespace object (say <code>window.AM</code>) carries the modules (<code>AM.rng</code>, <code>AM.style</code>, …), the pattern the engines already use. Everything under <code>docs/lib/</code> and <code>docs/styles/</code> is original code; nothing is fetched at runtime.</p>
+
+  <h2 id="modules">3 · The module list</h2>
+  <p>The shared libraries, most already prototyped in <code>experiments/lib/</code> and proven across the five engines; the <b>new</b> ones implement the schema. Each is a classic script assigning to <code>window.AM</code>.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Module</th><th>Responsibility</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td><code>rng</code></td><td>seeded PRNG, named streams, distributions (uniform/normal/1-f), Euclidean/Bjorklund</td><td>exists (experiments/lib)</td></tr>
+      <tr><td><code>transport</code></td><td><code>MusicClock</code> (beats↔seconds, tempo map) + lookahead <code>Scheduler</code></td><td>exists</td></tr>
+      <tr><td><code>theory</code></td><td>notes/MIDI/frequency, intervals, scales, chords, keys, tuning tables</td><td>exists</td></tr>
+      <tr><td><code>synth</code></td><td>the <b>union</b> of every voice built across the 5 engines (keys, strings, bass, rhodes, kick/snare/hat, bell/pad/drone, aria/reed/wire/glass, the percussion bank) + the original-sound-design helpers (microDrift, bodyResonance, onsetTransient) and the intra-note expression helpers</td><td>exists (merge the five vendored copies)</td></tr>
+      <tr><td><code>fx</code></td><td>per-voice buses, parameterizable reverb, master saturation→glue→limiter</td><td>exists</td></tr>
+      <tr><td><code>analysis</code></td><td>pure PCM metrics for the offline-render gates (dev-time only)</td><td>exists</td></tr>
+      <tr><td><code>generators</code></td><td>the three schema generators: <code>resultant(a,b)</code> (Schillinger interference), <code>sieve(...)</code> (Xenakis residue classes), <code>tendency(min,max,t)</code> (Koenig mask). Deterministic.</td><td><b>new</b> (Engine 05 has a sieve to lift)</td></tr>
+      <tr><td><code>style</code></td><td>the <b>heart</b>: the style-vector field definitions + types; the 8 genre <b>presets</b> (center + spreads); <code>sample(seed, region)</code> → a concrete vector; the <b>meld</b> (per-axis parent selection, even balance, compatibility gates); invented-style sampling (novelty budget + signatures); the coherence gate</td><td><b>new</b> (schema doc = its spec)</td></tr>
+      <tr><td><code>compose</code></td><td>the <b>just-in-time composer</b>: <code>nextUnit(vector, position, streams)</code> → Note events for the next bar/phrase, driven entirely by the style vector; generalizes the five engines' composers into style-selected strategies (functional-tonal / modal-drone / groove / ambient-drift / percussion-timeline)</td><td><b>new</b> (adapts the engine composers)</td></tr>
+      <tr><td><code>perform</code></td><td>Note → Performance events: beats→seconds, dynamics arc, microtiming/swing, expression, per the vector's Surface/Expression fields</td><td><b>new</b> (adapts the engine performers)</td></tr>
+      <tr><td><code>serialize</code></td><td>compact versioned <code>base64url</code> encode/decode of <code>(seed + pinned settings)</code> (bit-packed per <code>music-representation-and-notation.md</code>)</td><td><b>new</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note"><b>The composer is the hard, central module.</b> The five engines each proved one composition family. <code>compose</code> unifies them behind one interface (<code>nextUnit</code> returning the next unit's Note events) and picks the family (and its parameters) from the style vector's Material/Evolution fields. It must be <b>incremental</b> — able to produce just the next bar/phrase given the current position and vector — which is what makes §5 and §6 possible. This is the biggest single build task; scope the walking skeleton (§10) around getting <i>one</i> family working end-to-end first.</p>
+
+  <h2 id="pipeline">4 · The runtime pipeline</h2>
+  <p>One directed flow, from a URL to sound:</p>
+  <div class="scroll">
+  <pre><code>URL hash ──▶ serialize.decode ──▶ { seed, settings }
+                                        │
+                              style.sample / style.meld
+                                        │
+                                 style vector  ◀── (mutable; UI writes here live)
+                                        │
+   transport.Scheduler ──lookahead──▶ compose.nextUnit(vector, pos) ──▶ Note events
+                                        │
+                              perform.realize(notes, vector) ──▶ Performance events
+                                        │
+                                 synth + fx ──▶ Web Audio ──▶ speakers
+                                        │
+                              (playhead, section) ──▶ UI visualization</code></pre>
+  </div>
+  <p>The UI reads the seed/settings out and writes them into the URL; the <b>conductor</b> in <code>app.js</code> owns the mutable style vector and the current position, and drives the scheduler.</p>
+
+  <h2 id="jit">5 · The just-in-time composition loop</h2>
+  <p>The engines compose the whole piece up front, then play it. The site instead composes <b>a little ahead of the playhead</b>, so the future is always still open. Concretely, the conductor keeps a small horizon (a bar or two) filled ahead of the audio clock:</p>
+  <pre><code>// conductor tick (called by the scheduler's lookahead)
+while (composedThroughBeat &lt; clock.now + HORIZON) {
+  const unit = compose.nextUnit(vector, position, streams); // reads the CURRENT vector
+  const perf = perform.realize(unit, vector, position);
+  synth.schedule(perf, fx.buses);
+  position = advance(position, unit);        // bar/phrase/section bookkeeping
+  composedThroughBeat += unit.lengthBeats;
+}</code></pre>
+  <p>Because <code>nextUnit</code> reads the current vector each call, anything past the horizon reflects the latest settings — no recomposition of the past, no restart. The horizon is a few hundred ms (bounded by the scheduler lookahead), short enough that changes feel immediate and long enough to stay glitch-free.</p>
+
+  <h2 id="live">6 · Live changes in the loop</h2>
+  <p>A control change mutates the style vector; how fast it is <i>heard</i> is the control's declared response speed (taxonomy §8), which maps onto where in the loop it lands:</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Speed</th><th>Fields</th><th>Mechanism</th></tr></thead>
+    <tbody>
+      <tr><td><b>Instant</b></td><td>Surface (reverb, brightness, volume, expression amount, width)</td><td>applied straight to the live <code>fx</code>/<code>synth</code> params (AudioParam ramps); already-scheduled notes ramp in place</td></tr>
+      <tr><td><b>Next boundary</b></td><td>Material &amp; per-voice (density, mode, palette, swing, meter, lead)</td><td>the very next <code>compose.nextUnit</code> call reads the new value — lands at the next bar/phrase</td></tr>
+      <tr><td><b>Re-plan</b></td><td>Evolution/form; a <b>genre or blend swap</b></td><td>recompute the remaining trajectory from the current position; a genre/blend swap runs a <b>two-bar crossfade</b> — the outgoing style keeps composing for two bars under a fade-out bus while the incoming style composes on a fade-in bus, then the outgoing bus stops</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="ok"><b>The two-bar crossfade</b> (Tom's call) is a pair of <code>fx</code> sub-buses with a 2-bar equal-power fade; both styles run their own JIT loop for the overlap, so the seam is a real musical dissolve rather than a cut. Small changes need no crossfade.</div>
+  <p><b>Determinism note:</b> with no live changes, the loop is a pure function of <code>(seed, settings)</code> — the RNG streams advance identically every play. A live change perturbs the stream state going forward, so the exact live result depends on <i>when</i> the change happened; that is why the shared link stores the destination snapshot, not the gesture history (schema §8).</p>
+
+  <h2 id="determinism">7 · Determinism &amp; seeding</h2>
+  <ul>
+    <li><b>Named RNG streams</b> (from <code>rng</code>): separate deterministic streams for structure, melody, harmony, rhythm, timbre, and performance, all derived from the one seed — so adding a note to one layer doesn't shift another (the engines already rely on this).</li>
+    <li><b>The vector gates every draw:</b> <code>compose</code>/<code>perform</code> never call raw random — they sample within the vector's fields and spreads, so the same <code>(seed, vector)</code> yields the same notes.</li>
+    <li><b>Auto vs pinned:</b> an <code>auto</code> control is filled by the seed within the genre region; a pinned control is fixed and encoded in the URL. Start is almost-all-auto; Advanced pins more.</li>
+    <li><b>Offline == online:</b> the same pipeline runs under <code>OfflineAudioContext</code> for the render gates, so validation reproduces exactly what a listener hears (the engines' proven approach).</li>
+  </ul>
+
+  <h2 id="url">8 · Compact URL state</h2>
+  <p><code>serialize</code> encodes <code>seed + only the pinned settings</code> (auto fields cost nothing — the seed re-derives them) into a versioned, bit-packed <code>base64url</code> tail: a small version tag, then fixed-width fields (an 8-way genre enum = 3 bits, a 64-step slider = 6 bits, the seed = 32 bits, a second genre + even-balance flag for a meld). The version tag lets old links survive schema growth. The seed is shown, editable, and copy-to-clipboard. The URL always mirrors the current (destination) state (schema §8). Full bit-layout design: <code>music-representation-and-notation.md</code>.</p>
+
+  <h2 id="reuse">9 · Reusing the engines</h2>
+  <p>The site is not a rewrite — it generalizes proven parts. What lifts directly:</p>
+  <ul>
+    <li><b>Synth voices &amp; fx</b> — the whole accumulated palette (11 percussion voices, 4 expressive voices, drums, Rhodes, bell/pad/drone, keys/strings/bass) and the master chain, merged into one <code>synth</code>/<code>fx</code>.</li>
+    <li><b>Composition strategies</b> — tonal-classical's phrase/cadence + rounded-ternary form; ambient's incommensurable-loop drift; groove's swing/backbeat/velocity-hierarchy; cantabile's structural-weight → expression; percussion's timeline + interlock + density-arc + the 9 intensity arcs and the meter-parametric grid. Each becomes a <code>compose</code> strategy selected by the style vector.</li>
+    <li><b>Performer patterns</b> — the phrase-arch tempo/dynamics, structured microtiming, per-section accel/rit, and the intra-note expression layer.</li>
+    <li><b>UI conventions</b> — the two-level control panel, URL-hash state, piano-roll visualization, and the download-JSON feedback affordance — generalized to the three-mode selector.</li>
+  </ul>
+  <p>The main <i>new</i> work is the <code>style</code> vector + meld + coherence, the incremental <code>compose</code> interface, the three-mode control surface, the compact <code>serialize</code>, and the JIT conductor loop.</p>
+
+  <h2 id="build">10 · Build order &amp; validation</h2>
+  <p><b>Walking skeleton first:</b> get the whole pipeline working end-to-end with one genre before widening, so a playable site exists early and every later step is additive.</p>
+  <ol>
+    <li><span class="mile">M1 · Skeleton.</span> <code>docs/index.html</code> + <code>app.js</code> + vendored <code>rng/transport/synth/fx</code>; a Play button seeds a trivial one-voice loop from the URL, stops, and round-trips the seed. Proves the loop + audio + URL.</li>
+    <li><span class="mile">M2 · One genre end-to-end.</span> <code>style</code> with the <b>Classical</b> preset + <code>sample</code>; <code>compose</code> (functional-tonal strategy, incremental) + <code>perform</code>; a full deterministic piece plays from a seed via the JIT loop. Offline-render gate green.</li>
+    <li><span class="mile">M3 · The three-mode UI + compact URL.</span> Start/Intermediate/Advanced selector; the ~5 Start dials + the ~20 Intermediate controls wired as auto/pin into the vector; <code>serialize</code> compact encoding. Same URL → same piece.</li>
+    <li><span class="mile">M4 · All eight genres.</span> The remaining seven presets + their <code>compose</code> strategies; the ui-smoke gate plays each. (This is the widest-parallel step — one genre per worker.)</li>
+    <li><span class="mile">M5 · Two-genre melds.</span> <code>style.meld</code> (per-axis parent selection, even balance, compatibility gates); the multi-select Start buttons.</li>
+    <li><span class="mile">M6 · Live changes.</span> The three response speeds + the two-bar crossfade for a genre/blend swap; verify no restart and no glitch.</li>
+    <li><span class="mile">M7 · Invented styles.</span> Novelty-budget sampling + signature rules + the coherence gate, at Intermediate/Advanced.</li>
+    <li><span class="mile">M8 · Polish.</span> Visualization, feedback JSON, the CC0/authorship footer, and the Advanced invented-parameter controls.</li>
+  </ol>
+  <p><b>What "the whole build in one session" realistically means:</b> M1–M4 (a working, seeded, shareable three-tier site that composes all eight genres end-to-end, live-playable and offline-validated) is the target floor; M5–M8 land as far as the session reaches, and anything unfinished is a clean follow-up because each milestone is additive. Better a solid M1–M4 than a broken M1–M8.</p>
+  <p><b>Validation</b> (reuse the engines' harnesses): an <code>OfflineAudioContext</code> render gate per genre (no clip, no gap, level in band, determinism: same seed → identical PCM) and a headless <b>ui-smoke</b> (the site loads, each genre plays, the URL round-trips, a live change does not restart the transport, 0 console errors). Keep <code>wiki-lint</code> and the node test suite green.</p>
+
+  <h2 id="decisions">11 · Decisions &amp; open questions</h2>
+  <p><b>Claude's design calls</b> (Tom can override): the folder layout; the module split (esp. the single incremental <code>compose</code> interface unifying the five composition families); the conductor/JIT-loop shape; and the walking-skeleton build order.</p>
+  <p><b>Open, for the build and later loops:</b></p>
+  <ul>
+    <li>Whether <code>compose</code> is one big module with a strategy switch, or one sub-module per family behind a common interface (lean: sub-module per family, thin registry — easier to build in parallel).</li>
+    <li>The exact preset numbers (centers + spreads) for the eight genres — a tuning pass during M2/M4, drawing on the wiki genre pages.</li>
+    <li>How much of the invented-style coherence gate is needed for M-floor vs deferred (presets and melds may not need the full gate; invented styles do).</li>
+    <li>The crossfade's exact equal-power curve and whether its length should scale with tempo (currently a flat two bars).</li>
+  </ul>
+  <p class="muted">With this doc, the three Phase-3b design documents are complete (controls → data → architecture). The next step is the build itself (Phase 3c), for which a self-contained build prompt accompanies this doc in the session log.</p>
+
+  <p class="foot">
+    algorithmic-music · design docs · written and built by Claude, directed by Tom Gally · dedicated to the public domain (<a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0</a>).
+    Basis: <a href="control-taxonomy.html">control-taxonomy.html</a> · <a href="style-vector-schema.html">style-vector-schema.html</a> · <code>engine-architecture.md</code> · <code>findings-shared-lib-foundation.md</code> · <code>music-representation-and-notation.md</code>.
+  </p>
+</main>
+</body>
+</html>
