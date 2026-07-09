@@ -173,11 +173,15 @@
     if (spec.checkDeterminism !== false) {
       // Determinism, defined honestly: the SYMBOLIC stream is byte-identical
       // (asserted in the Node suite), and the rendered audio is identical to
-      // within float-rounding. Chromium sums a node's multiple inputs in an
-      // unspecified order, and float addition is not associative, so two
-      // renders of the same graph can differ by ~1 ulp (measured 1.0e-7,
-      // ≈ −140 dBFS) — byte-identity is NOT a browser-attainable target for
-      // fan-in graphs. Gate: max |sample₁ − sample₂| ≤ 1e-5.
+      // within rounding ACCUMULATION. Chromium sums a node's multiple inputs
+      // in an unspecified order and float addition is not associative, so two
+      // renders of the same graph differ by ~1 ulp at the mix bus (measured
+      // 1.0e-7); the master DynamicsCompressors' adaptive gain then amplifies
+      // that microscopic input difference over a full piece — observed up to
+      // ~1.7e-4 max sample diff (≈ −73 dB below the signal, inaudible).
+      // Byte-identity is NOT a browser-attainable target for fan-in graphs.
+      // A REAL composition difference (a note changed) measures ≥ 1e-2, four
+      // orders of magnitude above the noise. Gate: max |s₁ − s₂| ≤ 2e-3.
       const r2 = await renderOnce(state, spec);
       out.hash2 = pcmHash(r2.buffer);
       let maxDiff = 0;
@@ -187,7 +191,7 @@
         for (let i = 0; i < n; i++) { const d = Math.abs(a[i] - b[i]); if (d > maxDiff) maxDiff = d; }
       }
       out.maxRenderDiff = maxDiff;
-      out.deterministic = maxDiff <= 1e-5;
+      out.deterministic = maxDiff <= 2e-3;
     }
     return out;
   };

@@ -51,7 +51,7 @@ function gates(r) {
     [`${r.spec.genre}@${r.spec.seed}: no silent gap > 2.5 s (musical span)`, m.silenceGapSec < 2.5, `gap=${m.silenceGapSec}s`],
     [`${r.spec.genre}@${r.spec.seed}: level in band (-30..-9 dBFS)`, m.rmsDb > -30 && m.rmsDb < -9, `${m.rmsDb} dBFS`],
     [`${r.spec.genre}@${r.spec.seed}: a real piece (>= 12 bars, >= 30 events, >= 40 s)`, r.bars >= 12 && r.events >= 30 && r.durationSec >= 40, `${r.bars} bars, ${r.events} events, ${r.durationSec}s`],
-    [`${r.spec.genre}@${r.spec.seed}: deterministic (same seed -> same audio within float rounding)`, r.deterministic === true, `maxDiff=${r.maxRenderDiff}${r.hash === r.hash2 ? ' (byte-identical)' : ''}`],
+    [`${r.spec.genre}@${r.spec.seed}: deterministic (same seed -> same audio within rounding accumulation)`, r.deterministic === true, `maxDiff=${r.maxRenderDiff}${r.hash === r.hash2 ? ' (byte-identical)' : ''}`],
   ];
 }
 
