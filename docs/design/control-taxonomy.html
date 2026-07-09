@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control taxonomy — algorithmic-music design doc</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#faf9f7; --fg:#1c1a17; --muted:#6d675f; --line:#e5e1da; --panel:#ffffff; --accent:#6a5acd;
+    --soft:#f3f1ec; --th:#efece6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17151a; --fg:#ece9e4; --muted:#9a938a; --line:#2c2833; --panel:#201d26; --accent:#9d8cff; --soft:#1c1a22; --th:#26222e; }
+  }
+  * { box-sizing: border-box; }
+  body { font: 16px/1.62 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+  main { max-width: 860px; margin: 0 auto; padding: 2.2rem 1.2rem 5rem; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.9rem; margin: .2rem 0 .3rem; letter-spacing: -0.01em; }
+  h2 { font-size: 1.3rem; margin: 2.6rem 0 .5rem; padding-top: .6rem; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+  p { margin: .6rem 0; }
+  .lede { color: var(--fg); font-size: 1.06rem; }
+  .muted { color: var(--muted); }
+  .up { font-size: .9rem; margin: 0 0 1rem; }
+  .note { background: var(--soft); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: .7rem 1rem; margin: 1.1rem 0; font-size: .95rem; }
+  .note b { color: var(--fg); }
+  .ask { background: var(--soft); border: 1px solid var(--line); border-left: 3px solid #d08a3a; border-radius: 8px; padding: .5rem .9rem; margin: .8rem 0; font-size: .95rem; }
+  @media (prefers-color-scheme: dark){ .ask { border-left-color:#e0a860; } }
+  .ask b { color: var(--fg); }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0 1.2rem; font-size: .9rem; }
+  .scroll { overflow-x: auto; }
+  th, td { text-align: left; vertical-align: top; padding: .42rem .6rem; border-bottom: 1px solid var(--line); }
+  th { background: var(--th); font-size: .82rem; letter-spacing: .01em; position: sticky; top: 0; }
+  td code, p code, li code { background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 0 .3rem; font-size: .86em; }
+  .tier { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; }
+  .def { color: var(--muted); white-space: nowrap; }
+  ul, ol { padding-left: 1.25rem; }
+  li { margin: .3rem 0; }
+  .toc { columns: 2; column-gap: 1.4rem; font-size: .93rem; margin: 1rem 0 0; }
+  .toc a { display: block; padding: .12rem 0; }
+  .foot { color: var(--muted); font-size: .87rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: 1.1rem; }
+  .status { display:inline-block; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:999px; padding:.08rem .55rem; vertical-align: middle; }
+  @media (max-width: 620px){ .toc { columns: 1; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="up muted"><a href="../index.html">← algorithmic-music</a> · <a href="index.html">design docs</a></p>
+  <h1>Control taxonomy <span class="status">Draft for review</span></h1>
+  <p class="lede">The first design document for the <a href="../index.html">comprehensive site</a>: the concrete controls exposed at each of the three tiers — <b>Start</b>, <b>Intermediate</b>, <b>Advanced</b> — with names, ranges, defaults, and what each one does; plus a proposed shortlist of Start-level genres. Written by Claude for Tom's asynchronous review.</p>
+
+  <div class="note">
+    <b>How to read this / how to give feedback.</b> This is a <b>proposal</b>, not a built feature — nothing here is final until you've reacted to it. The quickest things to weigh in on are collected as <b>“For Tom”</b> boxes throughout and gathered again in <a href="#q">§9</a>. React however is easiest — edit this file, drop notes in <code>wiki/project-open-questions.md</code>, or say them in a session prompt; a later session folds your decisions into the wiki and starts building. Once you sign off, the settled taxonomy graduates from this review doc into the wiki (<code>control-surfaces-and-user-parameters.md</code>).
+  </div>
+
+  <nav class="toc">
+    <a href="#scope">1 · Purpose &amp; scope</a>
+    <a href="#principles">2 · Design principles</a>
+    <a href="#glance">3 · The three tiers at a glance</a>
+    <a href="#start">4 · Start tier (+ genre shortlist)</a>
+    <a href="#intermediate">5 · Intermediate tier (~20)</a>
+    <a href="#advanced">6 · Advanced tier</a>
+    <a href="#seed">7 · Auto, seed &amp; the URL</a>
+    <a href="#map">8 · How controls map to the engine</a>
+    <a href="#q">9 · Open questions for Tom</a>
+  </nav>
+
+  <h2 id="scope">1 · Purpose &amp; scope</h2>
+  <p>The site will compose and perform instrumental music across many styles — familiar ones documented in the wiki and original ones invented on the fly — behind an interface with <b>three levels of control</b> (<a href="../index.html">comprehensive-site vision</a>). This document proposes exactly what those controls are.</p>
+  <p><b>It decides:</b> the Start-level genre shortlist; the concrete control at each tier (name, type, range, default, and a one-line mapping into the composition/synthesis pipeline); and the rules every control obeys.</p>
+  <p><b>It defers</b> (to later design docs, so this one stays reviewable):</p>
+  <ul>
+    <li>the <b>style-pack / style-vector schema</b> — the internal data every control writes into (next design doc);</li>
+    <li>the <b>compact URL encoding</b> of seed + settings (design lives in <code>wiki/music-representation-and-notation.md</code>);</li>
+    <li>the <b>original-style sampling &amp; coherence rules</b> (grounded in <code>wiki/style-invention-and-style-space.md</code>);</li>
+    <li>the actual <b>build</b> (Phase 3c).</li>
+  </ul>
+  <p class="muted">Basis: <code>control-surfaces-and-user-parameters.md</code> (precedent + HCI evidence) and <code>style-invention-and-style-space.md</code> (the axis space), plus the five preliminary engines as proven-control precedent.</p>
+
+  <h2 id="principles">2 · Design principles</h2>
+  <p>Seven rules, drawn from the HCI and generative-music evidence, that every control in this document obeys. They are why the tiers can share one engine.</p>
+  <ol>
+    <li><b>Auto = the seed decides.</b> Every control defaults to <code>auto</code>. An untouched control is not “off” — it means <i>let the seed choose a value within the selected genre</i>. Setting a control <b>pins</b> it (removing it from what the seed samples). This is the project's own precedent (the percussion engine's per-axis <code>auto</code>), and it makes Start a special case of Advanced — almost everything on auto — rather than a separate product.</li>
+    <li><b>Every control is a deterministic input.</b> <code>(version, seed, all settings) → piece</code>, exactly and repeatably. A control is a value fed to the seeded pipeline (genre → sample/invent the style → compose → perform → synthesize), never a post-hoc tweak of the audio.</li>
+    <li><b>Tiers are progressive disclosure, not different engines.</b> Start ≈ layer 1 (a few consequential choices), Intermediate ≈ the familiar musical parameters, Advanced ≈ the full board including invented parameters. Moving up a tier <b>reveals more controls without discarding what you set</b>; moving down hides them but keeps their (auto or pinned) values.</li>
+    <li><b>Label for perception; scale for perception.</b> Start/Intermediate controls use high-consensus listener words (brightness, warmth, energy, density, space), not engineering names. Numeric controls step in perceptual units: <b>dB</b> for loudness, <b>semitones/octaves</b> for pitch, <b>ratio steps</b> for tempo (a JND is ~5%, so equal-BPM steps feel coarse when slow and trivial when fast). Technical/original names appear only at Advanced, glossed on first use.</li>
+    <li><b>Defaults are the product.</b> Because most controls stay on <code>auto</code>, what “auto” produces <i>is</i> what most listeners hear. Defaults must be <b>tasteful, not merely safe</b>: a minimal surface raises the bar on the sampler behind it. Every genre ships a good-sounding default region.</li>
+    <li><b>Randomize is first-class and constrained.</b> A big <b>Play</b> and a <b>dice/“new piece”</b> control sample only the <i>un-pinned</i> axes, <i>within the chosen genre</i> — “surprise me here,” not “surprise me anywhere.” Because the seed and settings live in the URL and copy to the clipboard, a lucky result is always recoverable and shareable, so exploration is lossless.</li>
+    <li><b>Guard the failure modes.</b> The one-knob macros and the small Start set must still yield coherent, non-arbitrary music. Behind every simplified control sits the coherence machinery (a stable reference pitch, within-piece repetition, a novelty budget); simplicity at the surface, not in the generator.</li>
+  </ol>
+
+  <h2 id="glance">3 · The three tiers at a glance</h2>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Tier</th><th>For</th><th>Controls</th><th>Mental model</th><th>Analogue</th></tr></thead>
+    <tbody>
+      <tr><td class="tier">Start</td><td>First-time &amp; casual listeners</td><td>~5 + Play + dice</td><td>“Pick a vibe and press play.”</td><td>Bloom's moods; Band-in-a-Box's few fields</td></tr>
+      <tr><td class="tier">Intermediate</td><td>Curious listeners &amp; musicians</td><td>~20 familiar</td><td>“Shape the piece with words I know.”</td><td>AIVA's key/tempo/emotion layer</td></tr>
+      <tr><td class="tier">Advanced</td><td>Tinkerers &amp; composers</td><td>Wide, incl. invented</td><td>“Give me the whole board.”</td><td>Koan's ~150 parameters; a synth's macro rack</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">Counts are soft targets. The HCI evidence says the win comes from strong defaults + progressive disclosure, not from starving the Advanced tier — so Start stays small (first-timers lack articulated preferences) while Advanced is deliberately generous.</p>
+
+  <h2 id="start">4 · Start tier</h2>
+  <p><b>The flow:</b> the user picks one <b>genre</b>, optionally nudges a couple of headline dials, and presses <b>Play</b>. A random seed that <i>encodes those choices</i> is generated and the piece plays; the seed fills in everything else. The dice reseeds within the same genre; the seed is shown, editable, and copyable.</p>
+
+  <h3>4.1 · Proposed Start genres</h3>
+  <p>A small, familiar, contrasting set — each a hand-tuned region of the style space, each backed by a wiki page, several already demonstrated by a preliminary engine. The working target is <b>~6–10</b>; the shortlist below proposes <b>eight</b>.</p>
+
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Genre</th><th>What it sounds like</th><th>Tempo</th><th>Character</th><th>Backed by</th><th>Engine</th></tr></thead>
+    <tbody>
+      <tr><td><b>Classical</b></td><td>A tuneful piano/chamber piece that begins, develops, and resolves</td><td>~66–140 (def ~110)</td><td>functional-tonal · 4/4 or 3/4</td><td><code>western-classical-tradition</code></td><td>01 tonal-classical</td></tr>
+      <tr><td><b>Ambient</b></td><td>A calm, slowly evolving wash of tones — atmosphere, not a tune</td><td>free / pulseless</td><td>drone + modal drift · no meter</td><td><code>ambient-and-generative-genre</code></td><td>02 ambient-drift</td></tr>
+      <tr><td><b>Lo-fi beats</b></td><td>A relaxed, dusty hip-hop groove with a mellow electric-piano loop</td><td>70–90</td><td>jazzy vamp · swung 4/4</td><td><code>hip-hop-and-beat-making</code></td><td>03 groove-lofi</td></tr>
+      <tr><td><b>Jazz</b></td><td>A small combo — walking bass, swung ride, comping piano</td><td>90–144</td><td>functional / modal · swing 4/4</td><td><code>jazz-and-improvisation</code></td><td>new</td></tr>
+      <tr><td><b>Folk / Celtic</b></td><td>A lively fiddle-and-flute dance tune with a driving lilt</td><td>reel ~104–140 · jig ~110–130</td><td>modal + drone · 4/4 or 6/8</td><td><code>european-folk-and-dance</code></td><td>new</td></tr>
+      <tr><td><b>Electronic / House</b></td><td>A steady four-on-the-floor groove that builds and drops</td><td>115–130</td><td>static-vamp · 4/4 (8/16/32-bar)</td><td><code>electronic-and-dance</code></td><td>new</td></tr>
+      <tr><td><b>Cinematic</b></td><td>An emotional, swelling melody over sustained strings, building to a peak</td><td>~70–110 (flexible)</td><td>modal / plagal · free or slow 4/4</td><td><code>film-and-game-music</code></td><td>04 cantabile*</td></tr>
+      <tr><td><b>Percussion</b></td><td>An interlocking drum ensemble that builds in density and intensity</td><td>90–130 (def 108)</td><td>no harmony; density arc · 2/4 &amp; 4/4 (+aksak)</td><td><code>percussion-music</code></td><td>05 percussion</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted" style="font-size:.88rem">Tempos and character are grounded in the cited wiki pages (esp. <code>tempo-duration-and-pacing.md</code>). The set spans eight contrasting worlds and exercises all five preliminary engines plus three clean new builds (Jazz, Folk, Electronic). Notes: <b>*Cinematic</b> — the cantabile engine is the <i>nearest</i> demonstrator (singing lead over a modal dramatic arc), not a purpose-built film engine. <b>Blues</b> (12-bar shuffle, <code>blues-country-and-roots</code>) is an equally familiar swap-in for Jazz if you prefer a fixed form over swing changes. <b>Minimalism / Process</b> (hypnotic repeating cells, <code>minimalism-and-process-music</code>) is the strongest 9th if you want to grow past eight, though it overlaps Ambient's static-harmony territory.</p>
+
+  <div class="ask"><b>For Tom:</b> Is this the right set of eight? Anything you'd add (e.g., a world/global category), drop, rename, or reorder? The menu is meant to read as familiar and varied at a glance.</div>
+
+  <h3>4.2 · Start controls</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Control</th><th>Type</th><th>Values</th><th>Default</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><b>Genre</b></td><td>picker</td><td>the ~8 above</td><td class="def">— (user picks)</td><td>Selects the style region the seed samples inside. The one required choice.</td></tr>
+      <tr><td><b>Energy</b></td><td>slider</td><td>calm ↔ energetic (5 steps)</td><td class="def">auto</td><td>One macro reaching deep into the engine (tempo, density, dynamics, brightness, drum activity) — an “intensity” bus. Its meaning is defined <i>per genre</i>.</td></tr>
+      <tr><td><b>Mood</b></td><td>slider</td><td>dark ↔ bright (5 steps)</td><td class="def">auto</td><td>Nudges mode/color and timbre toward brighter or darker without naming theory.</td></tr>
+      <tr><td><b>Length</b></td><td>enum</td><td>short · medium · long</td><td class="def">auto</td><td>Target duration (≈1 / ≈2–3 / ≈5+ min); the form template scales to fit.</td></tr>
+      <tr><td><b>Space</b></td><td>slider</td><td>dry ↔ spacious (5 steps)</td><td class="def">auto</td><td>Reverb/ambience depth — the most audible single mix control.</td></tr>
+      <tr><td><b>Play</b> / <b>New piece</b></td><td>buttons</td><td>—</td><td class="def">—</td><td>Play samples a fresh seed (encoding the choices above); “New piece” = dice: reseed the un-pinned axes within this genre.</td></tr>
+      <tr><td><b>Seed</b></td><td>text</td><td>editable code</td><td class="def">shown</td><td>The current piece's seed — editable to recall a piece, copyable to share it.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="ask"><b>For Tom:</b> Five headline dials (Energy, Mood, Length, Space) + Genre + Play felt like the right amount for a “press play” entry. Too many? Would you rather Start show only <b>Genre + Play</b> and move Energy/Mood/Length/Space down to Intermediate?</div>
+
+  <h2 id="intermediate">5 · Intermediate tier (~20 familiar controls)</h2>
+  <p>The “shape it with words I know” layer: the AIVA / Band-in-a-Box vocabulary, perceptually labeled and scaled. Every control defaults to <code>auto</code> unless the chosen genre pins it. Grouped for progressive reveal; ~20 total (the count is soft).</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>#</th><th>Control</th><th>Type</th><th>Range / values</th><th>Default</th><th>Maps to</th></tr></thead>
+    <tbody>
+      <tr><td colspan="6" class="muted"><b>Time &amp; feel</b></td></tr>
+      <tr><td>1</td><td>Tempo</td><td>slider</td><td>~40–200 BPM, ratio steps</td><td class="def">auto</td><td>transport BPM</td></tr>
+      <tr><td>2</td><td>Swing / groove</td><td>slider</td><td>straight ↔ deep swing</td><td class="def">auto</td><td>performer swing ratio + laid-back offset</td></tr>
+      <tr><td>3</td><td>Meter</td><td>enum</td><td>auto · 4/4 · 3/4 · 6/8 · 2/4 · 5/8 · 7/8</td><td class="def">auto</td><td>composer meter / phrase grid</td></tr>
+      <tr><td colspan="6" class="muted"><b>Pitch &amp; harmony</b></td></tr>
+      <tr><td>4</td><td>Key</td><td>enum</td><td>auto · C … B</td><td class="def">auto</td><td>tonic</td></tr>
+      <tr><td>5</td><td>Mode / color</td><td>enum</td><td>auto · major · minor · dorian · lydian · mixolydian · phrygian · pentatonic</td><td class="def">auto</td><td>scale + pitch hierarchy</td></tr>
+      <tr><td>6</td><td>Harmonic richness</td><td>slider</td><td>plain triads ↔ lush 7ths/9ths</td><td class="def">auto</td><td>chord extension density</td></tr>
+      <tr><td>7</td><td>Harmonic motion</td><td>enum</td><td>auto · goal-directed · modal/static · loop/vamp · drone</td><td class="def">auto</td><td>progression engine mode</td></tr>
+      <tr><td colspan="6" class="muted"><b>Texture &amp; density</b></td></tr>
+      <tr><td>8</td><td>Density / activity</td><td>slider</td><td>sparse ↔ busy</td><td class="def">auto</td><td>notes-per-bar target</td></tr>
+      <tr><td>9</td><td>Layers</td><td>slider</td><td>1 ↔ ~6 voices</td><td class="def">auto</td><td>active ensemble roles</td></tr>
+      <tr><td>10</td><td>Lead prominence</td><td>slider</td><td>background ↔ up-front</td><td class="def">auto</td><td>melody vs accompaniment gain/register</td></tr>
+      <tr><td>11</td><td>Melodic ↔ textural</td><td>slider</td><td>tune-forward ↔ texture-forward</td><td class="def">auto</td><td>balance of stated melody vs atmosphere</td></tr>
+      <tr><td colspan="6" class="muted"><b>Sound &amp; space</b></td></tr>
+      <tr><td>12</td><td>Instrument palette</td><td>enum</td><td>auto + a few named sets per genre</td><td class="def">auto</td><td>voice/timbre selection</td></tr>
+      <tr><td>13</td><td>Brightness / tone</td><td>slider</td><td>dark ↔ bright</td><td class="def">auto</td><td>spectral centroid / filter</td></tr>
+      <tr><td>14</td><td>Reverb / space</td><td>slider</td><td>dry ↔ spacious</td><td class="def">auto</td><td>reverb send + size</td></tr>
+      <tr><td>15</td><td>Stereo width</td><td>slider</td><td>narrow ↔ wide</td><td class="def">auto</td><td>stereo spread of the ensemble</td></tr>
+      <tr><td colspan="6" class="muted"><b>Form &amp; variation</b></td></tr>
+      <tr><td>16</td><td>Length</td><td>enum</td><td>short · medium · long</td><td class="def">auto</td><td>target duration; form scales</td></tr>
+      <tr><td>17</td><td>Variation amount</td><td>slider</td><td>repetitive ↔ ever-changing</td><td class="def">auto</td><td>how much material evolves across sections</td></tr>
+      <tr><td>18</td><td>Ending</td><td>enum</td><td>auto · resolved cadence · fade · stop · ring-out</td><td class="def">auto</td><td>closing idiom</td></tr>
+      <tr><td colspan="6" class="muted"><b>Expression</b></td></tr>
+      <tr><td>19</td><td>Expression</td><td>slider</td><td>mechanical ↔ expressive</td><td class="def">auto</td><td>rubato + dynamic shaping + microtiming amount</td></tr>
+      <tr><td>20</td><td>Dynamic range</td><td>slider</td><td>flat ↔ wide</td><td class="def">auto</td><td>loud–soft span across the piece</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="ask"><b>For Tom:</b> Right vocabulary and right ~20? Candidates I left out to keep the count down: <i>repetition amount</i>, <i>section count</i>, <i>tension-curve shape</i>, <i>overall complexity</i>. Any of those earn a slot here, or do they belong in Advanced?</div>
+
+  <h2 id="advanced">6 · Advanced tier</h2>
+  <p>The full board — everything above at finer resolution, the style-space axes exposed directly, per-layer control, and the parameters invented for this site. The choice-overload caveat runs in reverse here: the expert user <i>wants</i> all of it, so this tier is deliberately generous and is not capped for its own sake.</p>
+
+  <h3>6.1 · The style-space axes (direct access)</h3>
+  <p>The Intermediate controls are friendly rollups of these; Advanced exposes the raw axes an invented or preset style is a point in (from <code>style-invention-and-style-space.md</code>).</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Axis</th><th>Exposes</th></tr></thead>
+    <tbody>
+      <tr><td>Pitch material &amp; tuning</td><td>12-TET · just intonation · slendro/pelog · Bohlen–Pierce · any n-TET (cents tables)</td></tr>
+      <tr><td>Pitch hierarchy</td><td>per-degree stability weights; tonic / reciting-tone</td></tr>
+      <tr><td>Harmonic-motion type</td><td>functional · modal-static · planing · drone · loop-cycle · aggregate/atonal</td></tr>
+      <tr><td>Melodic grammar</td><td>step:leap ratio, range, cadence targets, ornament rules</td></tr>
+      <tr><td>Rhythm / meter / groove</td><td>meter, subdivision (2s/3s), swing %, timeline pattern, syncopation density</td></tr>
+      <tr><td>Tempo band</td><td>BPM window; or “free”/unmetered</td></tr>
+      <tr><td>Texture &amp; density</td><td>mono/homo/poly/heterophonic; voice count; onset-rate band</td></tr>
+      <tr><td>Ensemble &amp; roles</td><td>role set (bass/pad/lead/counterline/percussion) with per-role register windows</td></tr>
+      <tr><td>Timbre palette</td><td>per-voice synthesis recipe, brightness, harmonic vs inharmonic partials</td></tr>
+      <tr><td>Form template</td><td>AABA · verse–chorus · through-composed · audible process · cyclic/colotomic</td></tr>
+      <tr><td>Dynamics &amp; articulation</td><td>dynamic range, accent hierarchy, legato↔staccato bias</td></tr>
+      <tr><td>Expression / microtiming</td><td>rubato depth, microtiming, ornament density</td></tr>
+      <tr><td>Space &amp; silence</td><td>silence density, sustain/decay, reverb depth</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>6.2 · Per-layer overrides</h3>
+  <p>Pin any setting <i>per voice/role</i> rather than globally — e.g. this palette for the lead, that register for the bass, more swing on the drums only — generalizing the engines' per-axis pinning to per-layer.</p>
+
+  <h3>6.3 · Parameters invented for this site</h3>
+  <p>The controls the vision calls for — “parameters created originally for this website.” Each is proven in an engine or grounded in the wiki, and each carries a plain-language gloss in the UI.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Control</th><th>Gloss</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td><b>Intensity arc</b></td><td>the shape of the piece's rise and fall over time — rise · arch · late-arch · terraced · waves · front-loaded · level · swell-&amp;-cut · jo-ha-kyū</td><td>percussion engine v0.2 (9 arcs)</td></tr>
+      <tr><td><b>Development mode</b></td><td>cyclic (loops that vary) ↔ through-composed (never returns)</td><td>percussion engine</td></tr>
+      <tr><td><b>Timeline type</b></td><td>the rhythmic skeleton — clave · bell · Euclidean · pulse · Xenakis <i>sieve</i> · none</td><td>percussion engine</td></tr>
+      <tr><td><b>Interlock density</b></td><td>how tightly separate parts dovetail into one another</td><td>percussion engine</td></tr>
+      <tr><td><b>Novelty budget</b></td><td>how many axes an <i>invented</i> style may push away from convention (1–3 recommended; the rest stay at perceptual universals so novelty reads as surprise, not noise)</td><td>style-invention (Lerdahl)</td></tr>
+      <tr><td><b>Style blend</b></td><td>weighted crossbreed of two genre regions for on-the-fly hybrids (e.g. 60% ambient / 40% groove)</td><td>hybridization-and-fusion</td></tr>
+      <tr><td><b>Coherence strictness</b></td><td>how hard the generator rejects/repairs incoherent samples — loose (more surprising) ↔ strict (safer)</td><td>style-invention (gate step)</td></tr>
+      <tr><td><b>Signature emphasis</b></td><td>how strongly the piece front-loads and repeats its defining scale/rhythm so an invented style is learnable within one listen</td><td>style-invention (teach-in-piece)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="ask"><b>For Tom:</b> The invented parameters are where the site's originality lives. Do these feel right as the first set, and should a couple of the safe ones (Intensity arc, Style blend) be surfaced earlier — say a taste of “Style blend” at Intermediate — or kept expert-only until the site proves them?</div>
+
+  <h2 id="seed">7 · Auto, seed &amp; the URL</h2>
+  <ul>
+    <li><b>What Play does:</b> collect the chosen genre + any pinned controls → generate a seed that encodes them → the seed samples every un-pinned axis <i>within the genre's region</i> → compose → perform → synthesize. Same <code>(version, seed, settings)</code> ⇒ same piece, always.</li>
+    <li><b>The URL:</b> seed + settings ride as a compact, versioned suffix on the URL; the same full URL reproduces the piece exactly. A version field lets old links keep working as the site grows. Encoding details are deferred to <code>music-representation-and-notation.md</code>; it need not be human-decipherable.</li>
+    <li><b>The dice (“New piece”):</b> reseeds only the un-pinned axes — so pinning three controls and hitting the dice explores just the rest, within the genre.</li>
+    <li><b>Copy:</b> the seed copies to the clipboard; a lucky accident is never lost.</li>
+    <li><b>Crossing tiers keeps your settings:</b> revealing Advanced never resets Start; hiding it never discards a pin.</li>
+  </ul>
+
+  <h2 id="map">8 · How controls map to the engine</h2>
+  <p>One pipeline serves all three tiers because the tiers differ only in <i>how many axes the user pins vs. lets the seed sample</i>:</p>
+  <ul>
+    <li>A <b>Start genre</b> is a preset region of the style space — a style-vector center plus per-axis spreads. Picking it sets the sampling region; the seed draws a point inside.</li>
+    <li>An <b>Intermediate control</b> is a friendly handle on one axis (or a small rollup of a few), shifting the region's center or narrowing its spread on that axis.</li>
+    <li>An <b>Advanced control</b> is direct access to a raw axis, a per-layer pin, or an invented parameter (arc, blend, novelty budget…).</li>
+  </ul>
+  <p>The object all of them write into is the <b>style vector</b> — the subject of the next design doc, the style-pack / style-vector schema. That doc will fix each axis's storage type and the coherence constraints that keep a sampled point listenable; this document only fixes what the <i>user</i> sees and can set.</p>
+
+  <h2 id="q">9 · Open questions for Tom</h2>
+  <ol>
+    <li><b>The Start genre shortlist (§4.1)</b> — is the set of eight right? Add / drop / rename / reorder?</li>
+    <li><b>Start size (§4.3)</b> — five headline dials + Genre, or strip Start to <b>Genre + Play</b> only and push the dials to Intermediate?</li>
+    <li><b>Does one “Energy” knob generalize?</b> Energy means different things in ambient vs. groove; the plan defines it <i>per genre</i>. Comfortable with that, or would you rather it be genre-specific in name too?</li>
+    <li><b>Intermediate set (§5)</b> — right vocabulary and right ~20? Any of <i>repetition amount / section count / tension-curve shape / complexity</i> promoted in?</li>
+    <li><b>Invented parameters (§6.3)</b> — right first set, and should any be surfaced earlier than Advanced?</li>
+    <li><b>Should the Start tier ever offer <i>invented</i> styles, or only presets</b> — reserving on-the-fly invention for Intermediate/Advanced? (An open question carried from <code>style-invention-and-style-space.md</code>.)</li>
+    <li><b>Tiers as panels or modes?</b> One screen that progressively discloses, or three distinct modes you switch between (settings preserved either way)?</li>
+  </ol>
+  <p class="muted">None of these block progress: with your working assumptions in place, the next design doc (the style-pack schema) can proceed in parallel. But the Start shortlist (Q1) is the one you specifically asked to review, so it's first.</p>
+
+  <p class="foot">
+    algorithmic-music · design docs · written and built by Claude, directed by Tom Gally · dedicated to the public domain (<a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0</a>).
+    Basis in the knowledge base: <code>control-surfaces-and-user-parameters.md</code> · <code>style-invention-and-style-space.md</code> · <code>comprehensive-site-vision.md</code>.
+  </p>
+</main>
+</body>
+</html>
