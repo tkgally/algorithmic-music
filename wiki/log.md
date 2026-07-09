@@ -3,6 +3,122 @@
 Append-only chronological record of wiki operations, newest first. Entry format per [conventions](conventions.md):
 `## [YYYY-MM-DD] op | Title` where op ∈ session · create · update · ingest · lint · query · findings.
 
+## [2026-07-09] session | Session 028 — Tom's comprehensive-site goal recorded + 26-page wide-coverage expansion
+
+Tom defined the project's **long-term goal** — one self-contained site composing instrumental music in many pre-established *and* on-the-fly original styles, three control tiers (Start/Intermediate/Advanced), compact seeded URLs, original annotated shared libraries, all in one folder — and directed a full session of wiki expansion before any site design. Recorded the goal as `comprehensive-site-vision.md` (directive preserved verbatim in `logs/sessions/028-2026-07-09.md`); redrew `project-roadmap.md` Phase 3 around it; filed four working-assumption questions in `project-open-questions.md`; updated CLAUDE.md/continue-prompt.md/README.md. Then **25 parallel research subagents** (Opus 4.8 for the 7 hardest synthesis pages, Sonnet 5 for the rest — per Tom's instruction; Fable 5 orchestrating) wrote 25 new sourced draft pages: a **comprehensive-site design pillar** (style-invention-and-style-space, hybridization-and-fusion, meta-composition-and-style-machines, control-surfaces-and-user-parameters, music-representation-and-notation), **theory/craft deepening** (texture-and-density, modal-and-nonfunctional-harmony, ornamentation-and-embellishment, thematic-development-and-variation, beginnings-endings-and-transitions, tempo-duration-and-pacing, instrument-acoustics-and-idiom), **psychology** (memory-earworms-and-catchiness), **world traditions** (latin-american-traditions, reggae-and-caribbean, arabic-and-middle-eastern-music, sub-saharan-african-musics, european-folk-and-dance, southeast-asian-traditions), and **popular/art genres** (rock-and-pop, blues-country-and-roots, funk-soul-and-rnb, hip-hop-and-beat-making, contemporary-art-music, medieval-and-renaissance-music). Wiki: 72 → **98 pages**. All new pages `draft`, entering the standard verification queue with each agent's self-flagged risky claims recorded in `logs/status.md`. Index gained a "Designing the comprehensive site" group + a new reading path; the Latin-American/European-folk/Arabic-maqam/representation coverage gaps closed. Full narrative: `logs/sessions/028-2026-07-09.md`.
+
+## [2026-07-09] create | Comprehensive site vision
+
+Created `comprehensive-site-vision.md` (project): the canonical record of Tom's 2026-07-09 long-term-goal directive — the site, the three control tiers, seed/URL rules, architecture requirements — plus first design implications and working assumptions. Written by the orchestrator, not an agent; promotes to `reviewed` once Tom has seen it.
+
+## [2026-07-09] create | Style invention and style space
+
+Created `style-invention-and-style-space.md` (draft, session-028 pillar): style as a bounded region in a 13-axis parameter space; invented-style case studies (tintinnabuli, Partch, serialism's perceptual failure via Lerdahl, vaporwave); learnability (Loui's Bohlen–Pierce), novelty budget, and a 7-step coherent-style sampling procedure.
+
+## [2026-07-09] create | Hybridization and fusion
+
+Created `hybridization-and-fusion.md` (draft, session-028 pillar): parameter-level anatomies of eight real fusions; the finding that rhythm and harmony/mode come from *different* parents (the "dominant parent owns rhythm" heuristic is corrected); compatibility gates (tuning/meter/feel/procedure); gradient-vs-collage operators; tokenism and Feld's appropriation critique.
+
+## [2026-07-09] create | Meta-composition and style machines
+
+Created `meta-composition-and-style-machines.md` (draft, session-028 pillar): comparative anatomy of Schillinger, Koenig PR1/PR2 (tendency masks), Xenakis sieves/screens, Cope's EMI (signatures/SPEAC), Band-in-a-Box/Koan/Wotja/game-RTPC style formats, and MusicVAE interpolation — distilled into style-pack schema fields and three generators for the shared libraries.
+
+## [2026-07-09] create | Control surfaces and user parameters
+
+Created `control-surfaces-and-user-parameters.md` (draft, session-028 pillar): control-surface precedent from play-only to ~150 parameters; HCI evidence (Shneiderman multi-layer, defaults, honestly-hedged choice overload, perceptual labeling/scaling); randomization affordances; a first-cut mapping of Tom's three tiers with "auto = seed decides" as the universal default.
+
+## [2026-07-09] create | Music representation and notation
+
+Created `music-representation-and-notation.md` (draft, session-028 pillar; closes a declared gap): human notations and machine formats compared for what each fixes/discards; per-note open parameter objects (verified against the five shipped engines' code — found the `freq` vs documented `freqHz` drift, queued for reconciliation); a versioned bit-packed base64url URL-state design (~32 chars for seed + ~30 settings).
+
+## [2026-07-09] create | Texture and density
+
+Created `texture-and-density.md` (draft, session-028): the classical + modern texture taxonomy, density as five measurable dimensions, the named accompaniment-figure catalog, texture as form-carrier (Boléro/terraced/EDM layers/density arcs), cross-cultural interlock/stratification/heterophony paradigms, and a texture-state-vector proposal.
+
+## [2026-07-09] create | Modal and nonfunctional harmony
+
+Created `modal-and-nonfunctional-harmony.md` (draft, session-028): the modes' characteristic degrees/chords, the no-leading-tone discipline, the nonfunctional toolkit (planing, chromatic mediants with Lehman/Cohn/Murphy scholarship, quartal, clusters, shuttles), five coherence mechanisms, and four engine generators distinct from the cadence-first Piston walk.
+
+## [2026-07-09] create | Ornamentation and embellishment
+
+Created `ornamentation-and-embellishment.md` (draft, session-028): ornament inventories with realization rules across Baroque/Classical, Irish/Scottish, gamaka, blues/rock bends, bebop, and country idioms; discrete-event vs continuous-gesture framing; placement logic and a density dial, mapped to the Note-event + expr schema.
+
+## [2026-07-09] create | Thematic development and variation
+
+Created `thematic-development-and-variation.md` (draft, session-028): a 15-operation motivic catalog as pure functions; developing variation/liquidation/model-sequence made operational; variation forms incl. the Goldberg slot plan; and the perceptual reality check (Dowling's inversion > retrograde ordering) yielding a High/Medium/Low tier policy for engines.
+
+## [2026-07-09] create | Beginnings, endings, and transitions
+
+Created `beginnings-endings-and-transitions.md` (draft, session-028): cross-genre intro/transition/ending idiom catalogs with sourced history (fade-out's rise and near-disappearance; intro shortening; the declining truck-driver modulation), the psychological ending cues, and a per-style ending-idiom table generalizing research question R6.
+
+## [2026-07-09] create | Tempo, duration, and pacing
+
+Created `tempo-duration-and-pacing.md` (draft, session-028): sourced BPM ranges by style, piece-duration norms (incl. measured streaming-era shortening), section/harmonic-rhythm pacing, hedged pacing psychology, and a per-style-pack defaults table; flags that Engine 01's default piece is shorter than the proposed "short" tier.
+
+## [2026-07-09] create | Instrument acoustics and idiom
+
+Created `instrument-acoustics-and-idiom.md` (draft, session-028): per-family sound-production mechanisms, measured signatures (vibrato rates, brassiness as nonlinear enrichment, hammer nonlinearity), expressive capabilities, physical constraints, and idiomatic figures — distilled into an "idiom card" spec so synthesized voices read as physical and parts as playable.
+
+## [2026-07-09] create | Memory, earworms, and catchiness
+
+Created `memory-earworms-and-catchiness.md` (draft, session-028): melodic memory (contour-first encoding), near-absolute tempo/pitch memory (Levitin + replication), plink recognition, INMI features (Jakubowski), Hooked-on-Music catchiness findings, and hook-construction guidance with a hook-prominence dial.
+
+## [2026-07-09] create | Latin American traditions
+
+Created `latin-american-traditions.md` (draft, session-028; closes a declared gap): clave family as verified onset grids, tumbao/montuno construction, salsa's open-vamp form, samba/bossa/choro/baião, tango/candombe, Andean siku hocket, cumbia/mariachi sesquiáltera — with style-pack sketches and timeline-library entries.
+
+## [2026-07-09] create | Reggae and Caribbean musics
+
+Created `reggae-and-caribbean.md` (draft, session-028): the Jamaican lineage with verified drum patterns, riddim culture as industrial template-composition, dub as proto-generative mixing practice, dancehall's digital turn, and calypso/soca/steelpan/zouk — distilled into a riddim-template architecture and dub-mode performer moves.
+
+## [2026-07-09] create | Arabic and Middle Eastern music
+
+Created `arabic-and-middle-eastern-music.md` (draft, session-028; closes the declared maqam gap): ajnas as building blocks, sayr and the jins-graph modulation model (Abu Shumays), qafla, seven verified iqa'at, taqsim/samai forms, takht heterophony, plus Turkish makam/usul and Persian dastgah/radif — as a maqam-engine sketch contrasted with the raga engine.
+
+## [2026-07-09] create | Sub-Saharan African musics
+
+Created `sub-saharan-african-musics.md` (draft, session-028): mbira kushaura/kutsinhira + rotating dyad cycles (resolving west-african-rhythm's open question), kora kumbengo/birimintingo, Arom's Central African polyphony concepts, southern African cyclic vamps, and highlife/Afrobeat/soukous/Ethio-jazz/amapiano — as interlock generators and cyclic non-functional harmony.
+
+## [2026-07-09] create | European folk and dance musics
+
+Created `european-folk-and-dance.md` (draft, session-028; closes a declared gap): Celtic tune-type grammar (AABB strains, sets), Nordic polska asymmetric beats (with the research lineage and Kvifte's counter-critique), Balkan aksak dances, klezmer modes/forms, flamenco compás as accent timeline, and couple-dance meter/tempo tables — a dance-form template library.
+
+## [2026-07-09] create | Southeast Asian traditions
+
+Created `southeast-asian-traditions.md` (draft, session-028): Thai piphat stratification and thao metric variation, Khmer pinpeat, Burmese hsaing waing (Garfias's measured modal data), Vietnamese đàn bầu and ornament-defined điệu modality, Lao khene, Philippine kulintang — a third texture paradigm generalizing gamelan's architecture.
+
+## [2026-07-09] create | Rock and pop
+
+Created `rock-and-pop.md` (draft, session-028): verse-chorus form scholarship (Covach/Summach/de Clercq), loop-vs-goal-directed harmony practice, riff anatomy with four analyzed classics, the band as texture machine (loud-quiet-loud), and the directly composable instrumental branches (surf, post-rock terminal-climax form, math rock, instrumental metal).
+
+## [2026-07-09] create | Blues, country, and roots musics
+
+Created `blues-country-and-roots.md` (draft, session-028): the 12-bar family with a turnaround table and AAB fill discipline, the blue-note measurement literature (variable zones, not fixed quarter-tones), shuffle/boogie patterns, Nashville-number harmony, pedal-steel/chicken-picking/banjo-roll figuration, and bluegrass's solo-rotation form.
+
+## [2026-07-09] create | Funk, soul, and R&B
+
+Created `funk-soul-and-rnb.md` (draft, session-028): "The One" and every-instrument-is-a-drum 16th-interlock (Danielsen), verified onset grids (Funky Drummer, chank, slap bass, Motown, disco), the 7♯9 stasis-vamp harmony trade, gospel→soul harmonic lineage, family feel presets (JB/Meters/P-Funk/Dilla), and an interlock-cell generator spec.
+
+## [2026-07-09] create | Hip-hop and beat-making
+
+Created `hip-hop-and-beat-making.md` (draft, session-028): boom bap's chop-and-rearrange craft and sourced MPC swing percentages, trap's half-time grid + 808-glide melodic bass + hat-roll grammar (as a literal finite-state generator), regional variants, and subtraction-arrangement as a site-wide form operator — all transposed to sample-free synthesis.
+
+## [2026-07-09] create | Contemporary art music
+
+Created `contemporary-art-music.md` (draft, session-028): post-1945 techniques with their perceptual track records — serialism's row-audibility evidence, aleatory/mobile form (seeded module ordering is mobile form made deterministic), micropolyphony construction, spectralism as synthesis-native composition (deriving harmony from the engine's own partials), compositional microtonality.
+
+## [2026-07-09] create | Medieval and Renaissance music
+
+Created `medieval-and-renaissance-music.md` (draft, session-028): chant modes and psalm-tone templates (with the centonization debate), rhythmic modes, isorhythm worked precisely (talea × color), formes fixes as repetition grammars, canon techniques, soggetto cavato, musica ficta as a rule pass, and the Renaissance grounds (folia/romanesca/passamezzo) as loop-harmony ancestors.
+
+## [2026-07-09] update | Project roadmap — Phase 3 redrawn as the comprehensive site
+
+`project-roadmap.md`: added "The long-term goal (defined by Tom, 2026-07-09)" and rewrote Phase 3 as the comprehensive site (3a wiki expansion → 3b design docs → 3c build → 3d improvement loop); engines 01–05 remain as style studies (working assumption).
+
+## [2026-07-09] update | Open questions — four working-assumption questions for Tom
+
+`project-open-questions.md`: filed the comprehensive-site questions (engines' fate, site folder location, Start-genre count, design-review cadence), each with the working assumption sessions proceed on.
+
 ## [2026-07-09] session | Session 027 — Engine 05 → v0.2: sliding-scale structures + 4 more voices
 
 Tom liked Engine 05 v0.1 ("the sounds are great") but noted the three ensemble types share a similar structure; he asked for (1) more variation/variety in genres and development as **sliding scales along many parameters** (many structures/timelines, by seed and optionally the user), and (2) **four more instrument sounds** of different types, with selection/combination varied by seed (and optionally the user). Delivered as **percussion → 0.2.0**, additive and engine-05-local. **(1)** The three hard-coded style functions (each with one fixed six-section arc) were replaced by a single **parametric generator** driven by a **seed-sampled recipe** over continuous/categorical axes — development (cyclic ↔ through-composed), form type (cyclic/additive/cellDev/throughComposed/process/moment), an intensity-**arc** from **nine** shapes (rise/arch/late-arch/terraced/waves/jo-ha-kyū/front-loaded/level/swell-&-cut, the biggest variety lever), **timeline** type (clave/bell/Euclidean/**Xenakis sieve**/pulse/none), density, looseness, lead activity, call-response, interlock, pitched emphasis. One unified generator realizes any recipe (timeline + anchor + interlocking Euclidean/sieve ostinati that enter as intensity rises + cell development + lead + colors + textures + fills + a gong ending). The three genres are now **presets** biasing the recipe; **`auto`** (new default) samples the whole space; **every axis is user-overridable** (UI controls default to "auto = seed decides"). Over 24 auto seeds: 8 distinct arcs, 5 timelines, all 6 form types, 24 distinct ensembles. **(2)** Four new original voices in `synth.js`, each a different type — **`clap`** (hand-clap/stick impact), **`scrape`** (guiro/cabasa rasp), **`chime`** (pitched ringing metal, steelpan/hang spirit), **`friction`** (cuíca pitch-bend) → **11 voices**; a new **ensemble sampler** varies the instrument combination by seed (all-metal / skins-&-wood / hands-&-shakers / minimal / …), with a user **Ensemble** preset override. Additive-only synth change; engines 01–04 keep untouched vendored copies (byte-for-byte unaffected; regression gates confirm). `node experiments/tests/run.js` → **141 passing** (18 percussion tests, reworked for the parametric composer); `render-percussion.mjs` → **43/43** across 8 varied cases (auto seeds + all four ensemble presets + odd meters + a dry stress; a palette-coverage gate confirms all 12 voices render); `ui-smoke.mjs` **17/17**; `wiki-lint` 0/72. Also **recorded that GitHub Pages is enabled** (Tom listens through the public site) across README/roadmap/status and removed the "ask Tom to enable Pages" reminders. Full narrative: `logs/sessions/027-2026-07-09.md`.

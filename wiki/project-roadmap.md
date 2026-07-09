@@ -3,13 +3,17 @@ title: Project roadmap
 tags: [project]
 status: reviewed
 created: 2026-07-06
-updated: 2026-07-07
-summary: The phased plan — wiki building now, engines when Tom gives the go, then feedback-driven improvement and the public project site.
+updated: 2026-07-09
+summary: The phased plan — knowledge base and style-study engines done or underway, now aimed at the defined long-term goal, one comprehensive site composing many pre-established and original styles.
 ---
 
 # Project roadmap
 
 Phases overlap rather than gate strictly, with one hard gate: **no public engines are built until Tom explicitly asks** ([project-mission](project-mission.md)). Within the current phase, sessions choose their own next tasks from the queue in `logs/status.md` (the operational state file; this page is the strategic view). Update this page when the plan itself changes, not for routine progress — progress lives in `logs/`.
+
+## The long-term goal (defined by Tom, 2026-07-09)
+
+The project's destination is now explicit: **a single self-contained website, with no external dependencies, that composes and performs instrumental music in a wide variety of styles and forms** — some based on pre-established styles documented in this wiki, others **original, created on the fly by the site's code** from high-order principles (structure, tonal quality, rhythm, harmony, melody) inspired by existing genres while adding unprecedented elements. Three tiers of user controls (Start / Intermediate / Advanced), seeded determinism with a compact shareable URL, a large set of original annotated shared JS libraries, everything in one folder. The full directive and first design implications: [comprehensive-site-vision](comprehensive-site-vision.md). Phases 3 and 4 below are redrawn around it.
 
 ## Phase 0 — Bootstrap ✅ (session 001, 2026-07-06)
 
@@ -33,9 +37,16 @@ Exit signal: Tom reads the wiki and says "build engines" — or asks for somethi
 
 3–5 deliberately contrasting engines in `docs/engines/`, one style-committed each. **Engine 01 — the phrase/cadence-driven tonal-classical engine — is live** (`docs/engines/01-tonal-classical/`, `tonal-classical@0.1.0`; whole-piece rounded-ternary form with a real ending, plus the `synth`/`fx` audible layer — [findings-tonal-classical-engine](findings-tonal-classical-engine.md)). The hub `docs/index.html` catalogs engines by number. Shortlist chosen with Tom (2026-07-06): the tonal-classical engine (done); an **Indian classical + pop** engine (Tom may have an India-based collaborator to judge both idioms — note the coverage gap: the wiki covers Indian *classical* but not yet Indian *popular/film* music); an **ambient/process** engine as the strong-baseline control; a **groove/lo-fi** engine; an **adaptive/interactive** engine. Hub `docs/index.html`; every engine instrumented per [engine-architecture](engine-architecture.md); feedback affordances live from day one — an on-page form that saves results to a downloadable JSON file (no server; Tom hands the JSON back to Claude), per [listening-tests-and-feedback](listening-tests-and-feedback.md); **GitHub Pages is enabled** (deploying from `main`/`docs/`), so the hub and engines are live online and Tom listens through the public site.
 
-## Phase 3 — The improvement loop at full speed
+## Phase 3 — The comprehensive site (the long-term goal)
 
-Run [improvement-loop](improvement-loop.md): versioned changes, A/B seeds, feedback rounds, findings pages, corpus-informed style packs, metric regression suite. The wiki's `findings` category becomes the project's real output; engines are its demonstrations.
+Design and build the site described in [comprehensive-site-vision](comprehensive-site-vision.md). Sequenced in sub-stages, each reviewed by Tom asynchronously:
+
+- **3a. Wiki wide-coverage expansion** (session 028, Tom's explicit pre-requisite): world traditions, popular genres, deeper theory/craft, psychology of memorability, and a new design pillar (style space, hybridization, meta-composition/style machines, control surfaces, representation) — so the site's design can draw on human music in all its documented variety.
+- **3b. Design documents** (multiple sessions): the control taxonomy for the three tiers (proposed by Claude, reviewed by Tom), the style-pack/style-vector schema, the original-style sampling and coherence rules, the site/library architecture (one folder, subfolders, compact URL encoding), and the shared-library expansion plan building on `experiments/lib/` and the engines' proven components.
+- **3c. Build** — the site itself, engine core first, then styles in widening circles (familiar presets before on-the-fly originals); betas to Tom for feedback.
+- **3d. The improvement loop at full speed** on the site's betas: versioned changes, A/B seeds, Tom's feedback rounds, findings pages, corpus-informed style packs, metric regression suite ([improvement-loop](improvement-loop.md)). The wiki's `findings` category remains the project's real output; the site is its demonstration.
+
+Engines 01–05 remain live as style studies and component sources during this phase (working assumption pending Tom's confirmation — [project-open-questions](project-open-questions.md)).
 
 ## Phase 4 — Public project site + daily updates
 
