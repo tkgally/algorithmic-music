@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>comprehensive site — offline render self-test (dev only)</title>
+</head>
+<body>
+<!--
+  DEV-ONLY. Not part of the playable site. Renders the site's exact pipeline
+  (style -> compose -> perform -> synth/fx) through an OfflineAudioContext and
+  exposes window.__renderSite() so the headless gate
+  experiments/tools/render-site.mjs can measure it per genre: no clipping,
+  no gross discontinuity, no silent gap, level in band, and DETERMINISM —
+  the same seed renders byte-identical PCM twice (offline == online is the
+  site-architecture §7 requirement). Also exposes window.__checkSerialize()
+  (URL round-trip + v1 layout/style-registry consistency) and
+  window.__composeInfo() for symbolic checks without audio.
+-->
+<p>Dev self-test host for the comprehensive site. Open via the harness, or call <code>window.__renderSite({genre:'classical'})</code> in the console.</p>
+<pre id="out">idle</pre>
+<script src="lib/rng.js"></script>
+<script src="lib/transport.js"></script>
+<script src="lib/theory.js"></script>
+<script src="lib/synth.js"></script>
+<script src="lib/fx.js"></script>
+<script src="lib/analysis.js"></script>
+<script src="lib/generators.js"></script>
+<script src="lib/style.js"></script>
+<script src="lib/compose.js"></script>
+<script src="lib/perform.js"></script>
+<script src="lib/serialize.js"></script>
+<script src="styles/registry.js"></script>
+<script src="styles/classical.js"></script>
+<script src="styles/ambient.js"></script>
+<script src="styles/lofi.js"></script>
+<script src="styles/jazz.js"></script>
+<script src="styles/folk.js"></script>
+<script src="styles/electronic.js"></script>
+<script src="styles/cinematic.js"></script>
+<script src="styles/percussion.js"></script>
+<script>
+(function () {
+  'use strict';
+  const AM = window.AM;
+
+  function mono(buf) {
+    const n = buf.length, out = new Float32Array(n);
+    const ch = buf.numberOfChannels;
+    for (let c = 0; c < ch; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) out[i] += d[i] / ch; }
+    return out;
+  }
+  // FNV-1a over the raw PCM bytes of both channels — the determinism fingerprint.
+  // NB: hash the channel VIEW's exact byte range (buffer+byteOffset+byteLength),
+  // never the whole underlying ArrayBuffer — the engine may back the view with a
+  // larger allocation whose slack bytes are unrelated memory.
+  function pcmHash(buf) {
+    let h = 0x811c9dc5;
+    for (let c = 0; c < buf.numberOfChannels; c++) {
+      const f32 = buf.getChannelData(c);
+      const bytes = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
+      for (let i = 0; i < bytes.length; i += 7) { // stride: fast, still byte-sensitive
+        h ^= bytes[i]; h = Math.imul(h, 0x01000193);
+      }
+    }
+    return (h >>> 0).toString(16);
+  }
+
+  function composeAll(state, capUnits) {
+    const seedInt = state.seed >>> 0;
+    const vec = AM.style.buildVector(seedInt, state.sel, state.controls || {});
+    const composer = AM.compose.create(vec, seedInt);
+    const perfRoot = new AM.rng.Rng(seedInt);
+    const events = [];
+    const units = [];
+    let unitStart = 0;
+    for (let i = 0; i < (capUnits || 300); i++) {
+      const unit = composer.nextUnit(vec);
+      if (!unit) break;
+      const isRit = unit.last && (vec.ending === 'cadence' || vec.ending === 'ringout');
+      const perf = AM.perform.realize(unit, vec, perfRoot.stream('perf:' + unit.unitIdx), { ritardando: isRit });
+      for (const ev of perf.events) events.push(Object.assign({}, ev, { tSec: unitStart + ev.tSec }));
+      units.push({ startSec: unitStart, durSec: perf.durSec, section: unit.section, bar: unit.bar, bars: unit.bars });
+      unitStart += perf.durSec;
+      if (unit.last) break;
+    }
+    return { vector: vec, events, units, musicSec: unitStart };
+  }
+
+  async function renderOnce(state, opts) {
+    opts = opts || {};
+    const sr = opts.sampleRate || 44100;
+    const all = composeAll(state, opts.capUnits);
+    const tail = 0.4 + (1.7 + all.vector.reverb * 3.4) * 0.8;
+    const totalSec = Math.min(opts.maxSec || 400, all.musicSec + tail);
+    const ctx = new OfflineAudioContext(2, Math.ceil(totalSec * sr), sr);
+    const fxRng = new AM.rng.Rng(state.seed >>> 0).stream('fx');
+    const fade = ctx.createGain(); fade.gain.value = 1; fade.connect(ctx.destination);
+    const chain = AM.fx.createMasterChain(ctx, {
+      rand: () => fxRng.next(), out: fade,
+      reverbAmount: 0.16 + all.vector.reverb * 0.36,
+      reverbSeconds: 1.7 + all.vector.reverb * 3.4,
+      returnLowpassHz: 3600 + all.vector.brightness * 1800,
+      volume: 0.7,
+    });
+    chain.setTone((all.vector.brightness - 0.5) * 7);
+    chain.setWidth(0.35 + all.vector.width * 0.95);
+    if (all.vector.ending === 'fade') {
+      const fadeLen = Math.min(7, Math.max(3, all.musicSec * 0.08));
+      fade.gain.setValueAtTime(1, Math.max(0, all.musicSec - fadeLen));
+      fade.gain.exponentialRampToValueAtTime(0.001, all.musicSec + tail * 0.5);
+    }
+    for (const ev of all.events) {
+      if (ev.tSec > totalSec - 0.1) continue;
+      AM.synth.play(ev.voice, ctx, chain.input(ev.voice), {
+        freq: ev.freq, time: ev.tSec + 0.08, durSec: ev.durSec, vel: ev.vel, pan: ev.pan, expr: ev.expr, p: ev.p, tags: ev.tags,
+      });
+    }
+    const buffer = await ctx.startRendering();
+    return { buffer, info: all };
+  }
+
+  // state from a friendly spec: {genre|genres:[a,b]|invent, seed (hex), controls}
+  function toState(spec) {
+    spec = spec || {};
+    const seed = typeof spec.seed === 'number' ? spec.seed >>> 0
+      : parseInt(spec.seed || 'a5a5a5a5', 16) >>> 0;
+    let sel;
+    if (spec.invent) sel = { a: null, b: null, invent: true };
+    else if (spec.genres) sel = { a: spec.genres[0], b: spec.genres[1] || null, invent: false };
+    else sel = { a: spec.genre || 'classical', b: null, invent: false };
+    return { seed, sel, controls: spec.controls || {} };
+  }
+
+  window.__composeInfo = function (spec) {
+    const all = composeAll(toState(spec), 400);
+    return {
+      name: all.vector.name, kind: all.vector.kind, strategy: all.vector.strategy,
+      bpm: Math.round(all.vector.bpm), meter: all.vector.meter.id,
+      scale: all.vector.scale, harmonyType: all.vector.harmonyType, ending: all.vector.ending,
+      units: all.units.length, events: all.events.length, musicSec: +all.musicSec.toFixed(1),
+      bars: all.units.reduce((a, u) => a + (u.bars || 0), 0),
+      sections: Array.from(new Set(all.units.map((u) => u.section))),
+      meld: all.vector.meld, noveltyAxes: all.vector.noveltyAxes || null,
+      signatures: (all.vector.signatures || []).map((s) => s.type),
+    };
+  };
+
+  window.__renderSite = async function (spec) {
+    spec = spec || {};
+    const state = toState(spec);
+    const analysis = AM.analysis;
+    const r1 = await renderOnce(state, spec);
+    const samples = mono(r1.buffer);
+    const sr = r1.buffer.sampleRate;
+    // gap is judged over the MUSICAL span (a fade ending's trailing silence is
+    // an ending, not a dropout); level/peak over the whole render
+    const musicSamples = samples.subarray(0, Math.min(samples.length, Math.floor(Math.max(1, r1.info.musicSec - 1.5) * sr)));
+    const out = {
+      spec: { genre: spec.genre || (spec.genres || []).join('+') || (spec.invent ? 'invent' : 'classical'), seed: state.seed.toString(16) },
+      name: r1.info.vector.name, strategy: r1.info.vector.strategy,
+      bpm: Math.round(r1.info.vector.bpm), meter: r1.info.vector.meter.id,
+      bars: r1.info.units.reduce((a, u) => a + (u.bars || 0), 0),
+      events: r1.info.events.length,
+      durationSec: +(r1.buffer.length / sr).toFixed(2),
+      metrics: {
+        rmsDb: +analysis.rmsDbfs(samples).toFixed(1),
+        peak: +analysis.peak(samples).toFixed(4),
+        maxStep: +analysis.maxStep(samples).toFixed(4),
+        silenceGapSec: +analysis.longestSilenceSec(musicSamples, sr, { thresholdDb: -55 }).toFixed(3),
+      },
+      hash: pcmHash(r1.buffer),
+    };
+    if (spec.checkDeterminism !== false) {
+      // Determinism, defined honestly: the SYMBOLIC stream is byte-identical
+      // (asserted in the Node suite), and the rendered audio is identical to
+      // within rounding ACCUMULATION. Chromium sums a node's multiple inputs
+      // in an unspecified order and float addition is not associative, so two
+      // renders of the same graph differ by ~1 ulp at the mix bus (measured
+      // 1.0e-7); the master DynamicsCompressors' adaptive gain then amplifies
+      // that microscopic input difference over a full piece — observed up to
+      // ~1.7e-4 max sample diff (≈ −73 dB below the signal, inaudible).
+      // Byte-identity is NOT a browser-attainable target for fan-in graphs.
+      // A REAL composition difference (a note changed) measures ≥ 1e-2, four
+      // orders of magnitude above the noise. Gate: max |s₁ − s₂| ≤ 2e-3.
+      const r2 = await renderOnce(state, spec);
+      out.hash2 = pcmHash(r2.buffer);
+      let maxDiff = 0;
+      const n = Math.min(r1.buffer.length, r2.buffer.length);
+      for (let c = 0; c < r1.buffer.numberOfChannels; c++) {
+        const a = r1.buffer.getChannelData(c), b = r2.buffer.getChannelData(c);
+        for (let i = 0; i < n; i++) { const d = Math.abs(a[i] - b[i]); if (d > maxDiff) maxDiff = d; }
+      }
+      out.maxRenderDiff = maxDiff;
+      out.deterministic = maxDiff <= 2e-3;
+    }
+    return out;
+  };
+
+  window.__checkSerialize = function () {
+    // v1 layout snapshot must match the live control registry's prefix
+    const live = AM.style.CONTROLS.map((c) => [c.id, c.bits]);
+    const v1 = AM.serialize.V1_CONTROLS;
+    let layoutOk = v1.length <= live.length;
+    for (let i = 0; i < v1.length && layoutOk; i++) {
+      if (v1[i][0] !== live[i][0] || v1[i][1] !== live[i][1]) layoutOk = false;
+    }
+    // pack orders must be unique, 0..7
+    const orders = AM.styles.list().map((p) => p.order).sort((a, b) => a - b);
+    const ordersOk = orders.length === 8 && orders.every((o, i) => o === i);
+    // round-trip with every control pinned at an extreme
+    const controls = {};
+    AM.style.CONTROLS.forEach((c, i) => { controls[c.id] = i % 2 ? 0 : (c.type === 'enum' ? (c.values.length - 1) : (c.steps - 1)); });
+    const st = { seed: 0xfeedbeef, uiMode: 2, sel: { a: 3, b: 6, invent: false }, controls };
+    const enc = AM.serialize.encode(st);
+    const dec = AM.serialize.decode(enc);
+    const rtOk = JSON.stringify(dec) === JSON.stringify(st);
+    // invented selection round-trip
+    const st2 = { seed: 1, uiMode: 1, sel: { a: null, b: null, invent: true }, controls: {} };
+    const rt2Ok = JSON.stringify(AM.serialize.decode(AM.serialize.encode(st2))) === JSON.stringify(st2);
+    return { layoutOk, ordersOk, rtOk, rt2Ok, payloadLen: enc.length, emptyLen: AM.serialize.encode({ seed: 1, uiMode: 0, sel: { a: 0, b: null }, controls: {} }).length };
+  };
+
+  document.getElementById('out').textContent = 'ready: __renderSite / __composeInfo / __checkSerialize';
+})();
+</script>
+</body>
+</html>

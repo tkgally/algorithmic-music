@@ -33,14 +33,24 @@ experiments/
     wiki-lint.mjs       wiki health check (run every session)
     render-measure.mjs  headless OfflineAudioContext render-and-measure harness (Playwright)
     render-engine.mjs   offline render-and-measure gate for the public tonal-classical engine (Playwright)
+    render-*.mjs        the other engines' offline gates (ambient/groove/cantabile/percussion)
+    ui-smoke.mjs        live-playback smoke for the preliminary-tests hub + engines (Playwright)
+    site-check.js       COMPREHENSIVE SITE: fast no-audio pipeline gate (Node only — determinism,
+                        voices, unit discipline, 12-seed sweeps per genre/meld/invented style)
+    render-site.mjs     COMPREHENSIVE SITE: per-genre offline render gates + determinism (Playwright)
+    site-smoke.mjs      COMPREHENSIVE SITE: live playback, URL round-trip, live-change-no-restart,
+                        crossfade genre swap (Playwright)
 ```
 
 ## Running the tests
 
 ```
-node experiments/tests/run.js               # 88 tests: rng + transport + theory + composer + analysis + engine
+node experiments/tests/run.js               # headless suite: rng + transport + theory + composers + engines + site
 node experiments/tools/render-measure.mjs   # audio harness: renders the primitives/period in headless Chromium
 node experiments/tools/render-engine.mjs    # audio harness: renders the full public engine, measures, gates
+node experiments/tools/site-check.js sweep classical   # fast symbolic sweep of a site genre (also: melds, invent)
+node experiments/tools/render-site.mjs      # the site's offline render gates (add --genre <id> to filter)
+node experiments/tools/site-smoke.mjs       # the site's live-playback smoke (add --quick to skip per-genre spins)
 ```
 
 `run.js` exits non-zero on any failure; the Euclidean-rhythm suite includes an

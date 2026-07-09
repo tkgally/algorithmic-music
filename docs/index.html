@@ -3,78 +3,101 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>algorithmic-music — a generative music site by Claude</title>
-<style>
-  :root {
-    color-scheme: light dark;
-    --bg:#faf9f7; --fg:#1c1a17; --muted:#6d675f; --line:#e5e1da; --panel:#ffffff; --accent:#6a5acd;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --bg:#17151a; --fg:#ece9e4; --muted:#9a938a; --line:#2c2833; --panel:#201d26; --accent:#9d8cff; }
-  }
-  * { box-sizing: border-box; }
-  body { font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
-  main { max-width: 780px; margin: 0 auto; padding: 2.4rem 1.2rem 4rem; }
-  a { color: var(--accent); }
-  h1 { font-size: 2rem; margin: 0 0 .3rem; letter-spacing: -0.01em; }
-  h2 { font-size: 1.15rem; margin: 2.4rem 0 .6rem; }
-  .lede { color: var(--fg); font-size: 1.08rem; }
-  .muted { color: var(--muted); }
-  .badge { display: inline-block; font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); border: 1px solid var(--accent); border-radius: 999px; padding: .1rem .6rem; margin-bottom: 1rem; }
-  /* The one live thing to click today: the preliminary test engines. */
-  .cta { display: block; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.2rem; margin: 1.4rem 0; text-decoration: none; color: inherit; transition: border-color .15s; }
-  .cta:hover { border-color: var(--accent); }
-  .cta .k { font-weight: 700; font-size: 1.1rem; color: inherit; }
-  .cta .arrow { color: var(--accent); font-weight: 700; }
-  .cta .sub { color: var(--muted); font-size: .93rem; margin-top: .25rem; }
-  ul.plain { padding-left: 1.1rem; }
-  ul.plain li { margin: .35rem 0; }
-  .tiers { list-style: none; padding: 0; margin: .6rem 0; }
-  .tiers li { border: 1px solid var(--line); border-radius: 10px; padding: .5rem .8rem; margin: .4rem 0; color: var(--muted); font-size: .95rem; }
-  .tiers b { color: var(--fg); }
-  .foot { color: var(--muted); font-size: .88rem; margin-top: 2.8rem; border-top: 1px solid var(--line); padding-top: 1.2rem; }
-</style>
+<title>algorithmic-music — generative music, composed in your browser</title>
+<meta name="description" content="A self-contained generative music site: instrumental pieces composed and performed live in your browser, in familiar and invented styles. Written and built entirely by Claude, directed by Tom Gally. Public domain (CC0).">
+<link rel="stylesheet" href="css/site.css">
 </head>
 <body>
 <main>
-  <span class="badge">In early development</span>
-  <h1>algorithmic-music</h1>
-  <p class="lede">A single, self-contained website that <strong>composes and performs instrumental music in the browser</strong> — across a wide range of styles: some drawn from familiar musical traditions, and some <em>invented on the fly</em> by the site's own code. Every note is synthesized live with the Web Audio API. No samples, no outside libraries, no server.</p>
+  <header>
+    <div class="titleRow">
+      <h1>algorithmic-music</h1>
+      <span class="ver" id="siteVersion"></span>
+      <nav class="modes" aria-label="control level">
+        <button id="mode0" type="button" class="on">Start</button><button id="mode1" type="button">Intermediate</button><button id="mode2" type="button">Advanced</button>
+      </nav>
+    </div>
+    <p class="lede">Instrumental music composed <em>while it plays</em>, right here in your browser — no recordings, no samples, no server. Pick one style (or blend two), press play. Every piece is reproducible: the seed and your settings live in the page address, so copying the link keeps the piece.</p>
+  </header>
 
-  <p class="muted">
-    This is a long-running collaboration between <a href="https://github.com/tkgally">Tom Gally</a>, who directs the project and judges the music, and <strong>Claude</strong> (Anthropic's AI), which does all of the research, writing, and engineering across many autonomous sessions. The bet: browser music generators are easy to build but usually musically disappointing, and the cure is <em>knowledge plus iteration</em> — a serious, cited <a href="https://github.com/tkgally/algorithmic-music/tree/main/wiki">knowledge base</a> about how music works and why people enjoy it, driving designs that improve through evaluation and listener feedback. Everything here — this site, its engines, and the knowledge base — is written and built by Claude, and dedicated to the public domain (CC0).
-  </p>
+  <!-- genre selection: multi-select, max 2, two selections blend -->
+  <section class="panel" aria-label="style">
+    <div class="panelHead"><h2>Style</h2><span class="hintText">pick one — or two, and they blend</span></div>
+    <div id="genres" class="genres"></div>
+  </section>
 
-  <h2>Hear it now</h2>
-  <p class="muted">The full site is still being designed and built. In the meantime, five self-contained <strong>preliminary test engines</strong> are live — each a deliberately different generative instrument, and the proving ground for the components the comprehensive site is being built from.</p>
+  <!-- controls: three tiers, settings preserved across modes -->
+  <section class="panel" aria-label="controls">
+    <div id="startControls" class="ctlTier"></div>
+    <div id="intControls" class="ctlTier" style="display:none"></div>
+    <div id="advControls" class="ctlTier" style="display:none"></div>
+    <p class="autoNote">Every control starts on <b>auto</b> — the seed decides. Moving a control pins it; “auto” un-pins it. Changes land while the music plays, without restarting.</p>
+  </section>
 
-  <a class="cta" href="preliminary-tests/index.html">
-    <span class="k">Preliminary test engines <span class="arrow">→</span></span>
-    <div class="sub">Tonal classical · ambient drift · groove / lo-fi · cantabile · percussion — pick one and press play. Every piece is reproducible from a seed and shareable by link.</div>
-  </a>
+  <!-- transport -->
+  <section class="panel transport" aria-label="transport">
+    <div class="transportRow">
+      <button id="play" type="button" class="playBtn">▶ Play</button>
+      <button id="dice" type="button" class="diceBtn" title="New piece: reseed everything that isn't pinned, within this style selection.">🎲 New piece</button>
+      <label class="seedWrap">seed
+        <input id="seed" type="text" spellcheck="false" autocomplete="off">
+      </label>
+      <button id="copySeed" type="button" class="mini" title="Copy the seed">copy</button>
+      <button id="copyLink" type="button" class="mini" title="Copy a link that reproduces this exact piece">copy link</button>
+      <label class="volWrap">vol <input id="volume" type="range" min="0" max="100" value="70"></label>
+    </div>
+    <div class="nowRow">
+      <span id="nowlabel" class="now">stopped</span>
+      <span class="pieceInfo"><b id="pieceName"></b> <span id="pieceDetail" class="muted"></span></span>
+    </div>
+    <canvas id="viz" height="120" aria-hidden="true"></canvas>
+  </section>
 
-  <h2>Where this is going</h2>
-  <p class="muted">The comprehensive site now taking shape will offer three levels of control, so it suits a first-time visitor and a curious tinkerer alike:</p>
-  <ul class="tiers">
-    <li><b>Start</b> — a few familiar genre choices; pick one, press play, and a random seed does the rest.</li>
-    <li><b>Intermediate</b> — around twenty more detailed but still familiar controls.</li>
-    <li><b>Advanced</b> — a wide range of controls, including parameters invented specifically for this site.</li>
-  </ul>
-  <p class="muted">Alongside the familiar styles, the site will compose in <strong>original styles created on the fly</strong> — built from high-order principles about structure, harmony, rhythm, melody, and timbre, inspired by existing genres while adding elements of their own. Every piece stays fully reproducible from a compact, shareable link, so a piece you like can always be found again. Playlists and other conveniences will come later.</p>
+  <!-- feedback -->
+  <details class="panel fb">
+    <summary>Send feedback to the project</summary>
+    <p class="muted">This project improves through listening feedback. Describe what you heard (what worked, what didn’t — timestamps help), then download the file and send it to Tom: it captures the exact seed and settings, so the same piece can be reproduced.</p>
+    <textarea id="fbNotes" rows="3" placeholder="What did you hear?"></textarea>
+    <button id="fbDownload" type="button" class="mini">Download feedback JSON</button>
+  </details>
 
-  <h2>How it works</h2>
-  <ul class="plain muted">
-    <li><strong>Knowledge base.</strong> Claude researches music theory, the psychology of listening, genre traditions, composition craft, algorithmic techniques, Web Audio implementation, and evaluation — every page ending in concrete implications for engines, every claim cited.</li>
-    <li><strong>Engines &amp; site.</strong> Generators built from that knowledge, published here on GitHub Pages. Everything is transparent about being AI-designed, deterministic from a seed, and runnable offline from a single folder.</li>
-    <li><strong>Improvement loop.</strong> Listener feedback and computational metrics feed findings back into the knowledge base, and the music gets better over time.</li>
-  </ul>
+  <section class="about">
+    <h2>About</h2>
+    <p class="muted">This site is a single self-contained folder of original code: it composes each piece from scratch — harmony, melody, rhythm, form — and performs it with expressive timing through the Web Audio API, fetching nothing from the network. Two selected styles <b>blend</b>: the meld takes its rhythmic chassis from one parent and its harmony from the other, the way real fusions work. At Intermediate and Advanced levels the site can also <b>invent a style</b> — a seeded new point in style space with its own audible signatures — and every setting can change <em>while the music plays</em>: the piece morphs at the next musical boundary instead of restarting, because the composer only ever writes a few seconds ahead of what you hear.</p>
+    <p class="muted"><b>Everything here is written and built by Claude</b> (Anthropic’s AI), across many autonomous sessions directed by <a href="https://github.com/tkgally">Tom Gally</a>, who judges the music. The code, the music, and the prose are dedicated to the public domain. The five earlier <a href="preliminary-tests/index.html">preliminary test engines</a> — the style studies this site grew from — remain playable, and the <a href="design/index.html">design documents</a> describe how this works.</p>
+  </section>
 
-  <p class="foot">
-    Source, knowledge base, and session-by-session history:
-    <a href="https://github.com/tkgally/algorithmic-music">github.com/tkgally/algorithmic-music</a>.
-    All original work is dedicated to the public domain under <a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0 1.0</a>.
-    Built with vanilla HTML/CSS/JS and the Web Audio API — no dependencies.
-  </p>
+  <footer>
+    <p>
+      <a href="preliminary-tests/index.html">preliminary tests</a> ·
+      <a href="design/index.html">design docs</a> ·
+      <a href="https://github.com/tkgally/algorithmic-music">source &amp; knowledge base</a> ·
+      <a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0 — public domain</a>
+    </p>
+    <p class="muted">Written and built by Claude, directed by Tom Gally. Instrumental music only; every piece is generated in your browser at play time. Vanilla HTML/CSS/JS + Web Audio — no dependencies, no build step.</p>
+  </footer>
 </main>
+
+<!-- original first-party libraries, classic scripts into one namespace (file://-safe) -->
+<script src="lib/rng.js"></script>
+<script src="lib/transport.js"></script>
+<script src="lib/theory.js"></script>
+<script src="lib/synth.js"></script>
+<script src="lib/fx.js"></script>
+<script src="lib/generators.js"></script>
+<script src="lib/style.js"></script>
+<script src="lib/compose.js"></script>
+<script src="lib/perform.js"></script>
+<script src="lib/serialize.js"></script>
+<script src="styles/registry.js"></script>
+<script src="styles/classical.js"></script>
+<script src="styles/ambient.js"></script>
+<script src="styles/lofi.js"></script>
+<script src="styles/jazz.js"></script>
+<script src="styles/folk.js"></script>
+<script src="styles/electronic.js"></script>
+<script src="styles/cinematic.js"></script>
+<script src="styles/percussion.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
