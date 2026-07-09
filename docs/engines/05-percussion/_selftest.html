@@ -44,6 +44,7 @@
     return {
       seed: opts.seed || 'demo', style: plan.meta.style, meter: plan.meta.meter,
       form: plan.selfReport.form, bpm: plan.bpm, bars: plan.meta.bars,
+      voices: Array.from(new Set(plan.events.map((e) => e.voice))).sort(),
       durationSec: +plan.durationSec.toFixed(2), events: plan.events.length,
       metrics: {
         rmsDb: +analysis.rmsDbfs(samples).toFixed(1),

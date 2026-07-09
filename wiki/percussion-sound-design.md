@@ -70,6 +70,10 @@ Spanning low↔high × skin/wood/metal/noise; each buildable from oscillators, n
 | **gong** (tam-tam/crash) | metal/noise | dense inharmonic cluster + highpassed noise cloud with an attack **bloom**, long tail | decay (size), brightness, bloom |
 | **shaker** (maraca/cabasa) | noise | bandpassed noise, fast two-phase AR | decay, brightness, grain |
 | **mallet** (marimba/kalimba/xylophone) | tuned bar | modal 1 : 4 (: 10) marimba or 1 : 3 xylophone + warm lowpass; **pitched** — the melodic-accompaniment voice | tune, decay, brightness |
+| **clap** (hand-clap / stick) | impact / body | a comb of 3–4 band-passed (~1 kHz) noise bursts a few ms apart + a short body tail (the "spread hands"); a `stick` variant is one sharp high click | bright (band), decay (tail) |
+| **scrape** (guiro / cabasa) | scraped noise | band-passed noise gated by a fast (~40–60 Hz) square tremolo — the ridges; a longer note = a longer rasp | bright, decay (stroke length) |
+| **chime** (steel pan / hang / crotale) | pitched metal | a **near-harmonic** modal bank (1 : 2 : 3 : 4, lightly stretched) + a high strike shimmer, long ring; clear and tonal — distinct from the clangy `metal`; a second melodic color | tune, decay, brightness, inharmonicity |
+| **friction** (cuíca) | friction / pitch-bend | a sawtooth through two vowel-formant band-passes with a pitch **glide** (up or `down`) + a friction squeak; organic, voice-like | tune, decay, brightness |
 
 ## Perceptual / mixing notes for a percussion ensemble
 

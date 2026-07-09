@@ -1056,11 +1056,117 @@
     disconnectOnEnd(bank.nodes[1] || bank.out, bank.nodes.concat([lp, pan]));
   }
 
+  // ---- clap: hand-clap / stick (body-percussion impact) ----------------------
+  // A clap is several hands striking slightly spread in time — a short comb of
+  // band-passed noise bursts (~1 kHz) plus a brief body tail; the 808-clap idea,
+  // built originally. The `stick` tag collapses it to one sharp high click (a
+  // rimshot/claves-stick). Enables hand-clap ensembles (Reich, flamenco palmas,
+  // gospel) as a distinct timbral type. p.bright shifts the band, p.decay the tail.
+  function clap(ctx, dest, note) {
+    const { time, vel } = note; const p = note.p || _EMPTY;
+    const pan = panTo(ctx, dest, note.pan);
+    const bright = pv(p, 'bright', 1), decMul = pv(p, 'decay', 1);
+    const single = (note.tags || []).indexOf('stick') !== -1;
+    const lvl = 0.42 * (0.4 + 0.6 * vel);
+    const nodes = [pan]; let lastSrc = null;
+    // taps: [offsetSec, levelScale, decaySec] — a spread hand-clap, or one stick click
+    const taps = single
+      ? [[0, 1.15, 0.013 * decMul]]
+      : [[0, 1.0, 0.006], [0.008, 0.82, 0.006], [0.017, 0.6, 0.006], [0.024, 0.95, 0.08 * decMul]];
+    for (const t of taps) {
+      const b = noiseBurst(ctx, pan, time + t[0], lvl * t[1], t[2], single ? 900 : 620, (single ? 1750 : 1150) * bright, single ? 1.5 : 1.1);
+      nodes.push.apply(nodes, b.chain); lastSrc = b.chain[0];
+    }
+    disconnectOnEnd(lastSrc, nodes);
+  }
+
+  // ---- scrape: guiro / cabasa / rasp (scraped idiophone) ---------------------
+  // A scraped, not struck, sound — a short "rrrip" of band-passed noise gated by a
+  // fast tremolo (the instrument's ridges). Distinct gesture-type from the shaker's
+  // single burst. p.bright picks the band, p.decay the stroke length; a longer
+  // note.durBeats makes a longer scrape.
+  function scrape(ctx, dest, note) {
+    const { time, vel, durSec } = note; const p = note.p || _EMPTY;
+    const pan = panTo(ctx, dest, note.pan);
+    const bright = pv(p, 'bright', 1), decMul = pv(p, 'decay', 1);
+    const dur = Math.max(0.07, Math.min(0.4, (durSec ? Math.min(durSec, 0.3) : 0.13) * decMul));
+    const noise = ctx.createBufferSource(); noise.buffer = noiseBuffer(ctx); noise.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.setValueAtTime(2800 * bright, time); bp.Q.setValueAtTime(1.4, time);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.setValueAtTime(1100, time);
+    const g = ctx.createGain();
+    const lvl = 0.16 * (0.4 + 0.6 * vel);
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.exponentialRampToValueAtTime(lvl, time + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0012, time + dur);
+    g.gain.linearRampToValueAtTime(0, time + dur + 0.01);
+    // grain buzz: a fast square tremolo gates an inner gain 0..1 (the ridges)
+    const trem = ctx.createOscillator(); trem.type = 'square'; trem.frequency.setValueAtTime(42 + 20 * bright, time);
+    const tremG = ctx.createGain(); tremG.gain.setValueAtTime(0.5, time);
+    const inner = ctx.createGain(); inner.gain.setValueAtTime(0.5, time);
+    trem.connect(tremG); tremG.connect(inner.gain);
+    noise.connect(bp); bp.connect(hp); hp.connect(inner); inner.connect(g); g.connect(pan);
+    const endAt = time + dur + 0.03;
+    noise.start(time, noiseOffset(time)); trem.start(time); noise.stop(endAt); trem.stop(endAt);
+    disconnectOnEnd(noise, [noise, bp, hp, inner, g, trem, tremG, pan]);
+  }
+
+  // ---- chime: pitched ringing metal (steel pan / hang / crotale spirit) -------
+  // A CLEAR, tonal metal — a near-harmonic modal bank (octave + twelfth strong,
+  // lightly stretched) with a bright strike shimmer and a long-ish ring. Distinct
+  // from the clangy inharmonic `metal` and the wooden `mallet`; PITCHED, so it can
+  // carry melody/sparkle. p.tune/decay/bright/inharm.
+  function chime(ctx, dest, note) {
+    const { freq, time, vel } = note; const p = note.p || _EMPTY;
+    const pan = panTo(ctx, dest, note.pan);
+    const base = Math.max(180, Math.min(2400, (freq || 520) * centsRatio(pv(p, 'tune', 0))));
+    const decMul = pv(p, 'decay', 1), bright = pv(p, 'bright', 1);
+    const bank = modalBank(ctx, base, time,
+      [[1, 1.0, 1.0], [2.01, 0.5, 0.72], [3.0, 0.34, 0.54], [4.04, 0.2, 0.4], [5.42, 0.1, 0.28]],
+      0.15 * (0.45 + 0.55 * vel), (0.7 + 0.6 * vel) * decMul, 0.002, pv(p, 'inharm', 1));
+    const nb = noiseBurst(ctx, pan, time, 0.04 * (0.4 + 0.6 * vel) * bright, 0.02, 4000, 9000, 0.7);
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(Math.min(12000, base * 8 * bright), time); lp.Q.setValueAtTime(0.3, time);
+    bank.out.connect(lp); lp.connect(pan);
+    disconnectOnEnd(bank.nodes[1] || bank.out, bank.nodes.concat(nb.chain, [lp, pan]));
+  }
+
+  // ---- friction: cuíca-style friction drum (pitch-bending "whoop") -----------
+  // A resonant, vocal, PITCH-BENDING tone — a sawtooth through two vowel-formant
+  // band-passes with a glide up (default) or down (`down` tag), plus a friction
+  // squeak. The organic, voice-like member of the palette; a very different
+  // gesture-type. p.tune/decay/bright.
+  function friction(ctx, dest, note) {
+    const { freq, time, durSec, vel, tags } = note; const p = note.p || _EMPTY;
+    const pan = panTo(ctx, dest, note.pan);
+    const down = (tags || []).indexOf('down') !== -1;
+    const base = Math.max(90, Math.min(600, (freq || 220) * centsRatio(pv(p, 'tune', 0))));
+    const decMul = pv(p, 'decay', 1), bright = pv(p, 'bright', 1);
+    const dur = Math.max(0.12, Math.min(0.6, (durSec ? Math.min(durSec, 0.5) : 0.26) * decMul));
+    const osc = ctx.createOscillator(); osc.type = 'sawtooth';
+    const f0 = down ? base * 1.5 : base * 0.7, f1 = down ? base * 0.7 : base * 1.5;
+    osc.frequency.setValueAtTime(f0, time);
+    osc.frequency.exponentialRampToValueAtTime(f1, time + dur * 0.8);
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.setValueAtTime(600 * bright, time); bp.Q.setValueAtTime(4, time);
+    const bp2 = ctx.createBiquadFilter(); bp2.type = 'bandpass'; bp2.frequency.setValueAtTime(1200 * bright, time); bp2.Q.setValueAtTime(6, time);
+    const mix = ctx.createGain(); mix.gain.value = 0.5;
+    const g = ctx.createGain();
+    const lvl = 0.28 * (0.4 + 0.6 * vel);
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.exponentialRampToValueAtTime(lvl, time + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0016, time + dur);
+    g.gain.linearRampToValueAtTime(0, time + dur + 0.01);
+    const nb = noiseBurst(ctx, pan, time, 0.05 * (0.3 + 0.7 * vel), dur * 0.7, 700, 1400 * bright, 3);
+    osc.connect(bp); osc.connect(bp2); bp.connect(mix); bp2.connect(mix); mix.connect(g); g.connect(pan);
+    const endAt = time + dur + 0.03;
+    osc.start(time); osc.stop(endAt);
+    disconnectOnEnd(osc, [osc, bp, bp2, mix, g, pan].concat(nb.chain));
+  }
+
   // Voice registry, keyed by the composer's `voice` field.
   const VOICES = { melody: keys, chord: strings, bass: bass, bell: bell, pad: pad, drone: drone,
     kick: kick, snare: snare, hat: hat, rhodes: rhodes,
     aria: aria, reed: reed, wire: wire, glass: glass, pluck: pluck,
-    boom: boom, drum: drum, wood: wood, metal: metal, gong: gong, shaker: shaker, mallet: mallet };
+    boom: boom, drum: drum, wood: wood, metal: metal, gong: gong, shaker: shaker, mallet: mallet,
+    clap: clap, scrape: scrape, chime: chime, friction: friction };
 
   /** Play a composer voice by name: play('melody', ctx, dest, note). */
   function play(voice, ctx, dest, note) {
@@ -1069,6 +1175,7 @@
   }
 
   return { play, keys, strings, bass, bell, pad, drone, kick, snare, hat, rhodes,
-    aria, reed, wire, glass, pluck, VOICES, envGain, noiseBuffer,
+    aria, reed, wire, glass, pluck, boom, drum, wood, metal, gong, shaker, mallet,
+    clap, scrape, chime, friction, VOICES, envGain, noiseBuffer,
     exprEnv, pitchExpr, panTo, microDrift, bodyResonance, onsetTransient };
 });

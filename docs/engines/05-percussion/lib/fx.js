@@ -176,7 +176,8 @@
 
     const buses = { melody: melodyBus, chord: chordBus, bass: bassBus, bell: bellBus, pad: padBus, drone: droneBus,
       kick: kickBus, snare: snareBus, hat: hatBus, rhodes: rhodesBus,
-      boom: percLowBus, drum: percMidBus, wood: percMidBus, metal: percHiBus, gong: percHiBus, shaker: percHiBus, mallet: malletBus };
+      boom: percLowBus, drum: percMidBus, wood: percMidBus, metal: percHiBus, gong: percHiBus, shaker: percHiBus, mallet: malletBus,
+      clap: percMidBus, scrape: percHiBus, chime: percHiBus, friction: percMidBus };
 
     return {
       master, sum, buses,
