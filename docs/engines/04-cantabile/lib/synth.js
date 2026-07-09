@@ -542,6 +542,91 @@
     return node;
   }
 
+  // ==========================================================================
+  // ORGANIC-TIMBRE helpers (Engine 04 v0.2): why do the expressive voices, for
+  // all their intra-note motion, still read as "synthesized"? Three reasons,
+  // straight from wiki/timbre-and-orchestration.md and wiki/synthesis-recipes.md:
+  //
+  //   (1) A synth's pitch is DEAD STEADY. A real bowed/blown/sung tone micro-
+  //       wanders a few cents constantly — the single strongest "alive vs.
+  //       electronic" cue. (`microDrift`)
+  //   (2) A synth's spectrum comes straight from an oscillator through a pitch-
+  //       TRACKING filter, so it has no fixed resonant body. Every real instrument
+  //       colours all its pitches through the same UNMOVING formants of a physical
+  //       body/cavity — a stable spectral-envelope signature. (`bodyResonance`)
+  //   (3) The identifying ATTACK TRANSIENT (bow scratch, breath chiff, pick click)
+  //       — "worth more than an elaborate sustain" — is missing or too clean.
+  //       (`onsetTransient`)
+  //
+  // These are ORIGINAL synthesis, not sampling or a model of any specific
+  // instrument; they stay deterministic + browser-identical (fixed-rate LFOs and
+  // band-limited slices of the shared seeded noise buffer; every ramp has a
+  // defined endpoint). Findings: wiki/original-sound-design.md.
+
+  // (1) A slow, small, quasi-random pitch WANDER summed into `detune` (cents),
+  // separate from — and under — vibrato. A few incommensurate sub-Hz sine LFOs
+  // sum to a drift that reads as "human/analog", never as a wobble. Rates vary
+  // per voice so simultaneous voices don't wander in lockstep (they beat, like a
+  // real section). All LFOs start at phase 0 (drift begins at 0 — no jump).
+  function microDrift(ctx, detunes, t, durSec, cents, rates) {
+    if (!(cents > 0.03)) return [];
+    const end = t + durSec + 0.05;
+    const rs = rates || [0.11, 0.19, 0.31];
+    const per = cents / rs.length;
+    const nodes = [];
+    for (const f of rs) {
+      const lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.setValueAtTime(f, t);
+      const g = ctx.createGain(); g.gain.setValueAtTime(per, t);
+      lfo.connect(g);
+      for (const dp of detunes) g.connect(dp);
+      lfo.start(t); lfo.stop(end);
+      nodes.push(lfo, g);
+    }
+    return nodes;
+  }
+
+  // (2) A small stack of FIXED `peaking` filters — a formant "body" the tone always
+  // passes through, at frequencies that DON'T track the played pitch. This is the
+  // cue that a physical resonator is colouring the sound (the spectral-envelope
+  // signature the ear reads as an instrument's identity). peaks = [[hz, dB, Q]…];
+  // a post-trim keeps the +dB peaks from raising the note's level. Returns an
+  // input node, an output node, and the node list for cleanup.
+  function bodyResonance(ctx, peaks, t, trim) {
+    const input = ctx.createGain(); input.gain.value = 1;
+    let last = input; const nodes = [input];
+    for (const p of peaks) {
+      const f = ctx.createBiquadFilter(); f.type = 'peaking';
+      f.frequency.setValueAtTime(p[0], t); f.gain.setValueAtTime(p[1], t); f.Q.setValueAtTime(p[2], t);
+      last.connect(f); last = f; nodes.push(f);
+    }
+    const out = ctx.createGain(); out.gain.value = trim == null ? 0.8 : trim;
+    last.connect(out); nodes.push(out);
+    return { input: input, output: out, nodes: nodes };
+  }
+
+  // (3) A very short band-limited noise burst at the attack — the bow scratch /
+  // breath chiff / pick click that IDENTIFIES the instrument (the first tens of ms
+  // carry most of the identification). `kind` selects the colour; routes to the
+  // voice's pan node so it sits in the same seat as the tone.
+  function onsetTransient(ctx, dest, t, freq, amount, kind) {
+    if (!(amount > 0.02)) return [];
+    const noise = ctx.createBufferSource(); noise.buffer = noiseBuffer(ctx); noise.loop = true;
+    const bp = ctx.createBiquadFilter();
+    const g = ctx.createGain();
+    let dec = 0.04, peak = 0.06 * clamp(amount, 0, 1);
+    if (kind === 'scratch') { bp.type = 'bandpass'; bp.frequency.setValueAtTime(clamp(freq * 3, 700, 5000), t); bp.Q.setValueAtTime(0.8, t); dec = 0.05; }
+    else if (kind === 'breath') { bp.type = 'highpass'; bp.frequency.setValueAtTime(clamp(freq * 2.4, 1100, 6000), t); bp.Q.setValueAtTime(0.5, t); dec = 0.07; peak *= 0.85; }
+    else if (kind === 'click') { bp.type = 'bandpass'; bp.frequency.setValueAtTime(clamp(freq * 2.2, 900, 4200), t); bp.Q.setValueAtTime(1.2, t); dec = 0.02; peak *= 1.25; }
+    else { bp.type = 'bandpass'; bp.frequency.setValueAtTime(clamp(freq * 3, 1500, 7000), t); bp.Q.setValueAtTime(0.7, t); }
+    g.gain.setValueAtTime(0.0004, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0006, peak), t + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + dec);
+    g.gain.linearRampToValueAtTime(0, t + dec + 0.008);
+    noise.connect(bp); bp.connect(g); g.connect(dest);
+    noise.start(t, noiseOffset(t)); noise.stop(t + dec + 0.03);
+    return [noise, bp, g];
+  }
+
   // ---- aria: warm bowed-string/voice hybrid (the mid "singer") --------------
   // Saw + triangle, a subtle baked chorus, through a resonant lowpass whose cutoff
   // opens toward the swell peak ("bow pressure") and eases back. The warm middle
@@ -560,12 +645,16 @@
     lp.frequency.setValueAtTime(cut * 0.7, time);
     lp.frequency.linearRampToValueAtTime(cut, time + Math.min(durSec * 0.5, 0.6));
     lp.frequency.linearRampToValueAtTime(cut * 0.8, time + Math.max(0.61, durSec));
-    const env = exprEnv(ctx, time, durSec, { peak: 0.26 * (0.5 + 0.5 * vel), attackSec: e.attackSec == null ? 0.05 : e.attackSec, releaseSec: e.releaseSec == null ? 0.28 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.72 : e.sustain });
-    o1.connect(mix); o2.connect(o2g); o2g.connect(mix); mix.connect(lp); lp.connect(env.gain); env.gain.connect(pan);
+    const env = exprEnv(ctx, time, durSec, { peak: 0.23 * (0.5 + 0.5 * vel), attackSec: e.attackSec == null ? 0.05 : e.attackSec, releaseSec: e.releaseSec == null ? 0.28 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.72 : e.sustain });
+    // a warm string-ish body: fixed low-mid resonances + a presence peak
+    const body = bodyResonance(ctx, [[280, 3, 1.4], [620, 2.4, 2.2], [2600, 2.6, 3]], time, 0.82);
+    o1.connect(mix); o2.connect(o2g); o2g.connect(mix); mix.connect(lp); lp.connect(body.input); body.output.connect(env.gain); env.gain.connect(pan);
     const extra = pitchExpr(ctx, [o1.detune, o2.detune], time, durSec, e);
+    const drift = microDrift(ctx, [o1.detune, o2.detune], time, durSec, (e.drift || 0) * 1.0, [0.11, 0.19, 0.31]);
+    const on = onsetTransient(ctx, pan, time, freq, (e.grain == null ? 0.3 : e.grain) * 0.7 + 0.12, 'scratch');
     const br = breathLayer(ctx, pan, time, durSec, freq, (e.grain || 0) * 0.7, freq * 1.6);
     o1.start(time); o2.start(time); o1.stop(env.stopAt); o2.stop(env.stopAt);
-    disconnectOnEnd(o1, [o1, o2, o2g, mix, lp, env.gain, pan].concat(extra).concat(br));
+    disconnectOnEnd(o1, [o1, o2, o2g, mix, lp, env.gain, pan].concat(body.nodes).concat(extra).concat(drift).concat(on).concat(br));
   }
 
   // ---- reed: bright, hollow, slightly nasal (the "horn") --------------------
@@ -584,12 +673,16 @@
     const sum = ctx.createGain(); sum.gain.value = 1;
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.setValueAtTime(0.6, time);
     lp.frequency.setValueAtTime(clamp(freq * (3 + 4 * bright), 700, 8000), time);
-    const env = exprEnv(ctx, time, durSec, { peak: 0.22 * (0.5 + 0.5 * vel), attackSec: e.attackSec == null ? 0.035 : e.attackSec, releaseSec: e.releaseSec == null ? 0.2 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.8 : e.sustain });
-    o1.connect(formant); o1.connect(flatG); formant.connect(sum); flatG.connect(sum); sum.connect(lp); lp.connect(env.gain); env.gain.connect(pan);
+    const env = exprEnv(ctx, time, durSec, { peak: 0.2 * (0.5 + 0.5 * vel), attackSec: e.attackSec == null ? 0.035 : e.attackSec, releaseSec: e.releaseSec == null ? 0.2 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.8 : e.sustain });
+    // a fixed nasal/hollow reed body under the pitch-tracking brightness formant
+    const body = bodyResonance(ctx, [[560, 3.5, 2], [1500, 4, 3.2]], time, 0.8);
+    o1.connect(formant); o1.connect(flatG); formant.connect(sum); flatG.connect(sum); sum.connect(lp); lp.connect(body.input); body.output.connect(env.gain); env.gain.connect(pan);
     const extra = pitchExpr(ctx, [o1.detune], time, durSec, e);
+    const drift = microDrift(ctx, [o1.detune], time, durSec, (e.drift || 0) * 1.1, [0.13, 0.23, 0.41]);
+    const on = onsetTransient(ctx, pan, time, freq, (e.grain == null ? 0.4 : e.grain) * 0.8 + 0.16, 'breath');
     const br = breathLayer(ctx, pan, time, durSec, freq, (e.grain == null ? 0.4 : e.grain) + 0.15, freq * 2);
     o1.start(time); o1.stop(env.stopAt);
-    disconnectOnEnd(o1, [o1, formant, flatG, sum, lp, env.gain, pan].concat(extra).concat(br));
+    disconnectOnEnd(o1, [o1, formant, flatG, sum, lp, env.gain, pan].concat(body.nodes).concat(extra).concat(drift).concat(on).concat(br));
   }
 
   // ---- wire: electric lead with blooming grit (the "lead guitar") -----------
@@ -614,11 +707,15 @@
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.setValueAtTime(3 + 4 * bright, time);
     lp.frequency.setValueAtTime(clamp(freq * (2 + 4 * bright), 500, 6500), time);
     const post = ctx.createGain(); post.gain.value = 0.5 / (1 + grit);
-    const env = exprEnv(ctx, time, durSec, { peak: 0.24 * (0.55 + 0.45 * vel), attackSec: e.attackSec == null ? 0.02 : e.attackSec, releaseSec: e.releaseSec == null ? 0.24 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.85 : e.sustain });
-    o1.connect(pre); o2.connect(pre); pre.connect(drive); drive.connect(shaper); shaper.connect(lp); lp.connect(post); post.connect(env.gain); env.gain.connect(pan);
+    const env = exprEnv(ctx, time, durSec, { peak: 0.22 * (0.55 + 0.45 * vel), attackSec: e.attackSec == null ? 0.02 : e.attackSec, releaseSec: e.releaseSec == null ? 0.24 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.85 : e.sustain });
+    // a fixed "cabinet"/body colour for the electric lead (amp-speaker resonances)
+    const body = bodyResonance(ctx, [[520, 2.5, 1.5], [1900, 3.5, 2.4]], time, 0.82);
+    o1.connect(pre); o2.connect(pre); pre.connect(drive); drive.connect(shaper); shaper.connect(lp); lp.connect(post); post.connect(body.input); body.output.connect(env.gain); env.gain.connect(pan);
     const extra = pitchExpr(ctx, [o1.detune, o2.detune], time, durSec, e);
+    const drift = microDrift(ctx, [o1.detune, o2.detune], time, durSec, (e.drift || 0) * 1.3, [0.17, 0.29, 0.47]);
+    const on = onsetTransient(ctx, pan, time, freq, (e.grain == null ? 0.1 : e.grain) * 0.5 + 0.14, 'click');
     o1.start(time); o2.start(time); o1.stop(env.stopAt); o2.stop(env.stopAt);
-    disconnectOnEnd(o1, [o1, o2, pre, drive, shaper, lp, post, env.gain, pan].concat(extra));
+    disconnectOnEnd(o1, [o1, o2, pre, drive, shaper, lp, post, env.gain, pan].concat(body.nodes).concat(extra).concat(drift).concat(on));
   }
 
   // ---- glass: pure, shimmering, ethereal high voice -------------------------
@@ -643,12 +740,15 @@
     const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.setValueAtTime(0.4, time);
     lp.frequency.setValueAtTime(clamp(freq * (3 + 5 * bright), 900, 9000), time);
     const env = exprEnv(ctx, time, durSec, { peak: 0.2 * (0.5 + 0.5 * vel), attackSec: e.attackSec == null ? 0.06 : e.attackSec, releaseSec: e.releaseSec == null ? 0.4 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.8 : e.sustain });
-    sum.connect(lp); lp.connect(env.gain); env.gain.connect(pan);
+    // one gentle body peak only — glass stays the purest voice
+    const body = bodyResonance(ctx, [[1900, 2, 1.8]], time, 0.9);
+    sum.connect(lp); lp.connect(body.input); body.output.connect(env.gain); env.gain.connect(pan);
     const extra = pitchExpr(ctx, detunes, time, durSec, e);
+    const drift = microDrift(ctx, detunes, time, durSec, (e.drift || 0) * 0.7, [0.09, 0.16, 0.27]);
     const br = breathLayer(ctx, pan, time, Math.min(0.12, durSec), freq, (e.grain || 0) * 0.5, freq * 3);
     for (const o of oscs) o.start(time);
     for (const o of oscs) o.stop(env.stopAt);
-    disconnectOnEnd(oscs[0], oscs.concat([sum, lp, env.gain, pan]).concat(extra).concat(br));
+    disconnectOnEnd(oscs[0], oscs.concat([sum, lp, env.gain, pan]).concat(body.nodes).concat(extra).concat(drift).concat(br));
   }
 
   // ---- pluck: soft plucked harmonic — a SUPPORT voice -----------------------
@@ -691,5 +791,5 @@
 
   return { play, keys, strings, bass, bell, pad, drone, kick, snare, hat, rhodes,
     aria, reed, wire, glass, pluck, VOICES, envGain, noiseBuffer,
-    exprEnv, pitchExpr, panTo };
+    exprEnv, pitchExpr, panTo, microDrift, bodyResonance, onsetTransient };
 });
