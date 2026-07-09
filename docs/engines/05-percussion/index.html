@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engine 05 — Percussion Ensemble · algorithmic-music</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f3ee; --fg: #201b15; --muted: #6d6455; --line: #e4dccc;
+    --panel: #fffdf8; --accent: #b5603a;
+    --boom: #a8462a; --drum: #c8791f; --wood: #b08a3e; --metal: #c9a227; --gong: #8a5cc0; --shaker: #7fae9a; --mallet: #2f9e8f; --bass: #5a6fc0;
+    --playhead: #d24a4a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#14110d; --fg:#ece3d5; --muted:#9a8f7d; --line:#2a2418; --panel:#1c1811; --accent:#e07a4a;
+      --boom:#e0714a; --drum:#e6a24d; --wood:#d3b56e; --metal:#e6cf5a; --gong:#a892e8; --shaker:#9fd0bc; --mallet:#5fd0bd; --bass:#8a9cee; --playhead:#ff6b6b; }
+  }
+  * { box-sizing: border-box; }
+  body { font: 15px/1.55 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+  main { max-width: 820px; margin: 0 auto; padding: 1.6rem 1.2rem 4rem; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.5rem; margin: .2rem 0 .1rem; }
+  .sub { color: var(--muted); margin: 0 0 1.2rem; }
+  .badge { display:inline-block; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:.12rem .6rem; vertical-align:middle; margin-left:.4rem; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.1rem; margin: 1rem 0; }
+  .transport { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+  button { font: inherit; font-weight: 600; padding: .55rem 1.1rem; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .5; cursor: default; }
+  .row { display: grid; grid-template-columns: 7.5rem 1fr auto; gap: .5rem 1rem; align-items: center; margin: .5rem 0; }
+  .row label { color: var(--muted); font-size: .92rem; }
+  .row output { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 3.5rem; text-align: right; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=text], select { font: inherit; padding: .35rem .5rem; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+  input[type=text] { width: 8rem; }
+  canvas { width: 100%; height: 210px; display: block; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; }
+  .legend { display:flex; gap:.9rem; font-size:.8rem; color:var(--muted); margin:.5rem 0 0; flex-wrap:wrap; }
+  .swatch { display:inline-block; width:.7rem; height:.7rem; border-radius:2px; vertical-align:middle; margin-right:.3rem; }
+  details { margin-top: .4rem; }
+  summary { cursor: pointer; color: var(--muted); font-size: .92rem; }
+  .report { font-size: .9rem; }
+  .report table { border-collapse: collapse; width: 100%; margin-top: .4rem; }
+  .report th, .report td { text-align: left; padding: .25rem .5rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; vertical-align: top; }
+  .report th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
+  .sharebar { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+  .sharebar input { flex: 1 1 12rem; min-width: 8rem; }
+  textarea { width:100%; font: inherit; padding:.5rem; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--fg); resize:vertical; }
+  .muted { color: var(--muted); }
+  .foot { color: var(--muted); font-size: .85rem; margin-top: 2rem; border-top:1px solid var(--line); padding-top:1rem; }
+</style>
+</head>
+<body>
+<main>
+  <p class="sub"><a href="../../index.html">← algorithmic-music</a></p>
+  <h1>Percussion Ensemble <span class="badge" id="ver">engine 05</span></h1>
+  <p class="sub">An ensemble of original drums, wood, and metal — no samples, every hit synthesized live. It plays three worlds: a <em>concert</em> piece that develops one rhythmic cell across a rising density arc to a metallic climax and a real ending; a <em>folk</em> ensemble anchored by an asymmetric timeline with interlocking parts and an improvising lead drum; and an informal <em>drum circle</em> that joins a shared pulse, swells into a rumble, and cuts out. Default 4/4 with phrases in fours; other time signatures — 6/8, 12/8, aksak 5/8 and 7/8 — are yours to pick. An optional mallet ostinato only ever accompanies.</p>
+
+  <div class="panel">
+    <div class="transport">
+      <button id="play" class="primary">▶ Play</button>
+      <button id="newp">↻ New piece</button>
+      <label class="muted"><input type="checkbox" id="loop"> keep playing (new seed each time)</label>
+    </div>
+    <canvas id="roll" width="1600" height="420" aria-label="visualization of the percussion piece over time"></canvas>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--boom)"></span>low drum</span>
+      <span><span class="swatch" style="background:var(--drum)"></span>drums</span>
+      <span><span class="swatch" style="background:var(--wood)"></span>wood</span>
+      <span><span class="swatch" style="background:var(--metal)"></span>metal</span>
+      <span><span class="swatch" style="background:var(--gong)"></span>gong</span>
+      <span><span class="swatch" style="background:var(--shaker)"></span>shaker</span>
+      <span><span class="swatch" style="background:var(--mallet)"></span>mallet</span>
+      <span><span class="swatch" style="background:var(--bass)"></span>bass</span>
+      <span id="nowlabel" class="mono"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="row"><label for="vol">Volume</label><input type="range" id="vol" min="0" max="1" step="0.01" value="0.72"><output id="volOut">0.72</output></div>
+    <div class="row"><label for="style">World</label>
+      <select id="style">
+        <option value="folk">folk ensemble (timeline + lead)</option>
+        <option value="ensemble">concert (cell developed to a climax)</option>
+        <option value="circle">drum circle (pulse, rumble, cut)</option>
+      </select><span></span></div>
+    <div class="row"><label for="meter">Time signature</label>
+      <select id="meter">
+        <option value="4/4">4/4</option>
+        <option value="2/4">2/4</option>
+        <option value="3/4">3/4</option>
+        <option value="6/8">6/8</option>
+        <option value="12/8">12/8 (bell)</option>
+        <option value="5/8">5/8 (2+3)</option>
+        <option value="7/8">7/8 (2+2+3)</option>
+        <option value="5/4">5/4</option>
+        <option value="7/4">7/4</option>
+      </select><span></span></div>
+    <div class="row"><label for="bpm">Tempo</label><input type="range" id="bpm" min="60" max="180" step="1" value="108"><output id="bpmOut">108 BPM</output></div>
+    <div class="row"><label for="feel">Feel</label><input type="range" id="feel" min="0" max="1" step="0.02" value="0.5"><output id="feelOut">0.50</output></div>
+    <div class="row"><label for="swing">Swing</label><input type="range" id="swing" min="0.5" max="0.68" step="0.01" value="0.5"><output id="swingOut">straight</output></div>
+    <div class="row"><label for="melody">Mallet</label><input type="range" id="melody" min="0" max="1" step="0.05" value="0.6"><output id="melodyOut">0.60</output></div>
+
+    <details open>
+      <summary>Timbre — reshape the whole kit</summary>
+      <div class="row"><label for="tune">Tune</label><input type="range" id="tune" min="-12" max="12" step="1" value="0"><output id="tuneOut">0</output></div>
+      <div class="row"><label for="ring">Ring / fade</label><input type="range" id="ring" min="0.4" max="2.2" step="0.05" value="1"><output id="ringOut">1.00</output></div>
+      <div class="row"><label for="attack">Attack</label><input type="range" id="attack" min="0.3" max="2" step="0.05" value="1"><output id="attackOut">1.00</output></div>
+      <div class="row"><label for="bright">Brightness</label><input type="range" id="bright" min="0.5" max="1.8" step="0.05" value="1"><output id="brightOut">1.00</output></div>
+      <div class="row"><label for="rev">Space</label><input type="range" id="rev" min="0.03" max="0.5" step="0.01" value="0.2"><output id="revOut">0.20</output></div>
+    </details>
+
+    <details>
+      <summary>Advanced</summary>
+      <div class="row"><label for="bars">Length</label><input type="range" id="bars" min="16" max="56" step="4" value="32"><output id="barsOut">32 bars</output></div>
+      <div class="row"><label for="group">Phrase group</label>
+        <select id="group"><option value="4">fours</option><option value="8" selected>eights</option><option value="16">sixteens</option></select><span></span></div>
+      <div class="row"><label for="tonic">Mallet key</label>
+        <select id="tonic"></select><span class="muted" style="font-size:.82rem">(the melodic accompaniment)</span></div>
+      <div class="row"><label for="seed">Seed</label><input type="text" id="seed" value="perc-1"><span class="muted" style="font-size:.82rem">any text or number</span></div>
+    </details>
+  </div>
+
+  <div class="panel report" id="reportPanel">
+    <strong>What this piece is doing</strong>
+    <div id="report"></div>
+  </div>
+
+  <div class="panel">
+    <div class="sharebar">
+      <strong style="flex:0 0 auto">Share this exact piece</strong>
+      <input type="text" id="share" readonly>
+      <button id="copy">Copy link</button>
+    </div>
+    <p class="muted" style="margin:.5rem 0 0; font-size:.85rem">The link encodes the seed and all settings — anyone who opens it hears the identical piece.</p>
+  </div>
+
+  <details class="panel">
+    <summary><strong>Leave feedback</strong> — help tune the engine</summary>
+    <div class="row" style="grid-template-columns:7.5rem 1fr; margin-top:.6rem"><label for="rating">Rating</label>
+      <select id="rating"><option value="">—</option><option>1 — poor</option><option>2</option><option>3</option><option>4</option><option>5 — excellent</option></select></div>
+    <p class="muted" style="margin:.3rem 0">What worked, what didn't? (the groove, the voices, the form, the build, the timbres…)</p>
+    <textarea id="fbtext" rows="3" placeholder="e.g. love the 12/8 bell but the low drum needs more weight; the concert climax lands well"></textarea>
+    <div style="margin-top:.6rem"><button id="download">Download feedback (JSON)</button>
+      <span class="muted" style="font-size:.82rem">Saves a small file with your notes + this piece's exact settings. No server; nothing is sent anywhere.</span></div>
+  </details>
+
+  <p class="foot">
+    Engine <span class="mono" id="verfoot"></span> · part of <a href="../../index.html">algorithmic-music</a>, a project researched, written, and built entirely by Claude (Anthropic's AI), directed by Tom Gally.
+    Vanilla HTML/CSS/JS + Web Audio, no dependencies, runs offline. Public domain (CC0).
+  </p>
+</main>
+
+<script src="lib/rng.js"></script>
+<script src="lib/transport.js"></script>
+<script src="lib/theory.js"></script>
+<script src="lib/synth.js"></script>
+<script src="lib/fx.js"></script>
+<script src="composer.js"></script>
+<script src="engine.js"></script>
+<script>
+(function () {
+  'use strict';
+  const E = window.AM.engines.percussion;
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    play: $('play'), newp: $('newp'), loop: $('loop'),
+    vol: $('vol'), volOut: $('volOut'), style: $('style'), meter: $('meter'),
+    bpm: $('bpm'), bpmOut: $('bpmOut'), feel: $('feel'), feelOut: $('feelOut'),
+    swing: $('swing'), swingOut: $('swingOut'), melody: $('melody'), melodyOut: $('melodyOut'),
+    tune: $('tune'), tuneOut: $('tuneOut'), ring: $('ring'), ringOut: $('ringOut'),
+    attack: $('attack'), attackOut: $('attackOut'), bright: $('bright'), brightOut: $('brightOut'),
+    rev: $('rev'), revOut: $('revOut'),
+    bars: $('bars'), barsOut: $('barsOut'), group: $('group'), tonic: $('tonic'), seed: $('seed'),
+    roll: $('roll'), report: $('report'), share: $('share'), copy: $('copy'),
+    nowlabel: $('nowlabel'), rating: $('rating'), fbtext: $('fbtext'), download: $('download'),
+    ver: $('ver'), verfoot: $('verfoot'),
+  };
+  els.ver.textContent = 'engine 05 · v' + E.VERSION;
+  els.verfoot.textContent = E.NAME + '@' + E.VERSION;
+
+  const optDefault = document.createElement('option'); optDefault.value = ''; optDefault.textContent = 'default (A)'; els.tonic.appendChild(optDefault);
+  ['E2','G2','A2','C3','D3','E3','G3','A3'].forEach((n) => {
+    const o = document.createElement('option'); o.value = n; o.textContent = n.replace(/(\d)/, ' ($1)'); els.tonic.appendChild(o);
+  });
+  els.tonic.value = '';
+
+  let ctx = null, player = null, plan = null, playing = false;
+
+  function opts() {
+    return {
+      seed: els.seed.value || 'perc-1',
+      style: els.style.value, meter: els.meter.value, tonic: els.tonic.value || null,
+      bpm: +els.bpm.value, feel: +els.feel.value, swing: +els.swing.value,
+      melody: +els.melody.value, group: +els.group.value, bars: +els.bars.value,
+      tune: +els.tune.value, ring: +els.ring.value, attack: +els.attack.value, bright: +els.bright.value,
+      reverb: +els.rev.value, volume: +els.vol.value,
+    };
+  }
+
+  // ---- URL hash state ----
+  function encodeState(o) {
+    const p = new URLSearchParams({ v: E.VERSION, seed: o.seed, style: o.style, meter: o.meter, tonic: o.tonic || '',
+      bpm: o.bpm, feel: o.feel, swing: o.swing, mel: o.melody, grp: o.group, bars: o.bars,
+      tune: o.tune, ring: o.ring, atk: o.attack, brt: o.bright, rev: o.reverb, vol: o.volume });
+    return '#' + p.toString();
+  }
+  function decodeState() {
+    if (!location.hash || location.hash.length < 2) return;
+    const p = new URLSearchParams(location.hash.slice(1));
+    const set = (k, el) => { if (p.get(k) !== null && p.get(k) !== '') el.value = p.get(k); };
+    set('seed', els.seed); set('style', els.style); set('meter', els.meter);
+    if (p.has('tonic')) els.tonic.value = p.get('tonic') || '';
+    set('bpm', els.bpm); set('feel', els.feel); set('swing', els.swing); set('mel', els.melody);
+    set('grp', els.group); set('bars', els.bars);
+    set('tune', els.tune); set('ring', els.ring); set('atk', els.attack); set('brt', els.bright);
+    set('rev', els.rev); set('vol', els.vol);
+  }
+
+  function syncOutputs() {
+    els.volOut.textContent = (+els.vol.value).toFixed(2);
+    els.bpmOut.textContent = els.bpm.value + ' BPM';
+    els.feelOut.textContent = (+els.feel.value).toFixed(2);
+    const sw = +els.swing.value;
+    els.swingOut.textContent = sw <= 0.505 ? 'straight' : Math.round(sw * 100) + '%';
+    els.melodyOut.textContent = (+els.melody.value).toFixed(2);
+    els.tuneOut.textContent = (els.tune.value > 0 ? '+' : '') + els.tune.value;
+    els.ringOut.textContent = (+els.ring.value).toFixed(2);
+    els.attackOut.textContent = (+els.attack.value).toFixed(2);
+    els.brightOut.textContent = (+els.bright.value).toFixed(2);
+    els.revOut.textContent = (+els.rev.value).toFixed(2);
+    els.barsOut.textContent = els.bars.value + ' bars';
+  }
+
+  // ---- Visualization: a lane per voice, hits as marks, section shading ----
+  const LANES = ['boom', 'drum', 'wood', 'metal', 'gong', 'shaker', 'mallet', 'bass'];
+  function draw(elapsedSec) {
+    const c = els.roll, g = c.getContext('2d');
+    const W = c.width, H = c.height, pad = 12;
+    g.clearRect(0, 0, W, H);
+    if (!plan) return;
+    const evs = plan.events;
+    const total = plan.durationSec;
+    const css = getComputedStyle(document.documentElement);
+    const laneH = (H - 2 * pad) / LANES.length;
+    const x = (t) => pad + (t / total) * (W - 2 * pad);
+    // section shading by intensity
+    const bb = plan.meta.barBeats, spb = 60 / plan.bpm;
+    if (plan.sections) {
+      for (const s of plan.sections) {
+        const x0 = x(s.startBeat * spb), x1 = x((s.startBeat + s.bars * bb) * spb);
+        g.globalAlpha = 0.05 + 0.12 * s.intensity;
+        g.fillStyle = css.getPropertyValue('--accent').trim();
+        g.fillRect(x0, 0, x1 - x0, H);
+      }
+      g.globalAlpha = 1;
+    }
+    // lane baselines
+    g.strokeStyle = css.getPropertyValue('--line').trim(); g.lineWidth = 1;
+    for (let i = 0; i < LANES.length; i++) {
+      const y = pad + (i + 0.5) * laneH;
+      g.globalAlpha = 0.5; g.beginPath(); g.moveTo(pad, y); g.lineTo(W - pad, y); g.stroke();
+    }
+    g.globalAlpha = 1;
+    const col = {}; for (const v of LANES) col[v] = css.getPropertyValue('--' + v).trim();
+    const laneIdx = {}; LANES.forEach((v, i) => laneIdx[v] = i);
+    for (const e of evs) {
+      const li = laneIdx[e.voice]; if (li == null) continue;
+      const yc = pad + (li + 0.5) * laneH;
+      const sustained = e.voice === 'mallet' || e.voice === 'bass' || e.voice === 'gong';
+      g.globalAlpha = sustained ? 0.55 : 0.9;
+      g.fillStyle = col[e.voice] || col.drum;
+      const h = Math.max(3, (laneH - 3) * (0.4 + 0.6 * e.vel));
+      const w = sustained ? Math.max(3, (e.durSec / total) * (W - 2 * pad)) : Math.max(2.5, 3 * (0.6 + e.vel));
+      g.fillRect(x(e.timeSec), yc - h / 2, w, h);
+    }
+    g.globalAlpha = 1;
+    if (elapsedSec != null && elapsedSec >= 0) {
+      const px = x(Math.min(elapsedSec, total));
+      g.strokeStyle = css.getPropertyValue('--playhead').trim();
+      g.lineWidth = 2; g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H); g.stroke();
+    }
+  }
+
+  function refresh() {
+    plan = E.renderPlan(opts());
+    // swing control is only meaningful on duple meters
+    const duple = plan.meta.feel === 'duple';
+    els.swing.disabled = !duple;
+    syncOutputs();
+    draw(playing ? undefined : -1);
+    refreshShare();
+    renderReport();
+    els.nowlabel.textContent = '';
+  }
+
+  function renderReport() {
+    const r = plan.selfReport;
+    els.report.innerHTML =
+      `<p style="margin:.4rem 0"><strong>${r.style} · ${r.meter}</strong> · ${r.bars} bars · ${plan.bpm} BPM</p>` +
+      `<table><tbody>` +
+      `<tr><th>form</th><td>${r.form}</td></tr>` +
+      `<tr><th>sections</th><td class="mono">${r.sections}</td></tr>` +
+      `<tr><th>voices</th><td>${r.voices}</td></tr>` +
+      `<tr><th>melody</th><td>${r.melody}</td></tr>` +
+      `</tbody></table>` +
+      `<p class="muted" style="margin:.5rem 0 0">${r.idea}</p>`;
+  }
+
+  // ---- Playback ----
+  async function start() {
+    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'playback' });
+    if (ctx.state === 'suspended') await ctx.resume();
+    stop();
+    player = E.play(ctx, opts(), {
+      onFrame: (elapsed) => { draw(elapsed); els.nowlabel.textContent = 'playing · ' + Math.floor(elapsed) + 's'; },
+      onEnd: () => {
+        playing = false; els.play.textContent = '▶ Play';
+        if (els.loop.checked) { els.seed.value = randomSeed(); refresh(); start(); }
+        else { els.nowlabel.textContent = 'done'; draw(-1); }
+      },
+    });
+    playing = true; els.play.textContent = '⏹ Stop';
+  }
+  function stop() { if (player) { player.stop(); player = null; } playing = false; els.play.textContent = '▶ Play'; }
+  function randomSeed() { return Math.random().toString(36).slice(2, 8); }
+
+  // ---- Wiring ----
+  els.play.addEventListener('click', () => { if (playing) { stop(); draw(-1); els.nowlabel.textContent = ''; } else start(); });
+  els.newp.addEventListener('click', () => { els.seed.value = randomSeed(); refresh(); if (playing) start(); });
+  els.vol.addEventListener('input', () => { syncOutputs(); if (player) player.setVolume(+els.vol.value); if (!playing) draw(-1); refreshShare(); });
+  els.rev.addEventListener('input', () => { syncOutputs(); if (player) player.setReverb(+els.rev.value); refreshShare(); });
+  // structural / timbre controls re-plan (and restart if playing)
+  ['bpm', 'feel', 'swing', 'melody', 'bars', 'tune', 'ring', 'attack', 'bright'].forEach((k) =>
+    els[k].addEventListener('input', () => { refresh(); if (playing) start(); }));
+  ['style', 'meter', 'group', 'tonic'].forEach((k) => els[k].addEventListener('change', () => { refresh(); if (playing) start(); }));
+  els.seed.addEventListener('change', () => { refresh(); if (playing) start(); });
+  function refreshShare() { els.share.value = location.origin + location.pathname + encodeState(opts()); if (history.replaceState) history.replaceState(null, '', encodeState(opts())); }
+  els.copy.addEventListener('click', () => { els.share.select(); navigator.clipboard && navigator.clipboard.writeText(els.share.value); els.copy.textContent = 'Copied!'; setTimeout(() => els.copy.textContent = 'Copy link', 1200); });
+  els.download.addEventListener('click', () => {
+    const o = opts();
+    const payload = Object.assign({ engine: E.NAME, version: E.VERSION }, o, {
+      rating: els.rating.value || null, comment: els.fbtext.value || '',
+      form: plan.selfReport.form, submittedAt: new Date().toISOString() });
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'feedback-percussion-' + o.seed + '.json'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  });
+  window.addEventListener('resize', () => draw(playing ? undefined : -1));
+
+  decodeState();
+  refresh();
+})();
+</script>
+</body>
+</html>

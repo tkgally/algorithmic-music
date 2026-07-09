@@ -32,6 +32,7 @@ const ENGINES = [
   { name: 'ambient-drift', page: 'engines/02-ambient-drift/index.html' },
   { name: 'groove-lofi', page: 'engines/03-groove-lofi/index.html' },
   { name: 'cantabile', page: 'engines/04-cantabile/index.html' },
+  { name: 'percussion', page: 'engines/05-percussion/index.html' },
 ];
 
 async function main() {
@@ -46,8 +47,8 @@ async function main() {
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
     await page.goto(fileUrl('index.html'));
     const links = await page.$$eval('a[href*="engines/"]', (as) => as.map((a) => a.getAttribute('href')));
-    const hasAll = ['01-tonal-classical', '02-ambient-drift', '03-groove-lofi', '04-cantabile'].every((s) => links.some((l) => l.includes(s)));
-    gates.push([`hub lists all four engines`, hasAll, links.length + ' engine links']);
+    const hasAll = ['01-tonal-classical', '02-ambient-drift', '03-groove-lofi', '04-cantabile', '05-percussion'].every((s) => links.some((l) => l.includes(s)));
+    gates.push([`hub lists all five engines`, hasAll, links.length + ' engine links']);
     gates.push([`hub: no console/page errors`, errors.length === 0, errors.join('; ') || 'none']);
     await page.close();
   }
