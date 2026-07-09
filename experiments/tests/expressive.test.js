@@ -136,3 +136,69 @@ test('engine performer: bpm scales the piece length; faster is shorter', () => {
   const fast = engine.renderPlan({ seed: 'r', bpm: 110 });
   ok(fast.durationSec < slow.durationSec, 'faster bpm -> shorter piece');
 });
+
+// ---- v0.2: varied accompaniment, organic timbre, vocal phrasing -------------
+
+test('chamber composer (v0.2): the accompaniment is varied, not equal-length/equal-shape', () => {
+  const s = chamber.compose({ seed: 'accomp', mode: 'dorian' });
+  const comp = s.notes.filter((n) => n.role === 'comp');
+  const bass = s.notes.filter((n) => n.role === 'bass');
+  ok(comp.length > 0 && bass.length > 0, 'comp and bass are present');
+  // v0.1 flaw was equal-length notes: v0.2 has many distinct durations
+  ok(new Set(comp.map((n) => n.durBeats)).size >= 3, 'comp uses several distinct note lengths');
+  ok(new Set(bass.map((n) => n.durBeats)).size >= 3, 'bass uses several distinct note lengths');
+  // and rhythmic variety bar to bar: comp onsets-per-bar is not constant
+  const perBar = {};
+  for (const n of comp) { const b = Math.floor(n.beat / 4); perBar[b] = (perBar[b] || 0) + 1; }
+  ok(new Set(Object.values(perBar)).size >= 2, 'comp density varies from bar to bar');
+  // bass moves off the bare root: more than one pitch-class role appears
+  ok(new Set(bass.map((n) => ((n.midi % 12) + 12) % 12)).size >= 3, 'bass uses more than just the root');
+});
+
+test('chamber composer (v0.2): the comp is voice-led (a smooth bed, not jumping)', () => {
+  const s = chamber.compose({ seed: 'voicelead', mode: 'aeolian' });
+  // mean absolute motion of the comp centroid between consecutive bars should be
+  // small (voice leading picks the nearest voicing), not a leaping line.
+  const byBar = {};
+  for (const n of s.notes.filter((x) => x.role === 'comp')) {
+    const b = Math.floor(n.beat / 4); (byBar[b] = byBar[b] || []).push(n.midi);
+  }
+  const bars = Object.keys(byBar).map(Number).sort((a, b) => a - b);
+  const cen = (arr) => arr.reduce((s, m) => s + m, 0) / arr.length;
+  let moves = [];
+  for (let i = 1; i < bars.length; i++) moves.push(Math.abs(cen(byBar[bars[i]]) - cen(byBar[bars[i - 1]])));
+  ok(moves.length > 4 && avg(moves, (x) => x) < 5, 'comp centroid moves < ~5 semitones/bar on average (voice-led)');
+});
+
+test('chamber composer (v0.2): lead lines break into breathing sub-phrases', () => {
+  const s = chamber.compose({ seed: 'breath', mode: 'lydian' });
+  const breaths = s.notes.filter((n) => n.tags.includes('breath'));
+  ok(breaths.length >= 5, 'several breath points across the piece');
+  ok(breaths.every((n) => n.role === 'lead' || n.role === 'counter'), 'breaths are on the melodic voices');
+  // the held final note is an ending, not a mid-phrase breath, and stays unique
+  eq(s.notes.filter((n) => n.tags.includes('ending')).length, 1, 'still exactly one ending note');
+  ok(!s.notes.find((n) => n.tags.includes('ending')).tags.includes('breath'), 'the ending is not a breath point');
+});
+
+test('engine performer (v0.2): organic micro-pitch drift is always on', () => {
+  const on = engine.renderPlan({ seed: 'organic' });
+  const straight = engine.renderPlan({ seed: 'organic', expression: 0 });
+  const eOn = on.events.filter((e) => e.expr), eStraight = straight.events.filter((e) => e.expr);
+  ok(eOn.length && eOn.every((e) => e.expr.drift > 0), 'every expressive note has micro-pitch drift');
+  // organic timbre is independent of "performance": drift persists even played straight
+  ok(avg(eStraight, (e) => e.expr.drift) > 0.5, 'drift persists at expression=0 (timbre != expression)');
+  ok(avg(eStraight, (e) => e.expr.vibDepth) < 0.01, 'expression=0 still means no vibrato (contract unchanged)');
+});
+
+test('engine performer (v0.2): a breath carves real silence before the next phrase', () => {
+  const p = engine.renderPlan({ seed: 'sing', rubato: 0.6 });
+  const lead = p.events.filter((e) => e.role === 'lead').sort((a, b) => a.timeSec - b.timeSec);
+  const breathGaps = [], flowGaps = [];
+  for (let i = 0; i < lead.length - 1; i++) {
+    const gap = lead[i + 1].timeSec - (lead[i].timeSec + lead[i].durSec);
+    (lead[i].tags.includes('breath') ? breathGaps : flowGaps).push(gap);
+  }
+  ok(breathGaps.length > 0, 'the lead has breath points');
+  ok(avg(breathGaps, (x) => x) > 0.05, 'a breath leaves an audible silence');
+  ok(avg(breathGaps, (x) => x) > avg(flowGaps, (x) => x) + 0.05, 'breaths leave more space than mid-phrase (legato) notes');
+});

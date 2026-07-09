@@ -91,6 +91,100 @@
     return best == null ? snap(scalePool, target) : best;
   }
 
+  // ---- Accompaniment patterns (comp + bass) --------------------------------
+  // The bed's job is harmonic support with RHYTHMIC and INTERVALLIC variety — NOT
+  // a metronomic ascending arpeggio of equal-length notes (the v0.1 flaw) — that
+  // still stays UNDER the singing leads (wiki/timbre-and-orchestration.md
+  // foreground/background; wiki/composition-craft.md accompaniment). Each template
+  // is [beatInBar, durBeats, selector]; a template is chosen per bar from a
+  // section-appropriate set (never twice running), and the chord voicing is
+  // VOICE-LED from the previous bar so the bed moves smoothly, not by jumps.
+
+  // comp selectors pick from a voice-led chord voicing v = [low … high]:
+  function compTones(v, sel) {
+    if (!v.length) return [];
+    if (sel === 'low') return [v[0]];
+    if (sel === 'mid') return [v[Math.min(1, v.length - 1)]];
+    if (sel === 'top') return [v[v.length - 1]];
+    if (sel === 'chord') return v.slice(1);                 // upper tones (low left for the hits)
+    if (sel === 'pair') return [v[0], v[v.length - 1]];     // open shell
+    return v.slice();                                       // 'all'
+  }
+  // pluck:true -> a plucked-string comp; false -> sustained warm-EP chords.
+  const COMP_TEMPLATES = {
+    pad:        { pluck: false, hits: [[0, 3.9, 'all']] },
+    padSoft:    { pluck: false, hits: [[0.4, 3.4, 'chord']] },
+    spacious:   { pluck: false, hits: [[0, 1.7, 'chord'], [2.5, 1.4, 'pair']] },
+    bassChord:  { pluck: true,  hits: [[0, 1, 'low'], [1, 0.8, 'chord'], [2, 1, 'low'], [3, 0.8, 'chord']] },
+    bassChord2: { pluck: true,  hits: [[0, 1.4, 'low'], [1.5, 0.5, 'chord'], [2, 0.9, 'mid'], [3, 0.9, 'chord']] },
+    broken:     { pluck: true,  hits: [[0, 1, 'low'], [1, 0.5, 'mid'], [1.5, 0.5, 'top'], [2, 1, 'mid'], [3, 1, 'low']] },
+    arpFlow:    { pluck: true,  hits: [[0, 0.5, 'low'], [0.5, 0.5, 'mid'], [1, 1, 'top'], [2, 0.5, 'mid'], [2.5, 0.5, 'low'], [3, 1, 'mid']] },
+    syncStab:   { pluck: false, hits: [[0.5, 0.5, 'chord'], [1.5, 0.5, 'chord'], [2.5, 0.7, 'chord'], [3.5, 0.5, 'pair']] },
+  };
+  const COMP_BY_SECTION = {
+    intro:    ['pad', 'padSoft', 'spacious'],
+    theme:    ['broken', 'bassChord', 'arpFlow', 'spacious'],
+    dialogue: ['syncStab', 'spacious', 'padSoft'],          // sparse — leave room for call-and-response
+    rise:     ['bassChord', 'broken', 'arpFlow'],
+    climax:   ['bassChord2', 'broken', 'arpFlow'],
+    return:   ['broken', 'bassChord', 'spacious'],
+    coda:     ['pad', 'padSoft'],
+  };
+  const BASS_TEMPLATES = {
+    root:      [[0, 3.9, 'root']],
+    rest1:     [[1, 3, 'root']],                            // enters on beat 2 (sparse)
+    rootFifth: [[0, 2, 'root'], [2, 2, 'fifth']],
+    rootOct:   [[0, 1.6, 'root'], [2, 1.4, 'octUp']],
+    walk:      [[0, 1, 'root'], [1, 1, 'third'], [2, 1, 'fifth'], [3, 1, 'approach']],
+    anticip:   [[0, 2.9, 'root'], [3.5, 0.6, 'approach']],  // pushes into the next bar
+  };
+  const BASS_BY_SECTION = {
+    intro:    ['root', 'rest1'],
+    theme:    ['root', 'rootFifth', 'rootOct'],
+    dialogue: ['root', 'rest1'],
+    rise:     ['rootFifth', 'walk', 'anticip'],
+    climax:   ['walk', 'rootFifth', 'rootOct'],
+    return:   ['root', 'rootFifth'],
+    coda:     ['root'],
+  };
+  // Choose `size` comp voices from the chord's pitch classes, nearest to the
+  // previous voicing (inter-chord voice leading), inside a mid register window.
+  function voiceComp(chordPcs, size, loM, hiM, prevVoicing) {
+    const pool = [];
+    for (let m = loM; m <= hiM; m++) if (chordPcs.has(pc(m))) pool.push(m);
+    if (!pool.length) return prevVoicing ? prevVoicing.slice() : [];
+    const targets = (prevVoicing && prevVoicing.length)
+      ? prevVoicing.slice(0, size)
+      : [loM + 2, loM + 5, loM + 9, loM + 12].slice(0, size);
+    const used = new Set(), out = [];
+    for (const tg of targets) {
+      let best = null, bd = Infinity;
+      for (const m of pool) { if (used.has(m)) continue; const d = Math.abs(m - tg); if (d < bd) { bd = d; best = m; } }
+      if (best == null) best = pool[0];
+      used.add(best); out.push(best);
+    }
+    while (out.length < size && out.length < pool.length) {
+      for (const m of pool) if (!used.has(m)) { used.add(m); out.push(m); break; }
+    }
+    return out.sort((a, b) => a - b);
+  }
+  // Realize one bass tone by role, wrapped into the bass register. Always returns a
+  // finite MIDI (falls back to the root) even if a pool comes up empty.
+  function bassTone(rootMidi, nextRootMidi, sel, loM, hiM, scaleLow) {
+    const put = (m) => { let x = m; while (x < loM) x += 12; while (x > hiM) x -= 12; return clamp(x, loM, hiM); };
+    const root = put(rootMidi);
+    let out = root;
+    if (sel === 'fifth') out = put(rootMidi + 7);
+    else if (sel === 'third') out = scaleLow.length ? snap(scaleLow, put(rootMidi + 3)) : root;
+    else if (sel === 'octUp') out = clamp(root + 12, loM, hiM);
+    else if (sel === 'approach') {
+      const tgt = put(nextRootMidi);
+      const near = scaleLow.filter((m) => m !== tgt && Math.abs(m - tgt) <= 3);
+      out = near.length ? snap(near, tgt - 1) : root;
+    }
+    return Number.isFinite(out) ? out : root;
+  }
+
   // ---- The germ MOTIF -------------------------------------------------------
   // A short, recognizable cell = a rhythm (beat durations) + an opening contour
   // (scale-step deltas). Motivic economy (wiki/composition-craft.md): almost every
@@ -301,13 +395,37 @@
 
     const mr = r.stream('melody');
 
-    // Helper: emit a lead phrase over [startBar, startBar+bars)
-    function leadPhrase(startBar, bars, sectionId, intensity, arch, hiBoost, transform) {
-      const ph = makePhrase({ r: mr, motif, form, tonicMidi,
-        startBar, bars, arch, lo: leadLo, hi: leadHi + (hiBoost || 0),
-        apexBias: arch, sectionId, sectionIntensity: intensity, transform });
-      for (const n of ph.notes) notes.push(n);
-      return ph;
+    // Helper: emit a run of bars as several BREATH-DELIMITED sung sub-phrases (2-3
+    // bars each). Each makePhrase opens from the motif head (a fresh gesture) and
+    // ends on a long liquidated goal tone (a resting point) — so tagging that goal
+    // 'breath' gives the performer a place to breathe, exactly the vocal phrasing
+    // the singing-style genre wants (wiki/phrase-structure.md, wiki/melody.md).
+    // Returns the sub-phrases plus the overall apex, for the counter voices.
+    function leadPhrases(startBar, bars, sectionId, intensity, hiBoost, transform) {
+      const chunks = [];
+      let b = 0;
+      while (b < bars) {
+        const rem = bars - b;
+        let len = 2;
+        if (rem >= 5 && mr.float() < 0.45) len = 3;           // occasional 3-bar phrase
+        if (rem <= 3) len = rem;                              // finish cleanly (2 or 3 bars)
+        else if (rem === 4) len = 2;                          // 4 -> 2 + 2, never a 1-bar orphan
+        chunks.push([startBar + b, len]);
+        b += len;
+      }
+      const phrases = []; let apexRef = null, apexMidi = -1;
+      for (let ci = 0; ci < chunks.length; ci++) {
+        const arch = 0.5 + 0.12 * (ci % 2);                  // small per-phrase arch variety
+        const ph = makePhrase({ r: mr, motif, form, tonicMidi,
+          startBar: chunks[ci][0], bars: chunks[ci][1], arch, lo: leadLo, hi: leadHi + (hiBoost || 0),
+          apexBias: arch, sectionId, sectionIntensity: intensity, transform });
+        const goal = ph.notes[ph.notes.length - 1];
+        if (goal && !goal.tags.includes('breath')) goal.tags.push('breath');
+        for (const n of ph.notes) notes.push(n);
+        phrases.push(ph);
+        if (ph.apexMidi > apexMidi) { apexMidi = ph.apexMidi; apexRef = ph.apexRef; }
+      }
+      return { phrases, apexRef, apexMidi, notes: phrases.reduce((a, p) => a.concat(p.notes), []) };
     }
 
     // ---- Melodic plan across the arc --------------------------------------
@@ -327,25 +445,24 @@
         idx = clamp(idx + (k === 0 ? 0 : steps[k]), 0, scalePoolWide.length - 1);
         const m = scalePoolWide[idx];
         const dur = Math.max(1.5, dursI[k]);
-        notes.push({ beat: b, durBeats: dur, midi: m, voice: 'lead', role: 'lead', weight: 0.4 + 0.15 * k, tags: ['sect:intro', 'motif', k === steps.length - 1 ? 'goal' : 'phrase'] });
+        notes.push({ beat: b, durBeats: dur, midi: m, voice: 'lead', role: 'lead', weight: 0.4 + 0.15 * k, tags: ['sect:intro', 'motif'].concat(k === steps.length - 1 ? ['goal', 'breath'] : ['phrase']) });
         b += dur;
       }
     })();
 
-    // THEME: two phrases; the lead sings, counter mostly rests (occasional tail).
+    // THEME: breath-delimited sung phrases; counter mostly rests (occasional tail).
     (function theme() {
       const s = sec.theme;
-      const half = Math.floor(s.bars / 2);
-      leadPhrase(s.startBar, half, 'theme', s.intensity, 0.55, 0, 'identity');
-      const p2 = leadPhrase(s.startBar + half, s.bars - half, 'theme', s.intensity, 0.62, 0, 'identity');
+      const ph = leadPhrases(s.startBar, s.bars, 'theme', s.intensity, 0, 'identity');
       // counter answers the very end of the theme with a soft echo of the goal
-      if (p2.apexRef) {
-        notes.push({ beat: (s.startBar + s.bars) * BEATS_PER_BAR - 2, durBeats: 2, midi: snap(scalePoolWide.filter((m) => m >= leadLo - 7 && m <= leadHi), p2.apexRef.midi - 5),
+      if (ph.apexRef) {
+        notes.push({ beat: (s.startBar + s.bars) * BEATS_PER_BAR - 2, durBeats: 2, midi: snap(scalePoolWide.filter((m) => m >= leadLo - 7 && m <= leadHi), ph.apexRef.midi - 5),
           voice: 'counter', role: 'counter', weight: 0.5, tags: ['sect:theme', 'echo'] });
       }
     })();
 
-    // DIALOGUE: lead and counter TRADE two-bar phrases (call-and-response).
+    // DIALOGUE: lead and counter TRADE two-bar phrases (call-and-response). Each
+    // trade ends on a breath — two players actually taking turns, not one line.
     (function dialogue() {
       const s = sec.dialogue;
       const nSub = Math.floor(s.bars / 2);
@@ -356,13 +473,14 @@
           lo: role === 'lead' ? leadLo : leadLo - 5, hi: role === 'lead' ? leadHi : leadHi - 4,
           apexBias: 0.6, sectionId: 'dialogue', sectionIntensity: s.intensity, transform: i % 3 === 2 ? 'invert' : 'identity' });
         for (const n of ph.notes) { n.voice = role; n.role = role; n.tags.push('trade'); notes.push(n); }
+        const g = ph.notes[ph.notes.length - 1]; if (g && !g.tags.includes('breath')) g.tags.push('breath');
       }
     })();
 
     // RISE: fragmented motif, sequenced upward, both voices thickening.
     (function rise() {
       const s = sec.rise;
-      const ph = leadPhrase(s.startBar, s.bars, 'rise', s.intensity, 0.8, 3, 'identity');
+      const ph = leadPhrases(s.startBar, s.bars, 'rise', s.intensity, 3, 'identity');
       // counter shadows a sixth below the lead's longer notes for momentum
       for (const n of ph.notes) {
         if (n.durBeats >= 1) {
@@ -376,7 +494,7 @@
     // the highest weights and a 'climax' tag so the performer maxes expression.
     (function climax() {
       const s = sec.climax;
-      const ph = leadPhrase(s.startBar, s.bars, 'climax', s.intensity, 0.75, climaxHi - leadHi, 'identity');
+      const ph = leadPhrases(s.startBar, s.bars, 'climax', s.intensity, climaxHi - leadHi, 'identity');
       let peak = ph.apexRef;
       for (const n of ph.notes) {
         n.tags.push('climax'); n.weight = clamp(n.weight + 0.18, 0, 1);
@@ -392,9 +510,7 @@
     // RETURN A': the theme returns, ornamented/freer, falling intensity.
     (function ret() {
       const s = sec.return;
-      const half = Math.floor(s.bars / 2);
-      leadPhrase(s.startBar, half, 'return', s.intensity, 0.5, 0, 'identity');
-      leadPhrase(s.startBar + half, s.bars - half, 'return', s.intensity, 0.45, 0, 'identity');
+      leadPhrases(s.startBar, s.bars, 'return', s.intensity, 0, 'identity');
     })();
 
     // CODA: a real modal close — one long, swelling, blooming final tonic note.
@@ -415,47 +531,55 @@
       }
     })();
 
-    // ---- Harmonic bed: comp (chords) + inner (sustained color) + bass -------
-    const cr = r.stream('comp');
-    const compArp = cr.bool(0.5);       // some pieces arpeggiate the comp, some sustain
+    // ---- Harmonic bed: voice-led comp + inner color + a varied bass ---------
+    // Templates give rhythmic + intervallic variety per bar; voice leading keeps
+    // the comp a smooth bed; density tracks the section; levels stay low (the
+    // performer's voiceBase) so the bed never covers the singing leads.
+    const cr = r.stream('comp'), brs = r.stream('bass');
+    const compLo = tonicMidi - 7, compHi = tonicMidi + 5;   // below the lead (leadLo = tonicMidi+2)
+    const bassLo = tonicMidi - 26, bassHi = tonicMidi - 6;
+    // scale() runs upward from its root, so build the LOW pool from two octaves down
+    const scaleLow = theory.scale(tonicMidi - 24, scaleName, { octaves: 3 }).filter((m) => m >= bassLo - 2 && m <= bassHi + 4);
+    let prevVoicing = null, lastComp = null, lastBass = null;
     for (const s of plan) {
+      const compSet = COMP_BY_SECTION[s.id] || ['broken'];
+      const bassSet = BASS_BY_SECTION[s.id] || ['root'];
+      const size = (s.id === 'rise' || s.id === 'climax') ? 4 : 3;
       for (let i = 0; i < s.bars; i++) {
         const bar = s.startBar + i;
         const chord = chordByBar[bar];
-        const c = form.diat[chord.deg - 1];
         const barBeat = bar * BEATS_PER_BAR;
-        const sparse = s.id === 'intro' || s.id === 'coda';
-        // comp voicing in a mid register (below the lead)
-        const voicing = c.seventhNotes.map((m) => {
-          let x = m; while (x < tonicMidi - 2) x += 12; while (x > tonicMidi + 9) x -= 12; return x;
-        }).sort((a, b) => a - b);
-        if (compArp && !sparse) {
-          // gentle arpeggio (pluck) across the bar
-          const pat = [0, 1, 2, 3].filter((k) => k < voicing.length);
-          const step = BEATS_PER_BAR / Math.max(1, pat.length);
-          pat.forEach((k, j) => {
-            notes.push({ beat: barBeat + j * step, durBeats: step * 1.1, midi: voicing[k % voicing.length], voice: 'comp', role: 'comp', weight: 0.2, tags: ['sect:' + s.id, 'arp'] });
-          });
-        } else {
-          // sustained chord (held bar), softer at edges
-          for (const m of voicing.slice(0, sparse ? 2 : 4)) {
-            notes.push({ beat: barBeat + (sparse ? 0.5 : 0), durBeats: BEATS_PER_BAR - (sparse ? 0.5 : 0.1), midi: m, voice: 'comp', role: 'comp', weight: 0.18, tags: ['sect:' + s.id, 'pad'] });
+        const nextChord = chordByBar[Math.min(bar + 1, chordByBar.length - 1)];
+
+        // (a) comp — pick a template (not the same as last bar), voice-lead the chord
+        let ct = cr.pick(compSet);
+        if (ct === lastComp && compSet.length > 1) ct = cr.pick(compSet.filter((x) => x !== lastComp));
+        lastComp = ct;
+        const tmpl = COMP_TEMPLATES[ct];
+        const voicing = voiceComp(chord.pcs, size, compLo, compHi, prevVoicing);
+        if (voicing.length) prevVoicing = voicing;
+        for (const [b, d, sel] of tmpl.hits) {
+          for (const m of compTones(voicing, sel)) {
+            notes.push({ beat: barBeat + b, durBeats: d, midi: m, voice: 'comp', role: 'comp',
+              weight: 0.15 + (b === 0 ? 0.05 : 0), tags: ['sect:' + s.id, tmpl.pluck ? 'arp' : 'pad'] });
           }
         }
-        // inner sustained color voice (a third+fifth), only in the fuller sections,
-        // rendered by a third expressive timbre as a slow "breathing" pad.
+
+        // (b) inner sustained color (a chord tone in the alto), fuller sections only
         if (s.id === 'theme' || s.id === 'rise' || s.id === 'climax' || s.id === 'return') {
-          const inner = snap(theory.scale(tonicMidi, scaleName, { octaves: 4 }).filter((m) => m >= tonicMidi + 3 && m <= tonicMidi + 12), chord.rootMidi + 7);
+          const innerPool = theory.scale(tonicMidi, scaleName, { octaves: 4 }).filter((m) => m >= tonicMidi + 3 && m <= tonicMidi + 12);
+          const innerCt = innerPool.filter((m) => chord.triadPcs.has(pc(m)));
+          const inner = snap(innerCt.length ? innerCt : innerPool, chord.rootMidi + 7);
           notes.push({ beat: barBeat, durBeats: BEATS_PER_BAR, midi: inner, voice: 'inner', role: 'inner', weight: 0.3 + 0.3 * s.intensity, tags: ['sect:' + s.id, 'inner'] });
         }
-        // bass: root on beat 1; a passing approach on beat 3 in busier sections
-        const bassRoot = chord.rootMidi - 12 - (chord.rootMidi - 12 > tonicMidi - 12 ? 12 : 0);
-        const bRoot = clamp(bassRoot, tonicMidi - 26, tonicMidi - 5);
-        notes.push({ beat: barBeat, durBeats: (s.id === 'rise' || s.id === 'climax') ? 2 : BEATS_PER_BAR, midi: bRoot, voice: 'bass', role: 'bass', weight: 0.3, tags: ['sect:' + s.id, 'root'] });
-        if (s.id === 'rise' || s.id === 'climax') {
-          const nextBar = chordByBar[Math.min(bar + 1, chordByBar.length - 1)];
-          const approach = snap(theory.scale(tonicMidi, scaleName, { octaves: 4 }).map((m) => m - 12).filter((m) => m >= tonicMidi - 26 && m <= tonicMidi - 4), (bRoot + nextBar.rootMidi - 12) / 2);
-          notes.push({ beat: barBeat + 2, durBeats: 2, midi: approach, voice: 'bass', role: 'bass', weight: 0.28, tags: ['sect:' + s.id, 'walk'] });
+
+        // (c) bass — pick a template (not the same as last bar), realize its tones
+        let bt = brs.pick(bassSet);
+        if (bt === lastBass && bassSet.length > 1) bt = brs.pick(bassSet.filter((x) => x !== lastBass));
+        lastBass = bt;
+        for (const [b, d, sel] of BASS_TEMPLATES[bt]) {
+          const m = bassTone(chord.rootMidi - 12, nextChord.rootMidi - 12, sel, bassLo, bassHi, scaleLow);
+          notes.push({ beat: barBeat + b, durBeats: d, midi: m, voice: 'bass', role: 'bass', weight: 0.3, tags: ['sect:' + s.id, sel === 'approach' ? 'walk' : 'root'] });
         }
       }
     }
