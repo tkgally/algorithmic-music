@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Style-vector schema — algorithmic-music design doc</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#faf9f7; --fg:#1c1a17; --muted:#6d675f; --line:#e5e1da; --panel:#ffffff; --accent:#6a5acd;
+    --soft:#f3f1ec; --th:#efece6; --ok:#3a8a5a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17151a; --fg:#ece9e4; --muted:#9a938a; --line:#2c2833; --panel:#201d26; --accent:#9d8cff; --soft:#1c1a22; --th:#26222e; --ok:#6fce97; }
+  }
+  * { box-sizing: border-box; }
+  body { font: 16px/1.62 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+  main { max-width: 880px; margin: 0 auto; padding: 2.2rem 1.2rem 5rem; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.9rem; margin: .2rem 0 .3rem; letter-spacing: -0.01em; }
+  h2 { font-size: 1.3rem; margin: 2.6rem 0 .5rem; padding-top: .6rem; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 .4rem; }
+  p { margin: .6rem 0; }
+  .lede { color: var(--fg); font-size: 1.06rem; }
+  .muted { color: var(--muted); }
+  .up { font-size: .9rem; margin: 0 0 1rem; }
+  .note { background: var(--soft); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; padding: .7rem 1rem; margin: 1.1rem 0; font-size: .95rem; }
+  .note b { color: var(--fg); }
+  .ok { background: var(--soft); border: 1px solid var(--line); border-left: 3px solid var(--ok); border-radius: 8px; padding: .55rem .95rem; margin: .9rem 0; font-size: .95rem; }
+  .ok b { color: var(--fg); }
+  .prov { background: var(--soft); border: 1px solid var(--line); border-left: 3px solid #d08a3a; border-radius: 8px; padding: .5rem .9rem; margin: .8rem 0; font-size: .93rem; }
+  @media (prefers-color-scheme: dark){ .prov { border-left-color:#e0a860; } }
+  .prov b { color: var(--fg); }
+  table { border-collapse: collapse; width: 100%; margin: .8rem 0 1.2rem; font-size: .88rem; }
+  .scroll { overflow-x: auto; }
+  th, td { text-align: left; vertical-align: top; padding: .42rem .55rem; border-bottom: 1px solid var(--line); }
+  th { background: var(--th); font-size: .8rem; letter-spacing: .01em; }
+  td code, p code, li code { background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 0 .3rem; font-size: .86em; }
+  .cat { color:#b0672a; font-weight:600; } .ord { color:#2a7db0; font-weight:600; } .cont { color:#3a8a5a; font-weight:600; }
+  @media (prefers-color-scheme: dark){ .cat{color:#e0a860} .ord{color:#7bb8e0} .cont{color:#6fce97} }
+  ul, ol { padding-left: 1.25rem; }
+  li { margin: .3rem 0; }
+  .toc { columns: 2; column-gap: 1.4rem; font-size: .93rem; margin: 1rem 0 0; }
+  .toc a { display: block; padding: .12rem 0; }
+  .foot { color: var(--muted); font-size: .87rem; margin-top: 3rem; border-top: 1px solid var(--line); padding-top: 1.1rem; }
+  .status { display:inline-block; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:999px; padding:.08rem .55rem; vertical-align: middle; }
+  @media (max-width: 640px){ .toc { columns: 1; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="up muted"><a href="../index.html">← algorithmic-music</a> · <a href="index.html">design docs</a></p>
+  <h1>Style-vector schema <span class="status">Draft for review</span></h1>
+  <p class="lede">The second design document for the <a href="../index.html">comprehensive site</a>, and the companion to the <a href="control-taxonomy.html">control taxonomy</a>: the internal <b>style vector</b> — the fielded data structure that every control writes into and the composer reads. It defines the fields and their types, how preset genres, invented styles, and <b>two-genre melds</b> instantiate it, the coherence rules that keep a sampled style listenable, and how it all stays deterministic while responding to live changes. Written by Claude for Tom's asynchronous review.</p>
+
+  <div class="ok">
+    <b>Decisions folded in (Tom, 2026-07-09).</b> This doc answers the three follow-ups from the taxonomy: two-genre <b>meld balance is even (50/50) for now</b> (§5, flagged provisional — Tom expects to adjust once he hears melds); a live genre/blend swap uses a <b>two-bar crossfade</b> (§7); and the shareable link stores <b>only the destination snapshot</b> (§8). Where a design choice is Claude's own informed judgment rather than Tom's, it says so.
+  </div>
+
+  <nav class="toc">
+    <a href="#scope">1 · Purpose &amp; scope</a>
+    <a href="#model">2 · The model</a>
+    <a href="#fields">3 · The schema fields</a>
+    <a href="#presets">4 · Presets, invented styles, signatures</a>
+    <a href="#meld">5 · The two-genre meld</a>
+    <a href="#coherence">6 · Coherence constraints</a>
+    <a href="#live">7 · Determinism &amp; live morph</a>
+    <a href="#serial">8 · Serialization &amp; the link</a>
+    <a href="#generators">9 · Three shared generators</a>
+    <a href="#decisions">10 · Decisions &amp; open questions</a>
+  </nav>
+
+  <h2 id="scope">1 · Purpose &amp; scope</h2>
+  <p>The <a href="control-taxonomy.html">control taxonomy</a> fixed what the <i>user</i> sees and sets. This doc fixes what those settings <i>write into</i>: the style vector the composer consumes.</p>
+  <p><b>It decides:</b> the schema's fields (name, type, range, and how each behaves under blending); how preset genres, on-the-fly invented styles, and two-genre melds each produce a concrete vector; the cross-axis coherence constraints; the determinism + live-morph data flow; and a serialization sketch for the shareable link.</p>
+  <p><b>It defers:</b> the full shared-library API and function signatures (the site-architecture doc); the exact bit layout of the URL payload (owned by <code>music-representation-and-notation.md</code>); and the build (Phase 3c). It also does not re-list the user controls — see the taxonomy.</p>
+  <p class="muted">Basis: <code>style-invention-and-style-space.md</code> (the axis space, sampling, coherence), <code>meta-composition-and-style-machines.md</code> (the fielded style-machine precedents and the "interpolate quantities, re-choose symbols" rule), <code>hybridization-and-fusion.md</code> (the meld), <code>music-representation-and-notation.md</code> (serialization), and the five preliminary engines' recipe/params as precedent.</p>
+
+  <h2 id="model">2 · The model</h2>
+  <p>Three ideas, each drawn from a documented precedent, define the representation:</p>
+  <ul>
+    <li><b>A style is a fielded vector — a region, not a point.</b> Every style (preset or invented) is the same record of fields; a style stores a <i>center</i> and, per field, a <i>spread</i> (how much the seed may vary it), because a style with no internal spread makes every piece identical (<code>style-invention-and-style-space.md</code>). Learned systems (MusicVAE) confirm style behaves vector-like; consumer systems (Band-in-a-Box <code>.STY</code>, Koan/Wotja) confirm "style = a structured record + a realization engine."</li>
+    <li><b>A running piece is that vector walking a path.</b> Following Xenakis's "book of screens" and game-audio RTPC state, the piece is a low-dimensional <b>style-state</b> that moves over the form — the natural home for tension shaping and for live control (a knob nudges the current state).</li>
+    <li><b>Provenance is the only difference between preset, invented, and meld.</b> A <b>preset</b> is a hand-tuned point (the eight Start genres). An <b>invented</b> style is a seeded sample under coherence constraints. A <b>meld</b> is two presets combined per-axis (§5). All three yield the same kind of vector, so one composer core serves them all.</li>
+  </ul>
+
+  <h2 id="fields">3 · The schema fields</h2>
+  <p>The fields, grouped into four layers (the grouping the style-machine precedents converged on: material · per-voice behavior · evolution · surface). The <b>Type</b> column is load-bearing for both blending and serialization:</p>
+  <p class="muted"><span class="cat">categorical</span> — a choice with no perceived midpoint (meter, tuning, mode, form); under a meld it <b>snaps</b> to one parent. <span class="ord">ordinal</span> — a small ranked set; blends by weighted choice. <span class="cont">continuous</span> — a scalar with a perceptual midpoint (tempo, density, brightness); blends by interpolation. This "interpolate quantities, re-choose symbols" split is the core rule from <code>meta-composition-and-style-machines.md</code>.</p>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Field</th><th>Type</th><th>Values / range</th><th>Exposed by (tier · control)</th></tr></thead>
+    <tbody>
+      <tr><td colspan="4" class="muted"><b>Material</b> — the style's raw supply</td></tr>
+      <tr><td>Tuning system</td><td class="cat">cat</td><td>12-TET · just · slendro/pelog · Bohlen–Pierce · any n-TET (cents)</td><td>Adv · pitch material</td></tr>
+      <tr><td>Pitch alphabet</td><td class="cat">cat</td><td>scale as interval-vector <i>or</i> Xenakis sieve; ≤~7 tones default</td><td>Int · Mode/color · Adv</td></tr>
+      <tr><td>Pitch hierarchy</td><td class="ord">ord</td><td>per-degree stability weights; tonic / reciting tone</td><td>Adv</td></tr>
+      <tr><td>Harmonic-motion type</td><td class="cat">cat</td><td>functional · modal-static · planing · drone · loop-cycle · atonal</td><td>Int · Harmonic motion</td></tr>
+      <tr><td>Harmonic richness</td><td class="cont">cont</td><td>plain triads ↔ extended 7/9/13</td><td>Int · Harmonic richness</td></tr>
+      <tr><td>Rhythmic-cell supply</td><td class="cat">cat</td><td>cell set incl. interference resultants; timeline type (clave/bell/Euclidean/sieve/pulse)</td><td>Adv · Timeline type</td></tr>
+      <tr><td>Meter</td><td class="cat">cat</td><td>4/4 · 3/4 · 6/8 · 2/4 · 5/8 · 7/8 · free</td><td>Int · Meter</td></tr>
+      <tr><td>Groove / feel</td><td class="cont">cont*</td><td>swing % + laid-back offset (*straight-vs-swung <i>kind</i> is categorical)</td><td>Int · Swing</td></tr>
+      <tr><td>Tempo band</td><td class="cont">cont</td><td>~40–200 BPM window; or “free”</td><td>Start Energy · Int · Tempo</td></tr>
+      <tr><td colspan="4" class="muted"><b>Per-voice behavior</b></td></tr>
+      <tr><td>Ensemble &amp; roles</td><td class="cat">cat</td><td>role set (bass/pad/lead/counterline/perc) + per-role register windows</td><td>Int · Layers/Palette</td></tr>
+      <tr><td>Melodic grammar</td><td class="ord">ord</td><td>step:leap ratio, range, contour archetype, cadence targets, ornament rules</td><td>Int · Mel↔textural · Adv</td></tr>
+      <tr><td>Density</td><td class="cont">cont</td><td>notes-per-bar band</td><td>Start Energy · Int · Density</td></tr>
+      <tr><td>Selection principle</td><td class="cat">cat</td><td>per parameter: serial · weighted · grouped · tendency (Koenig PR2)</td><td>Adv</td></tr>
+      <tr><td>Interlock</td><td class="ord">ord</td><td>how tightly separate parts dovetail</td><td>Adv · Interlock density</td></tr>
+      <tr><td colspan="4" class="muted"><b>Evolution</b> — the path over the form</td></tr>
+      <tr><td>Form template</td><td class="cat">cat</td><td>AABA · verse–chorus · through-composed · audible process · cyclic/colotomic</td><td>Int · Length/structure</td></tr>
+      <tr><td>Intensity arc</td><td class="cat">cat</td><td>9 shapes (rise/arch/late-arch/terraced/waves/front-loaded/level/swell-&amp;-cut/jo-ha-kyū)</td><td>Adv · Intensity arc</td></tr>
+      <tr><td>Development mode</td><td class="ord">ord</td><td>cyclic ↔ through-composed</td><td>Adv</td></tr>
+      <tr><td>Variation amount</td><td class="cont">cont</td><td>repetitive ↔ ever-changing</td><td>Int · Variation</td></tr>
+      <tr><td>Tendency masks</td><td>fn</td><td><code>[min,max]</code>-over-time per evolving parameter (register, density, dissonance…)</td><td>Adv (implicit)</td></tr>
+      <tr><td>Begin/transition/end idioms</td><td class="cat">cat</td><td>per <code>beginnings-endings-and-transitions.md</code> (cadence/fade/stop/ring-out…)</td><td>Int · Ending</td></tr>
+      <tr><td colspan="4" class="muted"><b>Surface</b></td></tr>
+      <tr><td>Timbre palette</td><td class="cat">cat*</td><td>per-voice synthesis recipe (*brightness within it is continuous)</td><td>Start Mood · Int · Palette/Brightness</td></tr>
+      <tr><td>Dynamics &amp; articulation</td><td class="cont">cont</td><td>dynamic range, accent hierarchy, legato↔staccato bias</td><td>Int · Dynamic range</td></tr>
+      <tr><td>Expression profile</td><td class="cont">cont</td><td>rubato depth, microtiming, ornament density</td><td>Int · Expression</td></tr>
+      <tr><td>Space &amp; silence</td><td class="cont">cont</td><td>reverb depth, sustain/decay, silence density</td><td>Start Space · Int · Reverb</td></tr>
+      <tr><td colspan="4" class="muted"><b>Cross-cutting</b></td></tr>
+      <tr><td>Signature rules</td><td>set</td><td>2–3 audible fingerprints (an interval cell, a rhythmic motto, a voicing habit) — §4</td><td>— (authored per style)</td></tr>
+      <tr><td>Novelty budget</td><td class="ord">ord</td><td>how many axes an invented style may push off convention (1–3)</td><td>Adv · Novelty budget</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">This is the concrete target for the shared-library <code>style</code> module. It generalizes the engines' existing recipe/params surfaces — the percussion engine's recipe axes, the cantabile <code>expr</code> object — into one schema every genre instantiates.</p>
+
+  <h2 id="presets">4 · Presets, invented styles &amp; the signature bank</h2>
+  <ul>
+    <li><b>Preset genre = a hand-tuned center + spreads.</b> Each of the eight Start genres is one filled-in vector: e.g. <i>Classical</i> pins Tuning=12-TET, Harmonic-motion=functional, Meter∈{4/4,3/4}, Form=rounded-ternary/AABA, Tempo≈66–140, and leaves melody/dynamics/expression with wide spreads so seeds differ. These are the reference regions; a future doc/session tunes their exact numbers, drawing on the wiki genre pages the taxonomy cites.</li>
+    <li><b>Invented style = a seeded sample under constraints.</b> "New style," operationally (EMI-minus-corpus, from <code>meta-composition</code>): draw each field from a genre-plausible prior, spend a <b>novelty budget</b> of 1–3 axes off-convention while holding the rest at perceptual universals, enforce coherence (§6), and attach <b>2–3 signature rules</b>. Reserved to Intermediate/Advanced per Tom (Start is presets and melds only).</li>
+    <li><b>Signature rules are what make it read as <i>a</i> style.</b> Cope's EMI showed a small dictionary of recurring fingerprints + a functional grammar is enough to sound like a style. Here the signatures are authored at build time (no corpus to mine): a characteristic interval cell, a rhythmic motto, a cadence/voicing habit — stated in the first phrases and repeated so the listener can latch on within one piece (<code>style-invention-and-style-space.md</code>: teach the style inside the piece).</li>
+  </ul>
+
+  <h2 id="meld">5 · The two-genre meld <span class="status">Q1</span></h2>
+  <p>When the user picks two Start genres, the site composes in a blend of the two. The design is grounded in <code>hybridization-and-fusion.md</code>'s reading of how real fusions (bossa nova, Cubop, Ethio-jazz, Afrobeat…) are actually built.</p>
+
+  <h3>5.1 · A meld is per-axis parent selection, not a numeric average</h3>
+  <p>Averaging two whole vectors fails: there is no state "between" 3/4 and 4/4, or between 12-TET and a raga's intonation, and even averaging blendable fields can land between both listenable regions ("fusion or confusion"). Instead, factor the style into layers and source each from a parent:</p>
+  <ul>
+    <li><b>Categorical fields snap to one parent</b> (meter, tuning, pitch alphabet, harmonic-motion type, form, timeline). Pick one parent's value; do not average.</li>
+    <li><b>Continuous fields blend</b> at the balance weight (tempo, density, harmonic richness, brightness, dynamics, reverb, swing amount).</li>
+    <li><b>The load-bearing constraint:</b> the <b>rhythmic chassis</b> (meter + groove + tempo-feel) and the <b>harmony/mode</b> come from <i>different</i> parents. This is the one rule every durable historical fusion obeys; which parent supplies the chassis is otherwise a free (seeded) choice — the tempting "dominant parent owns the rhythm" heuristic is <i>not</i> supported by the evidence.</li>
+    <li><b>One chassis parent, committed</b> for the whole piece (every durable fusion has a single rhythmic frame). Timbre mixes or follows the harmony parent; form comes from one parent or is re-chosen.</li>
+  </ul>
+
+  <h3>5.2 · Balance: even, for now</h3>
+  <div class="ok"><b>Tom's call:</b> the default balance is <b>even (50/50)</b>. Continuous fields blend at their midpoint; the categorical layers are split fairly between the two parents (each contributes about half the style's layers), subject to the rhythm-≠-harmony rule above.</div>
+  <div class="prov"><b>Provisional.</b> Tom: "I have no idea how this genre meld will actually sound; make a note that adjustments will probably be made in the future." So even-balance is a starting point, not a settled value — expect to revisit it (a seed-varied or user-set balance, per-genre-pair tuning of which parent owns which layer) once there are melds to listen to. The <b>Style blend</b> control (Intermediate/Advanced) already lets the user override the balance.</div>
+
+  <h3>5.3 · Compatibility gates (reject or repair before committing)</h3>
+  <p>Some parent pairs clash; encode the clashes as gates (<code>hybridization-and-fusion.md</code>):</p>
+  <ul>
+    <li><b>Tuning ↔ harmony:</b> if the mode parent has flexible/non-12-TET intonation, forbid dense tempered harmony — force drone/modal/sparse (as Ethio-jazz does).</li>
+    <li><b>Meter:</b> if the two cycle lengths disagree, use one parent's meter (snap) or a common cycle; never superimpose two meters.</li>
+    <li><b>Feel:</b> one swing/microtiming grid per section — a swung and an even parent cannot share a layer.</li>
+    <li><b>Groove vs rubato:</b> never overlay a free-tempo parent and a metered one; if a pair needs both, sequence them into different sections.</li>
+  </ul>
+  <p>When a gate fails, the incompatible axis yields to the other parent rather than forcing the clash. Melds are capped at <b>two</b> parents (Tom's Start rule; the evidence says three-plus turns to mud). The default operator is a <b>gradient blend</b> (parents dissolved into one texture); a <b>collage</b> operator (parents in alternating sections) is possible later for procedure-clashing pairs.</p>
+
+  <h3>5.4 · Worked examples (illustrative)</h3>
+  <div class="scroll">
+  <table>
+    <thead><tr><th>Meld</th><th>Chassis parent (rhythm)</th><th>Harmony/mode parent</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Classical × Electronic</td><td>Electronic (four-on-the-floor)</td><td>Classical (functional harmony + melody)</td><td>a steady house pulse under tonal, cadenced classical writing</td></tr>
+      <tr><td>Ambient × Lo-fi</td><td>Lo-fi (swung backbeat)</td><td>Ambient (drone/modal, slow evolution)</td><td>a dusty beat under a slow, hazy modal wash</td></tr>
+      <tr><td>Folk × Cinematic</td><td>Folk (dance meter, modal melody)</td><td>Cinematic (swelling dynamics, reverb, arc)</td><td>a modal folk tune scored for a swelling, filmic build</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted">Which parent is chassis vs harmony is seeded (either assignment is legitimate); the examples show one plausible draw each.</p>
+
+  <h2 id="coherence">6 · Coherence constraints</h2>
+  <p>Any vector — preset, invented, or melded — passes the same cross-axis coherence check before it plays (<code>style-invention-and-style-space.md</code>). These are couplings a naive independent sample would violate:</p>
+  <ul>
+    <li><b>Tuning ↔ harmonic motion</b> — drone/modal/static harmony pairs with just intonation; free modulation needs ~12-TET.</li>
+    <li><b>Tuning ↔ timbre</b> — match the scale to the spectrum (harmonic timbres for small-integer scales), or a chord reads as mistuning.</li>
+    <li><b>Register ↔ interval spacing</b> — widen harmonic spacing below ~C3 (critical bands are wide low down).</li>
+    <li><b>Tempo ↔ density</b> — cap events/second to a perceptual ceiling; if tempo is high, thin the texture (keeps perceived complexity in the liking band).</li>
+    <li><b>Meter ↔ groove</b> — weight syncopation/subdivision to the meter.</li>
+    <li><b>Form ↔ duration</b> — process/cyclic/drone forms scale long; AABA/verse–chorus want ~1–5 min.</li>
+  </ul>
+  <p>Plus a <b>parseability gate</b> (discrete events, at least one stable reference — tonic/drone/downbeat — and clear grouping cues) and the automated critics the engines can already run (key/hierarchy induction, roughness, information-content band, self-similarity). A vector that fails is repaired (snap the offending axis toward the coupling) or resampled.</p>
+
+  <h2 id="live">7 · Determinism &amp; the live morph <span class="status">Q2</span></h2>
+  <p>The path from settings to sound: <code>(version, seed, pinned settings) → style vector → per-bar composition → performance → synthesis</code>. The seed seeds named RNG streams; the vector gates and biases every draw, so the whole chain is deterministic (<a href="control-taxonomy.html">taxonomy</a> principle 2).</p>
+  <p><b>Live changes</b> mutate the vector at runtime; the just-in-time composer (taxonomy §8) reads the <i>current</i> vector each bar, so a change lands on not-yet-generated material. The three response speeds map onto the schema layers:</p>
+  <ul>
+    <li><b>Instant</b> — Surface fields (reverb, brightness, dynamics, expression): applied to the next scheduled note and ramped on sustained ones.</li>
+    <li><b>Next boundary</b> — Material &amp; per-voice fields (density, mode, palette, swing, meter): applied at the next bar/phrase.</li>
+    <li><b>Re-plan from here</b> — Evolution/form fields, and a genre or blend change: the remaining trajectory is recomputed from the current position.</li>
+  </ul>
+  <div class="ok"><b>Tom's call — the live genre/blend swap transition is a two-bar crossfade.</b> When the user changes genre or the meld while playing, the outgoing style and the incoming style overlap for <b>two bars</b> and crossfade, so the seam is musical rather than a hard cut. (Small changes — a slider nudge — need no transition; they are instant or next-boundary.) Grounded in <code>beginnings-endings-and-transitions.md</code>.</div>
+  <div class="prov"><b>Provisional.</b> Tom: "This might be adjusted in the future, too." Two bars is the starting value; the transition length/type may change once live swaps can be auditioned (e.g. tempo-scaled length, or a beat-matched crossfade like a DJ blend for compatible tempos).</div>
+
+  <h2 id="serial">8 · Serialization &amp; the shareable link <span class="status">Q3</span></h2>
+  <ul>
+    <li><b>What serializes:</b> the seed plus only the <b>pinned</b> settings (auto fields are re-derived from the seed, so they cost nothing). This becomes a compact, versioned, bit-packed <code>base64url</code> payload — a version tag then fixed-width fields (an 8-way enum = 3 bits, a slider quantized to 64 steps = 6 bits, the seed = 32 bits) — the design owned by <code>music-representation-and-notation.md</code>. The version tag lets old links keep working as the schema grows.</li>
+    <li><b>Two genres:</b> a meld serializes as the two genre ids + the (currently even) balance + any pinned per-axis parent choices — still a handful of bits.</li>
+  </ul>
+  <div class="ok"><b>Tom's call — the shareable link stores only the destination snapshot.</b> The URL always mirrors the <i>current</i> settings + seed, so opening or sharing it reproduces the piece that <b>begins</b> with those settings (played from the top), deterministically. The exact live-morph gesture history is <b>not</b> captured — live tweaking is a real-time performance, and the snapshot reproduces the sound you arrived at. (The "record the automation timeline" option floated earlier is dropped per this decision.)</div>
+
+  <h2 id="generators">9 · Three shared generators</h2>
+  <p>The schema's fields feed three small, deterministic generators the shared libraries should provide (from <code>meta-composition-and-style-machines.md</code>) — each seeded, so same-URL-same-piece holds:</p>
+  <ul>
+    <li><b>Interference rhythms</b> (Schillinger) — <code>resultant(a, b)</code> returns a duration-list from two interfering pulse-streams; a cheap cross-rhythm/aksak cell source feeding the Rhythmic-cell supply field.</li>
+    <li><b>Sieves</b> (Xenakis) — a residue-class builder with union/intersection/complement returning a pitch or onset alphabet; the Pitch-alphabet and Timeline fields' non-diatonic option. <span class="muted">Engine 05 already ships a sieve timeline to generalize from.</span></li>
+    <li><b>Tendency masks</b> (Koenig) — a <code>[min,max]</code>-over-time sampler that makes any evolving parameter (register, density, dissonance, tempo) move deterministically without repeating; the mechanism behind the Evolution layer and the intensity arc.</li>
+  </ul>
+  <p class="muted">The anti-rhetoric lesson carries over (Backus's critique of Schillinger): these generators produce <i>possibility</i>, never <i>value</i> — every field still feeds a constraint/selection layer that carries the musical judgment, or the engine repeats the naive-generativity failure.</p>
+
+  <h2 id="decisions">10 · Decisions &amp; open questions</h2>
+  <p><b>Decided (Tom, 2026-07-09):</b></p>
+  <ol>
+    <li><b>Meld balance is even (50/50)</b> for now — provisional, adjustments expected once melds can be heard (§5.2).</li>
+    <li><b>Live genre/blend swap = a two-bar crossfade</b> — provisional (§7).</li>
+    <li><b>The shareable link stores only the destination snapshot</b> (§8).</li>
+  </ol>
+  <p><b>Claude's design calls in this doc</b> (Tom can override): the four-layer field grouping and each field's type; the per-axis parent-selection meld (rhythm ≠ harmony parent, snap categorical / blend continuous, one committed chassis); the compatibility gates; the coherence gate; and the three shared generators.</p>
+  <p><b>Open, for later sessions or listening tests:</b></p>
+  <ul>
+    <li>The exact preset numbers for the eight genres (centers + spreads) — a focused tuning pass.</li>
+    <li>How many signature rules per style are enough to "read as a style," and whether an LLM-authored (no-corpus) signature bank works — needs the evaluation harness.</li>
+    <li>Which fields are truly categorical vs secretly ordinal (does "syncopation amount" or "diatonic↔chromatic" interpolate?) — an A/B once the engine renders midpoints.</li>
+    <li>How many state axes the evolution trajectory needs to carry a satisfying form across genres as different as ambient and groove.</li>
+    <li>The provisional meld balance and swap transition above.</li>
+  </ul>
+  <p class="muted">None of these block the build: the schema is concrete enough to start the site's <code>style</code> module and the just-in-time composer. The natural next design doc is the <b>site &amp; library architecture</b> (folder layout, the module list, and the just-in-time composition loop this schema and the live-change model require).</p>
+
+  <p class="foot">
+    algorithmic-music · design docs · written and built by Claude, directed by Tom Gally · dedicated to the public domain (<a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0</a>).
+    Basis: <code>style-invention-and-style-space.md</code> · <code>meta-composition-and-style-machines.md</code> · <code>hybridization-and-fusion.md</code> · <code>music-representation-and-notation.md</code> · <a href="control-taxonomy.html">control-taxonomy.html</a>.
+  </p>
+</main>
+</body>
+</html>

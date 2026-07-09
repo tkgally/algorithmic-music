@@ -54,7 +54,7 @@
   <p class="lede">The first design document for the <a href="../index.html">comprehensive site</a>: the concrete controls at each of the three tiers — <b>Start</b>, <b>Intermediate</b>, <b>Advanced</b> — with names, ranges, defaults, and what each one does; the Start-level genre shortlist; and (new in this revision) how <b>live setting changes</b> work. Written by Claude for Tom's asynchronous review.</p>
 
   <div class="ok">
-    <b>Status.</b> Tom reviewed the first draft and made the calls in <a href="#decisions">§10</a> (2026-07-09) — they are folded into the tiers below. Two things are new here: <b>Start genres are now multi-select (up to two, which blend)</b>, and a full section on <b>live, no-restart setting changes</b> (<a href="#live">§8</a>) answering his feasibility question. A few smaller follow-up questions his decisions raised are collected in <a href="#decisions">§10</a>. Once he's happy, the settled taxonomy graduates from this review doc into the wiki (<code>control-surfaces-and-user-parameters.md</code>).
+    <b>Status.</b> Tom reviewed the first draft and made the calls in <a href="#decisions">§10</a> (2026-07-09) — they are folded into the tiers below. Two things are new here: <b>Start genres are now multi-select (up to two, which blend)</b>, and a full section on <b>live, no-restart setting changes</b> (<a href="#live">§8</a>) answering his feasibility question. The smaller follow-up questions his decisions raised are now answered (2026-07-09) and worked out in the companion <a href="style-vector-schema.html">style-vector schema</a>; §10 lists them. Once he's happy, the settled taxonomy graduates from this review doc into the wiki (<code>control-surfaces-and-user-parameters.md</code>).
   </div>
 
   <nav class="toc">
@@ -147,7 +147,7 @@
   <p>Selecting two genres blends <b>two presets</b> — it is not on-the-fly style <i>invention</i> (that stays Intermediate/Advanced, per Tom's call that Start offers presets only). The blend follows the wiki's account of how real fusions actually work (<code>hybridization-and-fusion.md</code>): a coherent hybrid usually takes <i>different axes from different parents</i> (e.g. rhythm/groove from one, mode/harmony from the other, timbre split) rather than numerically averaging everything — a naive average of two styles often lands between both listenable regions. So a meld picks, per axis, which parent leads (seeded, within compatibility rules), giving results like “a house pulse under classical harmony” or “lo-fi drums with folk modal melody.”</p>
   <ul>
     <li><b>Max two</b> selections (Tom's call), so the result stays coherent — three-way melds overspend the novelty budget.</li>
-    <li><b>Balance</b> defaults to roughly even, with the seed varying it; the exact blend ratio and per-axis parent choice are exposed as the <b>Style blend</b> control at Intermediate/Advanced (§6.3).</li>
+    <li><b>Balance</b> defaults to <b>even (50/50)</b> for now (Tom's call — provisional, adjustments expected once melds can be heard); the blend ratio and per-axis parent choice are exposed as the <b>Style blend</b> control at Intermediate/Advanced (§6.3). Full meld rules: <a href="style-vector-schema.html#meld">style-vector schema §5</a>.</li>
     <li>Incompatible pairings (e.g. free-tempo Ambient × grid-locked House) are reconciled by the coherence rules — one parent's incompatible axis yields to the other's — rather than forced.</li>
   </ul>
 
@@ -259,7 +259,7 @@
     <tbody>
       <tr><td><b>Instant</b></td><td>mix &amp; sound: reverb/space, brightness, stereo width, volume, expression amount, dynamic range — and continuous timbre</td><td>the next scheduled note, and sustained notes ramp in place (tens of ms) — like turning a mixing-desk knob</td></tr>
       <tr><td><b>Next boundary</b></td><td>local-structural: density, harmonic richness, mode/key, palette, swing, meter, lead prominence, variation</td><td>at the next <b>bar or phrase</b>, so the change is musical, not a mid-note jump</td></tr>
-      <tr><td><b>Re-plan from here</b></td><td>global/form: length, form template, intensity arc, and a <b>genre or blend change</b></td><td>the remaining timeline is recomputed from the current position; big jumps (e.g. switching genre) use a short <b>transition/crossfade</b> so the seam is graceful</td></tr>
+      <tr><td><b>Re-plan from here</b></td><td>global/form: length, form template, intensity arc, and a <b>genre or blend change</b></td><td>the remaining timeline is recomputed from the current position; a genre/blend swap uses a <b>two-bar crossfade</b> (Tom's call, provisional) so the seam is graceful</td></tr>
     </tbody>
   </table>
   </div>
@@ -270,9 +270,9 @@
   <ul>
     <li><b>The URL always mirrors the current settings snapshot + seed.</b> As you turn knobs live, it updates to reflect where you've arrived. Re-opening it (or sharing it) plays a deterministic piece that <b>begins</b> with those settings — i.e., it reproduces the <i>destination</i>, played from the top, not the exact sequence of live twiddles you made to get there. That keeps the link short and the determinism rule intact.</li>
     <li><b>The live morph itself is a real-time performance.</b> Its exact path depends on <i>when</i> you moved each knob, which a single snapshot can't capture — and for Tom's stated goal (hearing a setting's effect immediately) that's fine: the snapshot reproduces the sound you settled on.</li>
-    <li><b>Optional, deferred:</b> an Advanced “capture performance” could record the automation timeline (the <i>(time, control, value)</i> events) for exact replay — a heavier, longer payload, offered only if someone wants to share a specific morph. Not the default, and out of scope for the first build.</li>
+    <li><b>Decided (Tom):</b> the link stores <b>only the destination snapshot</b> — the "capture the exact morph" option is dropped. Live tweaking stays a real-time performance; the snapshot reproduces the sound you settled on.</li>
   </ul>
-  <div class="ok"><b>For Tom:</b> This is a real architectural commitment — the site's engine is built “just-in-time” from the start, unlike the test engines. It's feasible and standard, and it also unlocks nicer things later (smooth genre transitions, an evolving “radio” mode). It folds into the site-architecture design doc and into the wiki's engine-architecture page. Flag if you'd rather the shared link capture the exact live morph by default (the heavier option) instead of the destination snapshot.</div>
+  <div class="ok"><b>Decided.</b> Live changes are a first-class architectural commitment — the site's engine is built “just-in-time” from the start, unlike the test engines. The genre/blend swap is a <b>two-bar crossfade</b> and the shared link is the <b>destination snapshot</b> only (both Tom's calls, 2026-07-09). This folds into the site-architecture design doc and the wiki's engine-architecture page. Full data-flow spec: <a href="style-vector-schema.html#live">style-vector schema §7</a>.</div>
 
   <h2 id="map">9 · How controls map to the engine</h2>
   <p>One pipeline serves all three modes because they differ only in <i>how many axes the user pins vs. lets the seed sample</i>:</p>
@@ -281,7 +281,7 @@
     <li>An <b>Intermediate control</b> is a friendly handle on one axis (or a small rollup of a few), shifting the region's center or narrowing its spread on that axis.</li>
     <li>An <b>Advanced control</b> is direct access to a raw axis, a per-layer pin, or an invented parameter (arc, blend, novelty budget…).</li>
   </ul>
-  <p>The object all of them write into is the <b>style vector</b> — the subject of the next design doc, the style-pack / style-vector schema. That doc will fix each axis's storage type and the coherence constraints that keep a sampled point (and a two-genre meld) listenable; this document only fixes what the <i>user</i> sees and can set.</p>
+  <p>The object all of them write into is the <b>style vector</b> — specified in the companion <a href="style-vector-schema.html">style-vector schema</a>, which fixes each field's type, how presets/invented styles/melds instantiate it, and the coherence constraints that keep a sampled point (and a two-genre meld) listenable. This document only fixes what the <i>user</i> sees and can set.</p>
 
   <h2 id="decisions">10 · Decisions &amp; remaining questions</h2>
   <p><b>Decided by Tom (2026-07-09):</b></p>
@@ -294,13 +294,11 @@
     <li><b>Start = presets only</b> — on-the-fly style <i>invention</i> stays Intermediate/Advanced; Start offers single presets and two-preset melds.</li>
     <li><b>Three distinct modes</b> with a Start/Intermediate/Advanced selector at the top of the page; settings preserved across modes.</li>
     <li><b>Live setting changes</b> (new) — the piece must change live without restarting; confirmed feasible via just-in-time composition (§8).</li>
+    <li><b>Two-genre meld balance is even (50/50)</b> for now — provisional; adjustments expected once melds can be heard.</li>
+    <li><b>Live genre/blend swap = a two-bar crossfade</b> — provisional (§8.2).</li>
+    <li><b>The shareable link stores only the destination snapshot</b> (§8.3).</li>
   </ol>
-  <p><b>Smaller questions these decisions raise</b> (none blocking — the style-pack schema doc can proceed):</p>
-  <ul>
-    <li>For a two-genre meld, the <b>default balance</b> (even, or seed-varied?) and <b>which parent owns which axis</b> — worked out against <code>hybridization-and-fusion.md</code> in the schema doc.</li>
-    <li>The <b>transition</b> for a live genre/blend swap — length and type (crossfade, a bar of fill, a hard cut on the downbeat?).</li>
-    <li>Whether the shared link should ever default to capturing the <b>exact live morph</b> rather than the destination snapshot (§8.3).</li>
-  </ul>
+  <p class="muted">Items 9–11 are the three follow-ups the first review raised; Tom answered them 2026-07-09 and they are worked out in full in the companion <a href="style-vector-schema.html">style-vector schema</a> (the meld in §5, the live morph in §7, serialization in §8). No taxonomy questions are currently open.</p>
 
   <p class="foot">
     algorithmic-music · design docs · written and built by Claude, directed by Tom Gally · dedicated to the public domain (<a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0</a>).
