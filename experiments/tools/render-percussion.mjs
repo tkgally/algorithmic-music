@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* ---------------------------------------------------------------------
    render-percussion.mjs — offline render-and-measure gate for the public
-   percussion engine (docs/engines/05-percussion).
+   percussion engine (docs/preliminary-tests/engines/05-percussion).
 
    The composer's structural correctness (meter parametricity, the three
    styles' forms, the subordinate melodic layer) and the pure performer
@@ -30,7 +30,7 @@ const globalRoot = execSync('npm root -g').toString().trim();
 const { chromium } = require(path.join(globalRoot, 'playwright'));
 
 const HERE = path.dirname(url.fileURLToPath(import.meta.url));
-const PAGE = 'file://' + path.resolve(HERE, '../../docs/engines/05-percussion/_selftest.html');
+const PAGE = 'file://' + path.resolve(HERE, '../../docs/preliminary-tests/engines/05-percussion/_selftest.html');
 const argv = process.argv.slice(2);
 
 // v0.2: exercise the sliding-scale variety (auto seeds picking varied recipes),

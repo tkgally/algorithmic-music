@@ -2,9 +2,11 @@
 /* ---------------------------------------------------------------------
    ui-smoke.mjs — headless UI smoke test for the public site.
 
-   Loads the hub and all three engine pages from file:// in headless
-   Chromium, checks the hub lists the three engines, then for each engine
-   clicks Play, lets it run ~1.6 s, and asserts playback actually started
+   Loads the site landing page (docs/index.html), the preliminary-tests
+   hub (docs/preliminary-tests/index.html), and all five engine pages from
+   file:// in headless Chromium: checks the landing page links to the
+   preliminary tests, checks the hub lists all five engines, then for each
+   engine clicks Play, lets it run ~1.6 s, and asserts playback actually started
    (the transport button flips to Stop and the playhead advances) with ZERO
    console/page errors. This is the live-playback counterpart to the offline
    render gates (render-engine/ambient/groove.mjs) — it exercises the real
@@ -28,24 +30,38 @@ const fileUrl = (p) => 'file://' + path.resolve(DOCS, p);
 const argv = process.argv.slice(2);
 
 const ENGINES = [
-  { name: 'tonal-classical', page: 'engines/01-tonal-classical/index.html' },
-  { name: 'ambient-drift', page: 'engines/02-ambient-drift/index.html' },
-  { name: 'groove-lofi', page: 'engines/03-groove-lofi/index.html' },
-  { name: 'cantabile', page: 'engines/04-cantabile/index.html' },
-  { name: 'percussion', page: 'engines/05-percussion/index.html' },
+  { name: 'tonal-classical', page: 'preliminary-tests/engines/01-tonal-classical/index.html' },
+  { name: 'ambient-drift', page: 'preliminary-tests/engines/02-ambient-drift/index.html' },
+  { name: 'groove-lofi', page: 'preliminary-tests/engines/03-groove-lofi/index.html' },
+  { name: 'cantabile', page: 'preliminary-tests/engines/04-cantabile/index.html' },
+  { name: 'percussion', page: 'preliminary-tests/engines/05-percussion/index.html' },
 ];
 
 async function main() {
   const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
   const gates = [];
 
-  // ---- Hub ----
+  // ---- Landing page (site entry point) ----
   {
     const page = await browser.newPage();
     const errors = [];
     page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
     page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
     await page.goto(fileUrl('index.html'));
+    const links = await page.$$eval('a[href]', (as) => as.map((a) => a.getAttribute('href')));
+    const linksToTests = links.some((l) => l && l.includes('preliminary-tests/'));
+    gates.push([`landing links to preliminary tests`, linksToTests, linksToTests ? 'ok' : 'missing']);
+    gates.push([`landing: no console/page errors`, errors.length === 0, errors.join('; ') || 'none']);
+    await page.close();
+  }
+
+  // ---- Preliminary-tests hub ----
+  {
+    const page = await browser.newPage();
+    const errors = [];
+    page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
+    page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+    await page.goto(fileUrl('preliminary-tests/index.html'));
     const links = await page.$$eval('a[href*="engines/"]', (as) => as.map((a) => a.getAttribute('href')));
     const hasAll = ['01-tonal-classical', '02-ambient-drift', '03-groove-lofi', '04-cantabile', '05-percussion'].every((s) => links.some((l) => l.includes(s)));
     gates.push([`hub lists all five engines`, hasAll, links.length + ' engine links']);

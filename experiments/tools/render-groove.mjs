@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* ---------------------------------------------------------------------
    render-groove.mjs — offline render-and-measure gate for the public
-   groove-lofi engine (docs/engines/03-groove-lofi).
+   groove-lofi engine (docs/preliminary-tests/engines/03-groove-lofi).
 
    The composer's structural correctness (backbeat, medium-syncopation kick,
    ghost notes, swing math) is proven by the headless Node suite; this proves
@@ -28,7 +28,7 @@ const globalRoot = execSync('npm root -g').toString().trim();
 const { chromium } = require(path.join(globalRoot, 'playwright'));
 
 const HERE = path.dirname(url.fileURLToPath(import.meta.url));
-const PAGE = 'file://' + path.resolve(HERE, '../../docs/engines/03-groove-lofi/_selftest.html');
+const PAGE = 'file://' + path.resolve(HERE, '../../docs/preliminary-tests/engines/03-groove-lofi/_selftest.html');
 const argv = process.argv.slice(2);
 
 const CASES = [

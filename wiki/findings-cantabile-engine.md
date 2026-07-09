@@ -3,13 +3,13 @@ title: Findings — the cantabile engine (Engine 04)
 tags: [findings, implementation, craft, project]
 status: reviewed
 created: 2026-07-08
-updated: 2026-07-08
+updated: 2026-07-09
 summary: The project's fourth public engine and its first built around per-note EXPRESSION — four original synthetic instruments (aria/reed/wire/glass) that scoop, bend, swell, and vibrate each sustained note, driven by a per-note structural weight so the performance intensifies toward a composed climax; the continuous intra-note synthesis, the modal dramatic-arc composer, the original expression sliders, and the offline-render validation.
 ---
 
 # Findings — the cantabile engine (Engine 04)
 
-Engine 04 — **`cantabile@0.1.0`**, live at `docs/engines/04-cantabile/` and cataloged in the hub as Engine 04 — is the project's first engine built around the thing every previous engine could only approximate: **the expressive realization of an individual note**. It is inspired by the small groups Tom named — the string quartet, the jazz combo's saxophone, the rock lead guitar — whose power lives not in fast notes but in what a player does *while a single note sounds*: a scoop or slide into the pitch, a vibrato that blooms late, a swell and taper, a growl as they lean in, a fall on the release. The engine invents **four original synthetic voices** that share that continuous-control expressivity without imitating any real instrument, and — the load-bearing idea — makes their expression **track the composition's structure**, not per-note chance. Every structural claim here is backed by re-runnable in-repo code: `node experiments/tests/run.js` (**118 tests**, 13 of them for this engine) and `node experiments/tools/render-cantabile.mjs` (the offline audio gate, **25/25** across four seeds/modes/ensembles including a maximum-expression stress case).
+Engine 04 — **`cantabile@0.1.0`**, live at `docs/preliminary-tests/engines/04-cantabile/` and cataloged in the hub as Engine 04 — is the project's first engine built around the thing every previous engine could only approximate: **the expressive realization of an individual note**. It is inspired by the small groups Tom named — the string quartet, the jazz combo's saxophone, the rock lead guitar — whose power lives not in fast notes but in what a player does *while a single note sounds*: a scoop or slide into the pitch, a vibrato that blooms late, a swell and taper, a growl as they lean in, a fall on the release. The engine invents **four original synthetic voices** that share that continuous-control expressivity without imitating any real instrument, and — the load-bearing idea — makes their expression **track the composition's structure**, not per-note chance. Every structural claim here is backed by re-runnable in-repo code: `node experiments/tests/run.js` (**118 tests**, 13 of them for this engine) and `node experiments/tools/render-cantabile.mjs` (the offline audio gate, **25/25** across four seeds/modes/ensembles including a maximum-expression stress case).
 
 ## The gap this engine fills: notes with an inner life
 

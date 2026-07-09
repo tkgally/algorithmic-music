@@ -1,7 +1,7 @@
 # experiments/
 
 Dev-time testbeds and prototypes. Nothing here is shipped product directly —
-though the engine code here is **vendored (copied) into `docs/engines/`** as the
+though the engine code here is **vendored (copied) into `docs/preliminary-tests/engines/`** as the
 public artifacts (Phase 2). Findings from what lives here are filed back into the
 wiki (an experiment without a filed finding didn't happen). All code is
 public-domain (CC0), original, and reuses no outside project's source.
@@ -20,7 +20,7 @@ experiments/
   composers/  engine-level composition algorithms (consume lib/, not shared libraries themselves)
     tonal-phrase.js  worked R1+R2 + composePiece(): phrase-first melody over goal-directed harmony —
                      one parallel period AND a whole rounded-ternary piece with variation + an ending
-  engines/    engine-specific code, canonical here, vendored into docs/engines/ (public)
+  engines/    engine-specific code, canonical here, vendored into docs/preliminary-tests/engines/ (public)
     tonal-classical/engine.js  performer (beats->seconds, dynamics, ritard) + synth/fx wiring + scheduler
   tests/      headless Node tests (no framework, no dependencies)
     _runner.js     tiny assert/report harness

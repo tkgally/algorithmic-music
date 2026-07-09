@@ -39,12 +39,13 @@ Seed and URL behavior, as specified:
 ## Architecture requirements
 
 - The **entire site lives in one folder**, with a well-organized set of subfolders (scripts, etc.).
+- **Location (decided by Tom, 2026-07-09):** the site's public entry point is **`docs/index.html`**, directly under `docs/` — the link Tom will share once the site matures. The five preliminary test engines live alongside it in **`docs/preliminary-tests/`** (reachable from the landing page) rather than being deleted. Documents prepared for Tom's asynchronous review are also placed in `docs/` (temporary ones deletable once superseded).
 - A **large set of shared JS libraries**, created **originally and entirely by Claude** — no code from existing libraries — with the code **annotated clearly** so that what each part does, or is for, is plain. This extends the standing dependency policy ([shared-libraries](shared-libraries.md)); the existing `experiments/lib/` modules (`rng`, `transport`, `theory`, `synth`, `fx`, `analysis`) are the seed of this larger set.
 - Vanilla HTML/CSS/JS + Web Audio; instrumental music only; no build step and no network at runtime. *Working assumption (not explicitly restated by Tom for the site): keep the `file://`-runnable classic-script discipline from [engine-architecture](engine-architecture.md), which the one-folder + vendored-libraries requirements are compatible with.*
 
 ## What this changes for the project
 
-- **From five single-style engines to one site whose composer covers a style space.** Engines 01–05 remain live as style studies and validated component sources (working assumption pending Tom's confirmation — see [project-open-questions](project-open-questions.md)). Their shared libraries, composers, performers, and UI conventions are the proven raw material the site generalizes.
+- **From five single-style engines to one site whose composer covers a style space.** Engines 01–05 remain live as style studies and validated component sources — **confirmed by Tom (2026-07-09)** and relocated to `docs/preliminary-tests/`, with the site's public entry point now the new `docs/index.html`. Their shared libraries, composers, performers, and UI conventions are the proven raw material the site generalizes.
 - **The wiki's breadth is now load-bearing for design breadth.** The variety of human music documented here is simultaneously the specification of the familiar styles and the inspiration pool for the original ones. Tom directed a full session (028) of wide-coverage expansion — world traditions, popular genres, deeper theory, and an original-style design pillar — before any site design begins.
 - **A new design pillar** enters the wiki: [style-invention-and-style-space](style-invention-and-style-space.md) (what a style is as a formal object and what makes invented styles cohere), [hybridization-and-fusion](hybridization-and-fusion.md) (how real musical hybrids work — history's A/B tests for on-the-fly style creation), [meta-composition-and-style-machines](meta-composition-and-style-machines.md) (systems that parameterized composition itself), [control-surfaces-and-user-parameters](control-surfaces-and-user-parameters.md) (evidence and precedent for the three-tier control design), and [music-representation-and-notation](music-representation-and-notation.md) (internal representations and compact state encoding).
 
@@ -58,9 +59,9 @@ Seed and URL behavior, as specified:
 - **Determinism end to end:** the entire path — genre choice → style sampling or invention → composition → performance → synthesis — must run from the seed plus explicit settings, or the same-URL-same-piece guarantee breaks. This is already the engines' rule; the style-invention layer must obey it too.
 - **Compact state encoding:** a versioned, bit-packed or base-N payload replacing the current verbose `key=value` hash — small enough for comfortable sharing, with a version field so old URLs keep working as the site evolves. Design details belong to a future session's site-architecture document.
 
-## Open questions
+## Resolved and open questions
 
-Filed in [project-open-questions](project-open-questions.md) → "Questions for Tom" (2026-07-09): whether Engines 01–05 stay live alongside the site; where the site lives (working assumption: a new folder under `docs/`); roughly how many Start-level genre categories; and the review cadence for control-taxonomy proposals.
+The four questions this vision first raised were **answered by Tom on 2026-07-09** ([project-open-questions](project-open-questions.md) → "Answered"): Engines 01–05 stay live, relocated to `docs/preliminary-tests/`; the site's entry point is `docs/index.html` directly under `docs/`; ~6–10 Start-level genre categories, with Claude proposing the shortlist in the control-taxonomy design doc; and the multi-session design-review cadence stands, with review documents placed in `docs/` for easy review. No comprehensive-site decisions are currently pending — the next design work is the Phase 3b documents ([project-roadmap](project-roadmap.md)), control taxonomy first.
 
 ## Related pages
 

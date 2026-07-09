@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preliminary test engines — algorithmic-music</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#faf9f7; --fg:#1c1a17; --muted:#6d675f; --line:#e5e1da; --panel:#ffffff; --accent:#6a5acd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17151a; --fg:#ece9e4; --muted:#9a938a; --line:#2c2833; --panel:#201d26; --accent:#9d8cff; }
+  }
+  * { box-sizing: border-box; }
+  body { font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+  main { max-width: 780px; margin: 0 auto; padding: 2.4rem 1.2rem 4rem; }
+  a { color: var(--accent); }
+  h1 { font-size: 2rem; margin: 0 0 .3rem; letter-spacing: -0.01em; }
+  h2 { font-size: 1.15rem; margin: 2.2rem 0 .6rem; }
+  .lede { color: var(--fg); font-size: 1.08rem; }
+  .muted { color: var(--muted); }
+  /* Compact engine cards: a one-line head (number · title · tagline · play) with
+     the longer description in a collapsed <details> box, shut by default — the
+     catalog stays scannable as it grows. */
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: .8rem 1.1rem; margin: .6rem 0; color: inherit; transition: border-color .15s; }
+  .card:hover { border-color: var(--accent); }
+  .cardhead { display: flex; align-items: baseline; flex-wrap: wrap; gap: .15rem .7rem; }
+  .card .num { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 700; font-size: .78rem; letter-spacing: .08em; white-space: nowrap; }
+  .card .title { font-size: 1.15rem; font-weight: 700; text-decoration: none; color: inherit; }
+  .card .title:hover { color: var(--accent); }
+  .card .tagline { color: var(--muted); font-size: .9rem; flex: 1 1 11rem; }
+  .card .play { margin-left: auto; font-weight: 600; color: var(--accent); font-size: .9rem; text-decoration: none; white-space: nowrap; }
+  .card .play:hover { text-decoration: underline; }
+  .card details.desc { margin-top: .5rem; }
+  .card details.desc summary { cursor: pointer; color: var(--muted); font-size: .84rem; list-style: none; }
+  .card details.desc summary::-webkit-details-marker { display: none; }
+  .card details.desc summary::before { content: "▸ "; }
+  .card details.desc[open] summary::before { content: "▾ "; }
+  .card details.desc p { margin: .5rem 0 0; color: var(--muted); font-size: .93rem; }
+  .soon { opacity: .7; border-style: dashed; }
+  .soon .num { color: var(--muted); }
+  .tags { font-size: .78rem; color: var(--muted); margin-top: .5rem; }
+  .tags span { border: 1px solid var(--line); border-radius: 999px; padding: .08rem .55rem; margin-right: .3rem; white-space: nowrap; }
+  .foot { color: var(--muted); font-size: .88rem; margin-top: 2.6rem; border-top: 1px solid var(--line); padding-top: 1.2rem; }
+  ul.plain { padding-left: 1.1rem; }
+  ul.plain li { margin: .3rem 0; }
+</style>
+</head>
+<body>
+<main>
+  <p class="muted" style="font-size:.9rem; margin:0 0 1.1rem"><a href="../index.html">← algorithmic-music (main site)</a></p>
+  <h1>Preliminary test engines</h1>
+  <p class="lede">Five self-contained, deliberately different generative instruments — the proving ground for the comprehensive <a href="../index.html">algorithmic-music</a> site now being built. Plain HTML, CSS, and JavaScript with the Web Audio API. No samples, no libraries, no build step, no server: every note is synthesized live, and each engine runs entirely offline from a single folder.</p>
+
+  <p class="muted">
+    The project is a long-running collaboration between <a href="https://github.com/tkgally">Tom Gally</a>, who directs it and judges the music, and <strong>Claude</strong> (Anthropic's AI), which does all of the research, writing, and engineering across autonomous sessions. Its bet: browser music generators are easy to build but usually musically disappointing, and the cure is <em>knowledge plus iteration</em> — a serious, cited <a href="https://github.com/tkgally/algorithmic-music/tree/main/wiki">knowledge base</a> about how music works and why people enjoy it, driving engine designs that improve through evaluation and listener feedback. Everything here — this page, the engines, and the knowledge base — is written and built by Claude, and dedicated to the public domain (CC0).
+  </p>
+
+  <h2>The engines</h2>
+  <p class="muted">Each engine is a self-contained, deliberately different generative instrument, newest first. Pick one and press play; every piece is reproducible from a seed and shareable by link. Open a card for the details.</p>
+
+  <article class="card">
+    <div class="cardhead">
+      <span class="num">ENGINE 05</span>
+      <a class="title" href="engines/05-percussion/index.html">Percussion Ensemble</a>
+      <span class="tagline">drums, wood, and metal across three worlds</span>
+      <a class="play" href="engines/05-percussion/index.html">Play →</a>
+    </div>
+    <details class="desc">
+      <summary>About this engine</summary>
+      <p>An ensemble of original percussion voices — a low anchor drum, hand-drums with tone and slap, wood, struck metal, a blooming gong, shakers, and a tuned mallet — none of them sampled, all built from oscillators and noise. It plays three worlds: a <em>concert</em> piece that states one rhythmic cell and develops it (rotation, displacement, augmentation, diminution) across a rising density arc to a metallic climax and a real gong ending; a <em>folk</em> ensemble anchored by an asymmetric timeline (clave or bell) with interlocking Euclidean ostinati, a low drum, and an improvising lead; and an informal <em>drum circle</em> that joins a shared pulse, swells into a rumble, cuts out, and fades. Default 4/4 and 2/4 with phrases in fours; 6/8 and 12/8 bell meters and the aksak 5/8 and 7/8 are selectable. Four timbre macros — <strong>Tune</strong>, <strong>Ring</strong>, <strong>Attack</strong>, <strong>Brightness</strong> — reshape the whole kit; an optional mallet ostinato only ever accompanies.</p>
+      <div class="tags"><span>concert · folk · drum circle</span><span>timeline + interlock + lead</span><span>density-arc form</span><span>original drum/wood/metal synthesis</span><span>any meter</span></div>
+    </details>
+  </article>
+
+  <article class="card">
+    <div class="cardhead">
+      <span class="num">ENGINE 04</span>
+      <a class="title" href="engines/04-cantabile/index.html">Cantabile</a>
+      <span class="tagline">a small ensemble that <em>sings</em> every note</span>
+      <a class="play" href="engines/04-cantabile/index.html">Play →</a>
+    </div>
+    <details class="desc">
+      <summary>About this engine</summary>
+      <p>The expressive engine. Four original synthetic instruments — <em>aria</em> (warm, bowed), <em>reed</em> (breathy), <em>wire</em> (electric, gritty), and <em>glass</em> (pure) — that can scoop into a note, bend it, make it swell, and let a vibrato bloom, the way a violinist, a saxophonist, or a lead guitarist shapes a single sustained tone. Each piece is a short modal arc — theme, a call-and-response dialogue, a rise to a climax, a transformed return, and a real ending — and the players intensify toward the moments that matter. Which voices lead and answer varies with the seed and your choice. The sliders are the expression itself: <strong>Song</strong> (how vocal the pitch is), <strong>Bloom</strong> (how a held note grows), <strong>Ardor</strong> (how dramatic the arc), and a master <strong>Expression</strong>.</p>
+      <div class="tags"><span>expressive performance</span><span>continuous intra-note pitch/vibrato/swell</span><span>modal dramatic arc</span><span>four original singing voices</span></div>
+    </details>
+  </article>
+
+  <article class="card">
+    <div class="cardhead">
+      <span class="num">ENGINE 03</span>
+      <a class="title" href="engines/03-groove-lofi/index.html">Groove / Lo-Fi</a>
+      <span class="tagline">a looped lo-fi beat — swing, backbeat, jazzy chords</span>
+      <a class="play" href="engines/03-groove-lofi/index.html">Play →</a>
+    </div>
+    <details class="desc">
+      <summary>About this engine</summary>
+      <p>The trio's groove engine: a looped lo-fi hip-hop beat built to make you nod. A backbeat snare that drags behind the pulse, a warm swung kick at medium syncopation, ghost notes and a sparse bell in the second half, jazzy 7th/9th electric-piano chords, a weighty bass — and a little vinyl crackle over the top. Groove comes from structured pattern, swing, and a velocity hierarchy, not timing noise. Choose the mood (major 7ths, minor 9ths, dorian, tape), tempo, swing, and space.</p>
+      <div class="tags"><span>lo-fi hip-hop</span><span>swing + laid-back backbeat</span><span>medium syncopation</span><span>drum + Rhodes synthesis</span></div>
+    </details>
+  </article>
+
+  <article class="card">
+    <div class="cardhead">
+      <span class="num">ENGINE 02</span>
+      <a class="title" href="engines/02-ambient-drift/index.html">Ambient Drift</a>
+      <span class="tagline">weightless, beatless, slow — Eno's <em>Airports</em> trick</span>
+      <a class="play" href="engines/02-ambient-drift/index.html">Play →</a>
+    </div>
+    <details class="desc">
+      <summary>About this engine</summary>
+      <p>The deliberate opposite of a beat: weightless, beatless, and slow. Sustained tones and sparse bells run on periods that never quite line up — Brian Eno's <em>Music for Airports</em> trick — over a drone that drifts through a single mode. It emerges from silence and dissolves back into it. As ignorable as it is interesting; choose the mood (lydian, pentatonic, dorian, minor), the pace, and the space.</p>
+      <div class="tags"><span>generative ambient</span><span>incommensurable loops</span><span>modal drift</span><span>modal bell + pad synthesis</span></div>
+    </details>
+  </article>
+
+  <article class="card">
+    <div class="cardhead">
+      <span class="num">ENGINE 01</span>
+      <a class="title" href="engines/01-tonal-classical/index.html">Tonal Classical</a>
+      <span class="tagline">a short classical piece built to actually <em>finish</em></span>
+      <a class="play" href="engines/01-tonal-classical/index.html">Play →</a>
+    </div>
+    <details class="desc">
+      <summary>About this engine</summary>
+      <p>A short piece in classical style, built to actually finish: a theme (a parallel period that asks and answers with real cadences), a contrasting middle, a varied return of the theme at the climax, and a closing coda that accelerates into a final cadence and a lengthened last chord. Harmony is generated backward from its cadences; melody is shaped contour-first around pinned goal tones. Major or minor, any key, adjustable tempo and reverb.</p>
+      <div class="tags"><span>rounded ternary form</span><span>goal-directed harmony</span><span>real endings</span><span>FM + string synthesis</span></div>
+    </details>
+  </article>
+
+  <p class="muted" style="font-size:.86rem; margin-top:.8rem">More engines are planned — deliberately contrasting genres and architectures (non-Western tuning systems among them), each built from the same knowledge base and numbered so they are easy to reference and compare.</p>
+
+  <h2>How it works</h2>
+  <ul class="plain muted">
+    <li><strong>Knowledge base.</strong> Claude researches music theory, the psychology of listening, genre traditions, composition craft, algorithmic techniques, Web Audio implementation, and evaluation — every page ending in concrete implications for engines, every claim cited.</li>
+    <li><strong>Engines.</strong> Contrasting generators built from that knowledge, published here on GitHub Pages. Each is fully transparent about being AI-designed, deterministic from a seed, and downloadable to run offline.</li>
+    <li><strong>Improvement loop.</strong> Listener feedback and computational metrics feed findings back into the knowledge base, and the engines get better over time.</li>
+  </ul>
+
+  <p class="foot">
+    Source, knowledge base, and session-by-session history:
+    <a href="https://github.com/tkgally/algorithmic-music">github.com/tkgally/algorithmic-music</a>.
+    All original work is dedicated to the public domain under <a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0 1.0</a>.
+    Built with vanilla HTML/CSS/JS and the Web Audio API — no dependencies.
+  </p>
+</main>
+</body>
+</html>

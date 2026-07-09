@@ -3,7 +3,7 @@ title: Findings — the tonal-classical engine (launch engine, Phase 2)
 tags: [findings, implementation, project]
 status: reviewed
 created: 2026-07-08
-updated: 2026-07-08
+updated: 2026-07-09
 summary: The project's first public engine — how the single parallel period grew into a whole finishable piece (rounded ternary with intro, motivic variation on the return, and a cadential coda), how the audible synth/fx layer was built from stock Web Audio nodes and validated by offline render, and the deployment/vendoring model for docs/.
 ---
 
@@ -11,7 +11,7 @@ summary: The project's first public engine — how the single parallel period gr
 
 Tom opened **Phase 2** (2026-07-08) by asking for the launch engine: extend the [worked composer](findings-tonal-phrase-composer.md) "from one period to a whole piece (add endings, motivic variation, a full form) and build the audible synth/fx layer," then ship it under `docs/`. This page records what was built and what the validation shows. Like the other findings pages, every structural claim is backed by re-runnable in-repo code — `node experiments/tests/run.js` (**88 tests**, of which 8 are whole-piece composer checks and 6 are performer checks) and `node experiments/tools/render-engine.mjs` (the offline audio gate) — which is a stronger check than source-fetching.
 
-The engine is **`tonal-classical@0.3.1`**, live at `docs/engines/01-tonal-classical/`. The hub `docs/index.html` catalogs it as **Engine 01**. (Listener-feedback passes followed the launch: [§ v0.2](#v02--the-listener-feedback-pass), [§ v0.3](#v03--the-second-listener-feedback-pass), and [§ v0.3.1](#v031--the-real-static-fix-the-envelope-not-the-reverb) — the last being the real fix for the reported "static.")
+The engine is **`tonal-classical@0.3.1`**, live at `docs/preliminary-tests/engines/01-tonal-classical/`. The hub `docs/preliminary-tests/index.html` catalogs it as **Engine 01**. (Listener-feedback passes followed the launch: [§ v0.2](#v02--the-listener-feedback-pass), [§ v0.3](#v03--the-second-listener-feedback-pass), and [§ v0.3.1](#v031--the-real-static-fix-the-envelope-not-the-reverb) — the last being the real fix for the reported "static.")
 
 ## From one period to a whole piece
 
@@ -50,7 +50,7 @@ The [shared-libraries](shared-libraries.md) plan's "audible layer" is now built 
 
 ## Deployment and the vendoring model (validated in practice)
 
-The [engine-architecture](engine-architecture.md) deployment layout held up as specified. `docs/index.html` is the hub; `docs/engines/01-tonal-classical/` is the self-contained engine. The engine **vendors** (copies in) the shared libraries and the composer — `lib/{rng,transport,theory,synth,fx}.js`, `composer.js`, `engine.js` — maintained canonically in `experiments/` and copied here, so the folder is independently downloadable and `file://`-runnable with **no runtime coupling** to the rest of the repo. Numbering the folder (`01-…`) and the hub card ("Engine 01") makes engines easy to reference as the catalog grows.
+The [engine-architecture](engine-architecture.md) deployment layout held up as specified. `docs/preliminary-tests/index.html` is the hub; `docs/preliminary-tests/engines/01-tonal-classical/` is the self-contained engine. The engine **vendors** (copies in) the shared libraries and the composer — `lib/{rng,transport,theory,synth,fx}.js`, `composer.js`, `engine.js` — maintained canonically in `experiments/` and copied here, so the folder is independently downloadable and `file://`-runnable with **no runtime coupling** to the rest of the repo. Numbering the folder (`01-…`) and the hub card ("Engine 01") makes engines easy to reference as the catalog grows.
 
 The engine page realizes the architecture's UI conventions: two-level controls (a simple panel plus an Advanced disclosure), an **editable seed**, **full state serialized into the URL hash** (a shared link reproduces the exact piece), a **self-report** table of what each section is doing, a piano-roll **visualization** with a moving playhead, and a **feedback affordance** that saves a JSON file locally (the decided no-server feedback transport — [listening-tests-and-feedback](listening-tests-and-feedback.md)). Audio starts only on the user's Play gesture.
 
@@ -108,5 +108,5 @@ The melodic variety landed, but the listener still heard the static — and this
 
 ## Sources
 
-- Reproducible in-repo (original, public-domain CC0): `experiments/composers/tonal-phrase.js` (`composePiece`), `experiments/engines/tonal-classical/engine.js`, `experiments/lib/synth.js`, `experiments/lib/fx.js`, `experiments/tests/composer.test.js` + `experiments/tests/engine.test.js` (run `node experiments/tests/run.js`), `experiments/tools/render-engine.mjs`, and the shipped `docs/engines/01-tonal-classical/`. All claims above re-run from these.
+- Reproducible in-repo (original, public-domain CC0): `experiments/composers/tonal-phrase.js` (`composePiece`), `experiments/engines/tonal-classical/engine.js`, `experiments/lib/synth.js`, `experiments/lib/fx.js`, `experiments/tests/composer.test.js` + `experiments/tests/engine.test.js` (run `node experiments/tests/run.js`), `experiments/tools/render-engine.mjs`, and the shipped `docs/preliminary-tests/engines/01-tonal-classical/`. All claims above re-run from these.
 - Music-theoretic and audio content operationalizes already-cited wiki pages: rounded-ternary form, repetition-with-return, contrast axes, and late-climax placement from [form-and-structure](form-and-structure.md); cadences, period structure, and the coda's cadential accents from [phrase-structure](phrase-structure.md)/[harmony](harmony.md); ornamentation/diminution and the melodic rules from [melody](melody.md); FM and detuned-ensemble synthesis from [synthesis-recipes](synthesis-recipes.md); the reverb IR, bus/highpass/mono-lows discipline, master chain, and loudness targets from [effects-and-mixing](effects-and-mixing.md); the closing ritardando from [expressive-performance](expressive-performance.md). No new external sources were fetched.

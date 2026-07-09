@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* ---------------------------------------------------------------------
    render-cantabile.mjs — offline render-and-measure gate for the public
-   cantabile engine (Engine 04, docs/engines/04-cantabile).
+   cantabile engine (Engine 04, docs/preliminary-tests/engines/04-cantabile).
 
    The composer's structure + the performer's expression pass are proven by
    the headless Node suite; this proves the AUDIBLE layer — that the engine's
@@ -27,7 +27,7 @@ const globalRoot = execSync('npm root -g').toString().trim();
 const { chromium } = require(path.join(globalRoot, 'playwright'));
 
 const HERE = path.dirname(url.fileURLToPath(import.meta.url));
-const PAGE = 'file://' + path.resolve(HERE, '../../docs/engines/04-cantabile/_selftest.html');
+const PAGE = 'file://' + path.resolve(HERE, '../../docs/preliminary-tests/engines/04-cantabile/_selftest.html');
 const argv = process.argv.slice(2);
 
 const CASES = [

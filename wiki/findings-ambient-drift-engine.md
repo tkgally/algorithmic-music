@@ -3,13 +3,13 @@ title: Findings — the ambient-drift engine (Engine 02)
 tags: [findings, implementation, genre, project]
 status: reviewed
 created: 2026-07-08
-updated: 2026-07-08
+updated: 2026-07-09
 summary: The project's second public engine and the deliberate contrast to tonal-classical — a generative ambient texture built from Eno's Music for Airports incommensurable-loop recipe over a slow modal drift, reusing the shared synth/fx (with new bell/pad/drone voices and a parameterizable dark reverb), validated by offline render.
 ---
 
 # Findings — the ambient-drift engine (Engine 02)
 
-Tom asked (2026-07-08) for a second engine "with a different, contrasting style of music." Engine 02 — **`ambient-drift@0.1.0`**, live at `docs/engines/02-ambient-drift/` and cataloged in the hub as Engine 02 — is the deliberate opposite of [tonal-classical](findings-tonal-classical-engine.md) on every audible axis: **no meter, no cadences, no foreground melody to track; sparse events, long sustains, harmonic stasis that drifts rather than progresses.** It is the browser realization of the single most-recommended ambient recipe in the knowledge base. Every structural claim is backed by re-runnable in-repo code — `node experiments/tests/run.js` (**95 tests**, of which 7 are ambient) and `node experiments/tools/render-ambient.mjs` (the offline audio gate).
+Tom asked (2026-07-08) for a second engine "with a different, contrasting style of music." Engine 02 — **`ambient-drift@0.1.0`**, live at `docs/preliminary-tests/engines/02-ambient-drift/` and cataloged in the hub as Engine 02 — is the deliberate opposite of [tonal-classical](findings-tonal-classical-engine.md) on every audible axis: **no meter, no cadences, no foreground melody to track; sparse events, long sustains, harmonic stasis that drifts rather than progresses.** It is the browser realization of the single most-recommended ambient recipe in the knowledge base. Every structural claim is backed by re-runnable in-repo code — `node experiments/tests/run.js` (**95 tests**, of which 7 are ambient) and `node experiments/tools/render-ambient.mjs` (the offline audio gate).
 
 ## Why ambient, and why this recipe
 
@@ -87,5 +87,5 @@ Offline, both flagged windows drop from clearly-elevated to the **clean control 
 
 ## Sources
 
-- Reproducible in-repo (original, public-domain CC0): `experiments/composers/ambient-drift.js`, `experiments/engines/ambient-drift/engine.js`, the shared `experiments/lib/synth.js` (`bell`/`pad`/`drone`) + `experiments/lib/fx.js` (parameterizable reverb), `experiments/tests/ambient.test.js` (run `node experiments/tests/run.js`), `experiments/tools/render-ambient.mjs`, and the shipped `docs/engines/02-ambient-drift/`. All claims above re-run from these.
+- Reproducible in-repo (original, public-domain CC0): `experiments/composers/ambient-drift.js`, `experiments/engines/ambient-drift/engine.js`, the shared `experiments/lib/synth.js` (`bell`/`pad`/`drone`) + `experiments/lib/fx.js` (parameterizable reverb), `experiments/tests/ambient.test.js` (run `node experiments/tests/run.js`), `experiments/tools/render-ambient.mjs`, and the shipped `docs/preliminary-tests/engines/02-ambient-drift/`. All claims above re-run from these.
 - Music-genre content operationalizes already-cited wiki pages: the incommensurable-loop and drone-plus-mover recipes, mixing esthetic, and attention contract from [ambient-and-generative-genre](ambient-and-generative-genre.md) (Eno's *Music for Airports* and 1996 generative-music talk); the modal-bell, pad-with-LFO, and drone topologies from [synthesis-recipes](synthesis-recipes.md); reverb-as-space from [effects-and-mixing](effects-and-mixing.md); the "does the rule set transfer to pads?" caution from [expressive-performance](expressive-performance.md). No new external sources were fetched.

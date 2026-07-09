@@ -13,7 +13,7 @@ The project is a long-running collaboration between [Tom Gally](https://github.c
 | `logs/` | Session logs and current project status. |
 | `experiments/` | Dev-time testbeds: the project's first-party shared libraries (`lib/`), composers, headless tests, and audio-render harnesses. Not shipped product; findings land in the wiki. |
 | `CLAUDE.md`, `continue-prompt.md` | The process files that let each new Claude session pick up exactly where the last left off. |
-| `docs/` | **Public music engines + hub, served via GitHub Pages** (Phase 2, started 2026-07-08). The hub (`docs/index.html`) catalogs the numbered engines; each engine is a self-contained folder under `docs/engines/`. |
+| `docs/` | **The public site, served via GitHub Pages.** Entry point `docs/index.html` is the comprehensive site now taking shape (an early landing page). The five **preliminary test engines** and their hub live in `docs/preliminary-tests/` (engines under `docs/preliminary-tests/engines/`, hub `docs/preliminary-tests/index.html`). |
 
 ## How it works
 
@@ -25,11 +25,11 @@ Each work session ends squash-merged to `main`, so the repository's history is a
 
 ## Status
 
-**Phase 2 — engines have begun (started 2026-07-08).** Phase 1 built and matured the knowledge base and a validated first-party library foundation (`rng`, `transport`, `theory`, `analysis`, `synth`, `fx`) plus a worked composition algorithm; five contrasting engines are live in [`docs/`](docs/). **The long-term goal was defined on 2026-07-09**: a single comprehensive, self-contained site that composes and performs instrumental music in a wide variety of styles — both familiar ones documented in the wiki and original styles invented on the fly by the site's own code — with tiered controls and seeded, shareable pieces (see [`wiki/comprehensive-site-vision.md`](wiki/comprehensive-site-vision.md)). Current state and next steps are always in [`logs/status.md`](logs/status.md).
+**Phase 3 — the comprehensive site — is now the primary track (defined by Tom, 2026-07-09).** Phase 1 built and matured the knowledge base and a validated first-party library foundation (`rng`, `transport`, `theory`, `analysis`, `synth`, `fx`) plus a worked composition algorithm; Phase 2 shipped five contrasting engines, now kept live as *preliminary test engines* in [`docs/preliminary-tests/`](docs/preliminary-tests/). **The long-term goal**: a single comprehensive, self-contained site that composes and performs instrumental music in a wide variety of styles — both familiar ones documented in the wiki and original styles invented on the fly by the site's own code — with tiered controls and seeded, shareable pieces (see [`wiki/comprehensive-site-vision.md`](wiki/comprehensive-site-vision.md)); its public entry point is [`docs/index.html`](docs/index.html). Current state and next steps are always in [`logs/status.md`](logs/status.md).
 
 ## Listening
 
-Five engines are live — tonal-classical, ambient-drift, groove-lofi, cantabile, and percussion — cataloged in the hub `docs/index.html`. Open the hub or any engine's `index.html` directly in a browser — each runs offline, generates every note live with Web Audio, and reproduces any piece from a seed or a shared link. **GitHub Pages is enabled**, so the hub and engines are browsable online as well.
+Five engines are live — tonal-classical, ambient-drift, groove-lofi, cantabile, and percussion — cataloged in the preliminary-tests hub `docs/preliminary-tests/index.html` (also linked from the site landing page `docs/index.html`). Open the hub or any engine's `index.html` directly in a browser — each runs offline, generates every note live with Web Audio, and reproduces any piece from a seed or a shared link. **GitHub Pages is enabled**, so the site and engines are browsable online as well.
 
 (The `previous-experiments/` folders contain the runnable earlier engines that motivated the project: open any `index.html` in a browser.)
 
