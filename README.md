@@ -25,7 +25,7 @@ Each work session ends squash-merged to `main`, so the repository's history is a
 
 ## Status
 
-**Phase 2 — engines have begun (started 2026-07-08).** Phase 1 built and matured the knowledge base (63 reviewed wiki pages) and a validated first-party library foundation (`rng`, `transport`, `theory`, `analysis`, `synth`, `fx`) plus a worked composition algorithm. The first public engine is now live in [`docs/`](docs/). Current state and next steps are always in [`logs/status.md`](logs/status.md).
+**Phase 2 — engines have begun (started 2026-07-08).** Phase 1 built and matured the knowledge base and a validated first-party library foundation (`rng`, `transport`, `theory`, `analysis`, `synth`, `fx`) plus a worked composition algorithm; five contrasting engines are live in [`docs/`](docs/). **The long-term goal was defined on 2026-07-09**: a single comprehensive, self-contained site that composes and performs instrumental music in a wide variety of styles — both familiar ones documented in the wiki and original styles invented on the fly by the site's own code — with tiered controls and seeded, shareable pieces (see [`wiki/comprehensive-site-vision.md`](wiki/comprehensive-site-vision.md)). Current state and next steps are always in [`logs/status.md`](logs/status.md).
 
 ## Listening
 

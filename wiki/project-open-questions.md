@@ -3,7 +3,7 @@ title: Open questions
 tags: [project]
 status: reviewed
 created: 2026-07-06
-updated: 2026-07-07
+updated: 2026-07-09
 summary: Decisions awaiting Tom, plus open research questions for future sessions — the project's asynchronous question channel.
 ---
 
@@ -13,7 +13,12 @@ Two lists. **Questions for Tom** are decisions only the project owner can make; 
 
 ## Questions for Tom
 
-*No open decisions awaiting Tom right now — all eight bootstrap questions were answered on 2026-07-06 (below). When a new decision arises that only the project owner can make, add it here, record the session's working assumption, and proceed without blocking.*
+*Four non-blocking questions arising from the comprehensive-site goal Tom defined on 2026-07-09 ([comprehensive-site-vision](comprehensive-site-vision.md)). Each records the working assumption sessions will proceed on until Tom answers.*
+
+1. **Do Engines 01–05 stay live alongside the comprehensive site?** *(asked 2026-07-09)* They are useful as style studies, regression baselines, and sources of listener feedback during the site's development. **Working assumption: yes — the site is additive; the engines and hub remain until you say otherwise.**
+2. **Where should the site live?** *(asked 2026-07-09)* You specified "the entire site in one folder, with a well-organized set of subfolders." GitHub Pages serves from `docs/`. **Working assumption: a new single folder under `docs/` (e.g., `docs/site/`), self-contained per the vendoring discipline, linked from the hub `docs/index.html`; the exact name/location to be fixed in the first site-architecture design doc.**
+3. **Roughly how many Start-level genre categories, and do you want to pick the shortlist?** *(asked 2026-07-09)* You said "a fairly small number of familiar genre categories." **Working assumption: on the order of 6–10; Claude proposes a concrete shortlist (with the wiki pages behind each) in the control-taxonomy design doc for your review.**
+4. **Review cadence for the design sessions.** *(asked 2026-07-09)* You said control specifics will be suggested by Claude and reviewed by you over multiple sessions. **Working assumption: the next sessions produce wiki design documents (control taxonomy → style-pack schema → site/library architecture) that you review asynchronously like any other wiki page; building begins on the architecture only after those pages have had a chance to collect your comments, unless you say "just build."**
 
 ## Answered
 
