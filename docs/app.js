@@ -172,7 +172,15 @@
         chain.setWidth(0.35 + vec.width * 0.95);
         return vec;
       },
-      replan() { composer.replan(vec); composedDone = false; endAt = Infinity; },
+      replan() {
+        composer.replan(vec); composedDone = false; endAt = Infinity;
+        // a fade ending may already be scheduled on the fade bus (e.g. the user
+        // lengthened the piece near its end) — cancel it, the piece continues
+        if (fadeScheduled) {
+          try { fade.gain.cancelScheduledValues(ctx.currentTime); fade.gain.setValueAtTime(1, ctx.currentTime); } catch (e) {}
+          fadeScheduled = false;
+        }
+      },
       setVolume(v) { chain.setVolume(v); },
       /** equal-power fade of this whole conductor, then stop. */
       fadeOutAndStop(seconds) {

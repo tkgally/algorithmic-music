@@ -85,7 +85,7 @@
       // shaker 4. The layer cap keeps the highest-prio N when the user thins.
       ensemble: [
         { role: 'lead', voice: 'aria', register: [62, 88], level: 1.0, prio: 0 },
-        { role: 'drone', voice: 'drone', register: [38, 50], level: 0.72, prio: 1 },
+        { role: 'drone', voice: 'drone', register: [38, 50], level: 0.66, prio: 1 },
         { role: 'pluck', voice: 'pluck', register: [50, 74], level: 0.5, prio: 2 },
         { role: 'drum', voice: 'drum', register: [45, 57], level: 0.6, prio: 3 },
         { role: 'shaker', voice: 'shaker', register: [0, 0], level: 0.42, prio: 4 },
@@ -216,14 +216,14 @@
           const dmidi = compose.nearestBassNote(vector.tonicPc, drone.register);
           notes.push({
             beat: 0, durBeats: lengthBeats, midi: dmidi, voice: drone.voice, role: 'drone',
-            vel: (0.7 + 0.18 * intensity) * (drone.level || 1), weight: 0.5,
+            vel: (0.62 + 0.16 * intensity) * (drone.level || 1), weight: 0.5,
           });
         }
 
         // ---- pluck: broken-chord strum on the beat (bouzouki / kanklės) ------
         if (pluck) {
           let voicing = plan._lastVoicing;
-          const strumVel = 0.5 + 0.1 * intensity;
+          const strumVel = 0.44 + 0.1 * intensity;
           for (const ch of chords) {
             voicing = compose.voiceChord(ch, pluck.register, voicing, vector.harmRich, rng);
             folkStrum(meter, ch.notes, voicing, ch.beat, density, strumVel, notes, pluck);
@@ -240,14 +240,14 @@
               const down = a < 1e-6;
               notes.push({
                 beat: at + a, durBeats: 0.4, midi: down ? 47 : 54, voice: drumV.voice, role: 'drum',
-                vel: (down ? 0.55 : 0.46) * dyn, tags: [down ? 'open' : 'tone'], p: { decay: 1.1 },
+                vel: (down ? 0.47 : 0.4) * dyn, tags: [down ? 'open' : 'tone'], p: { decay: 1.1 },
               });
             }
             // offbeat "lift" hits on the eighths between accents, thinned by density
             for (let b = 0.5; b < bb - 1e-6; b += 0.5) {
               if (accents.some((a) => Math.abs(a - b) < 1e-6)) continue;
-              if (rng.bool(0.16 + density * 0.6)) {
-                notes.push({ beat: at + b, durBeats: 0.3, midi: 57, voice: drumV.voice, role: 'drum', vel: 0.36 * dyn, tags: ['mute'], p: { decay: 0.9 } });
+              if (rng.bool(0.14 + density * 0.5)) {
+                notes.push({ beat: at + b, durBeats: 0.3, midi: 57, voice: drumV.voice, role: 'drum', vel: 0.3 * dyn, tags: ['mute'], p: { decay: 0.9 } });
               }
             }
           }
@@ -258,12 +258,14 @@
           for (let bar = 0; bar < bars; bar++) {
             const at = bar * bb;
             for (let b = 0; b < bb - 1e-6; b += 0.5) {
-              const onBeat = Math.abs(b - Math.round(b)) < 1e-6;
               const acc = accents.some((a) => Math.abs(a - b) < 1e-6);
-              if (onBeat || rng.bool(0.5 + density * 0.4)) {
+              // Thinned from a wall of eighths: accents always, other positions
+              // gated — fewer noise transients into the master shaper/compressor
+              // keeps the offline render reproducible while still lifting the beat.
+              if (acc || rng.bool(0.32 + density * 0.4)) {
                 notes.push({
                   beat: at + b, durBeats: 0.2, voice: shakerV.voice, role: 'shaker',
-                  vel: (acc ? 0.44 : 0.32) * (0.85 + 0.15 * intensity),
+                  vel: (acc ? 0.4 : 0.3) * (0.85 + 0.15 * intensity),
                   tags: acc ? ['accent'] : [], p: { bright: 1.05 },
                 });
               }
@@ -411,10 +413,10 @@
         if (n.role === 'drone') { n.durBeats = Math.min(n.durBeats, fdb + 1); continue; }
         if (n.beat >= fdb - 0.25) notes.splice(i, 1);
       }
-      if (lead && tonicMid != null) notes.push({ beat: fdb, durBeats: 1.0, midi: tonicMid, voice: lead.voice, role: 'lead', vel: 0.85 * (lead.level || 1), weight: 0.9, tags: ['ending'] });
-      if (pluck) { const v = C().voiceChord(finalChord, pluck.register, plan._lastVoicing, vector.harmRich, rng); for (const m of v) notes.push({ beat: fdb, durBeats: 0.9, midi: m, voice: pluck.voice, role: 'pluck', vel: 0.72 * (pluck.level || 1), tags: ['ending'] }); }
-      if (drumV) notes.push({ beat: fdb, durBeats: 0.5, midi: 47, voice: drumV.voice, role: 'drum', vel: 0.62, tags: ['open', 'ending'] });
-      if (shakerV) notes.push({ beat: fdb, durBeats: 0.2, voice: shakerV.voice, role: 'shaker', vel: 0.42, tags: ['accent', 'ending'] });
+      if (lead && tonicMid != null) notes.push({ beat: fdb, durBeats: 1.0, midi: tonicMid, voice: lead.voice, role: 'lead', vel: 0.78 * (lead.level || 1), weight: 0.9, tags: ['ending'] });
+      if (pluck) { const v = C().voiceChord(finalChord, pluck.register, plan._lastVoicing, vector.harmRich, rng); for (const m of v) notes.push({ beat: fdb, durBeats: 0.9, midi: m, voice: pluck.voice, role: 'pluck', vel: 0.6 * (pluck.level || 1), tags: ['ending'] }); }
+      if (drumV) notes.push({ beat: fdb, durBeats: 0.5, midi: 47, voice: drumV.voice, role: 'drum', vel: 0.5, tags: ['open', 'ending'] });
+      if (shakerV) notes.push({ beat: fdb, durBeats: 0.2, voice: shakerV.voice, role: 'shaker', vel: 0.38, tags: ['accent', 'ending'] });
     } else {
       // ringout: extend the closing tonic and the drone to ring past the barline
       const ring = lengthBeats - fdb + bb * 0.4;
