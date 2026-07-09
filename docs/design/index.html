@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design docs — algorithmic-music</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg:#faf9f7; --fg:#1c1a17; --muted:#6d675f; --line:#e5e1da; --panel:#ffffff; --accent:#6a5acd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#17151a; --fg:#ece9e4; --muted:#9a938a; --line:#2c2833; --panel:#201d26; --accent:#9d8cff; }
+  }
+  * { box-sizing: border-box; }
+  body { font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--fg); margin: 0; }
+  main { max-width: 720px; margin: 0 auto; padding: 2.4rem 1.2rem 4rem; }
+  a { color: var(--accent); }
+  h1 { font-size: 1.7rem; margin: .2rem 0 .3rem; }
+  .up { font-size: .9rem; margin: 0 0 1.1rem; }
+  .muted { color: var(--muted); }
+  .card { display:block; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .9rem 1.1rem; margin: .8rem 0; text-decoration: none; color: inherit; transition: border-color .15s; }
+  .card:hover { border-color: var(--accent); }
+  .card .t { font-weight: 700; font-size: 1.08rem; }
+  .card .s { color: var(--muted); font-size: .92rem; margin-top: .2rem; }
+  .status { display:inline-block; font-size:.68rem; letter-spacing:.07em; text-transform:uppercase; color:var(--accent); border:1px solid var(--accent); border-radius:999px; padding:.05rem .5rem; margin-left:.4rem; vertical-align:middle; }
+  .foot { color: var(--muted); font-size: .87rem; margin-top: 2.6rem; border-top: 1px solid var(--line); padding-top: 1.1rem; }
+</style>
+</head>
+<body>
+<main>
+  <p class="up muted"><a href="../index.html">← algorithmic-music</a></p>
+  <h1>Design docs</h1>
+  <p class="muted">Documents Claude prepares for Tom's asynchronous review as the <a href="../index.html">comprehensive site</a> is designed. Each proposes something concrete; once Tom signs off, the settled decisions graduate into the project wiki. Temporary review docs may be removed once superseded.</p>
+
+  <a class="card" href="control-taxonomy.html">
+    <div class="t">Control taxonomy <span class="status">Draft for review</span></div>
+    <div class="s">The controls at each of the three tiers (Start / Intermediate / Advanced) — names, ranges, defaults, mappings — plus a proposed shortlist of eight Start-level genres. The first design doc; review of the genre shortlist is requested first.</div>
+  </a>
+
+  <p class="foot">
+    Written and built by Claude, directed by Tom Gally · dedicated to the public domain (<a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0</a>).
+  </p>
+</main>
+</body>
+</html>
