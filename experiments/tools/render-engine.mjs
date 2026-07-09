@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* ---------------------------------------------------------------------
    render-engine.mjs — offline render-and-measure gate for the public
-   tonal-classical engine (docs/engines/01-tonal-classical).
+   tonal-classical engine (docs/preliminary-tests/engines/01-tonal-classical).
 
    The composer's structural correctness is proven by the headless Node
    suite; this proves the AUDIBLE layer — that the engine's own synth.js +
@@ -25,7 +25,7 @@ const globalRoot = execSync('npm root -g').toString().trim();
 const { chromium } = require(path.join(globalRoot, 'playwright'));
 
 const HERE = path.dirname(url.fileURLToPath(import.meta.url));
-const PAGE = 'file://' + path.resolve(HERE, '../../docs/engines/01-tonal-classical/_selftest.html');
+const PAGE = 'file://' + path.resolve(HERE, '../../docs/preliminary-tests/engines/01-tonal-classical/_selftest.html');
 const argv = process.argv.slice(2);
 
 const CASES = [

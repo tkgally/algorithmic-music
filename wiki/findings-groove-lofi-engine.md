@@ -3,13 +3,13 @@ title: Findings — the groove-lofi engine (Engine 03)
 tags: [findings, implementation, psychology, genre, project]
 status: reviewed
 created: 2026-07-08
-updated: 2026-07-08
+updated: 2026-07-09
 summary: The project's third public engine and the first with drums — a looped lo-fi hip-hop groove built from the design targets in groove-and-embodiment.md (backbeat, medium syncopation, velocity hierarchy, structured swing/laid-back timing instead of uniform jitter), adding kick/snare/hat and a Rhodes voice to the shared synth/fx, validated by offline render.
 ---
 
 # Findings — the groove-lofi engine (Engine 03)
 
-Engine 03 — **`groove-lofi@0.2.1`** (see [§ v0.2](#v02--the-listener-feedback-pass); 0.2.1 picks up the shared-synth envelope fix in [findings-tonal-classical-engine](findings-tonal-classical-engine.md) § v0.3.1, which makes the `rhodes` comp decay cleanly like a real EP), live at `docs/engines/03-groove-lofi/` and cataloged in the hub as Engine 03 — completes the launch trio (metric-classical / beatless-ambient / groove) called for in [project-roadmap](project-roadmap.md)'s Phase 2 shortlist. It is the project's **first engine with drums**, and the natural home for the two things the knowledge base had specified but no engine had yet built: the **percussion voices** ([synthesis-recipes](synthesis-recipes.md)) and **swing / laid-back timing** ([groove-and-embodiment](groove-and-embodiment.md), [rhythm-and-meter](rhythm-and-meter.md)). Every structural claim is backed by re-runnable in-repo code — `node experiments/tests/run.js` (**105 tests**, of which 10 are groove) and `node experiments/tools/render-groove.mjs` (the offline audio gate, 16/16).
+Engine 03 — **`groove-lofi@0.2.1`** (see [§ v0.2](#v02--the-listener-feedback-pass); 0.2.1 picks up the shared-synth envelope fix in [findings-tonal-classical-engine](findings-tonal-classical-engine.md) § v0.3.1, which makes the `rhodes` comp decay cleanly like a real EP), live at `docs/preliminary-tests/engines/03-groove-lofi/` and cataloged in the hub as Engine 03 — completes the launch trio (metric-classical / beatless-ambient / groove) called for in [project-roadmap](project-roadmap.md)'s Phase 2 shortlist. It is the project's **first engine with drums**, and the natural home for the two things the knowledge base had specified but no engine had yet built: the **percussion voices** ([synthesis-recipes](synthesis-recipes.md)) and **swing / laid-back timing** ([groove-and-embodiment](groove-and-embodiment.md), [rhythm-and-meter](rhythm-and-meter.md)). Every structural claim is backed by re-runnable in-repo code — `node experiments/tests/run.js` (**105 tests**, of which 10 are groove) and `node experiments/tools/render-groove.mjs` (the offline audio gate, 16/16).
 
 ## Why lo-fi, and why it is the right test of the groove research
 
@@ -88,5 +88,5 @@ The change is confined to the composer's harmony section; the drums, swing/laid-
 
 ## Sources
 
-- Reproducible in-repo (original, public-domain CC0): `experiments/composers/groove-lofi.js`, `experiments/engines/groove-lofi/engine.js`, the shared `experiments/lib/synth.js` (`kick`/`snare`/`hat`/`rhodes` + the cached noise buffer) and `experiments/lib/fx.js` (drum + rhodes buses), `experiments/tests/groove.test.js` (run `node experiments/tests/run.js`), `experiments/tools/render-groove.mjs`, and the shipped `docs/engines/03-groove-lofi/`. All claims above re-run from these.
+- Reproducible in-repo (original, public-domain CC0): `experiments/composers/groove-lofi.js`, `experiments/engines/groove-lofi/engine.js`, the shared `experiments/lib/synth.js` (`kick`/`snare`/`hat`/`rhodes` + the cached noise buffer) and `experiments/lib/fx.js` (drum + rhodes buses), `experiments/tests/groove.test.js` (run `node experiments/tests/run.js`), `experiments/tools/render-groove.mjs`, and the shipped `docs/preliminary-tests/engines/03-groove-lofi/`. All claims above re-run from these.
 - Psychology/genre content operationalizes already-cited wiki pages: the backbeat, syncopation inverted-U (Witek et al. 2014), velocity hierarchy and ghost-note magnitudes, structured-vs-random microtiming synthesis, and bass-weight findings from [groove-and-embodiment](groove-and-embodiment.md); swing ratios and syncopation measurement from [rhythm-and-meter](rhythm-and-meter.md); the drum and FM-EP synthesis topologies from [synthesis-recipes](synthesis-recipes.md). No new external sources were fetched.
