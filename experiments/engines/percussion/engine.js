@@ -59,12 +59,17 @@
 
   const { composer, theory, transport, synth, fx } = deps;
   const NAME = 'percussion';
-  const VERSION = '0.1.0';
+  const VERSION = '0.2.0';
   const DEFAULTS = {
-    bpm: 108, style: 'folk', meter: '4/4', group: 8, bars: 32, melody: 0.6,
+    bpm: 108, style: 'auto', meter: '4/4', group: 8, bars: 32,
     feel: 0.5, swing: 0.5, reverb: 0.2, volume: 0.72,
     tune: 0, ring: 1.0, attack: 1.0, bright: 1.0,   // timbre macros
+    // recipe axes: all default to 'auto'/undefined so the SEED decides; any set
+    // here or in opts overrides the seed (the sliding-scale controls).
+    // development, density, looseness, pitched, arc, timeline, form, ensemble, lead
   };
+  // recipe axes forwarded verbatim to the composer (undefined/'auto' => seed samples)
+  const AXES = ['development', 'density', 'looseness', 'pitched', 'arc', 'timeline', 'form', 'ensemble', 'lead', 'call', 'interlock', 'sections', 'melody'];
 
   // Deterministic hash value-noise in [-1,1] (AR(1) innovations); local so the
   // pure planner needs no rng wiring (same approach as the groove engine).
@@ -103,11 +108,11 @@
   // ---- PERFORMER (pure): beat-score -> timed, shaped performance events -------
   function renderPlan(opts) {
     opts = Object.assign({}, DEFAULTS, opts || {});
-    const piece = composer.composePercussion({
-      seed: opts.seed, style: opts.style, meter: opts.meter, group: opts.group,
-      bars: opts.bars, melody: opts.melody, tonic: opts.tonic,
-    });
+    const cOpts = { seed: opts.seed, style: opts.style, meter: opts.meter, group: opts.group, bars: opts.bars, tonic: opts.tonic };
+    for (const k of AXES) if (opts[k] != null && opts[k] !== 'auto' && opts[k] !== '') cOpts[k] = opts[k];
+    const piece = composer.composePercussion(cOpts);
     const meta = piece.meta;
+    const recipe = meta.recipe || {};
     const bpm = clamp(opts.bpm || DEFAULTS.bpm, 50, 200);
     const barBeats = meta.barBeats;
     const style = meta.style;
@@ -137,9 +142,10 @@
     // Fixed per-voice laid-back offsets (structured microtiming). The low anchor
     // stays tight; mid tone drums a hair back; metals/shakers sit slightly behind
     // (a real ensemble breathes). Scaled by feel.
-    const laidBack = { boom: 0.0, drum: 0.006, wood: 0.004, metal: 0.010, gong: 0.0, shaker: 0.012, mallet: 0.008, bass: 0.0 };
-    // Correlated residual per voice; looser for a drum circle, tightest for concert.
-    const styleLoose = style === 'circle' ? 1.6 : style === 'ensemble' ? 0.6 : 1.0;
+    const laidBack = { boom: 0.0, drum: 0.006, wood: 0.004, metal: 0.010, gong: 0.0, shaker: 0.012, scrape: 0.010, mallet: 0.008, chime: 0.007, clap: 0.005, friction: 0.008, bass: 0.0 };
+    // Correlated residual scale from the recipe's continuous LOOSENESS axis (a
+    // tight concert ensemble ↔ a loose drum circle), not three discrete styles.
+    const styleLoose = 0.5 + 1.3 * (recipe.looseness == null ? 0.5 : recipe.looseness);
     const phi = 0.75, kInnov = Math.sqrt(1 - phi * phi);
     const walk = {};
     const seedNum = hashStr(opts.seed);

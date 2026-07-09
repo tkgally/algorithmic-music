@@ -29,7 +29,7 @@ Each work session ends squash-merged to `main`, so the repository's history is a
 
 ## Listening
 
-The first engine is **[Engine 01 — Tonal Classical](docs/engines/01-tonal-classical/index.html)**: a short tonal piece that states a theme, departs, brings the theme back varied at its climax, and actually *ends* with a cadential coda. Open `docs/index.html` (the hub) or the engine's `index.html` directly in a browser — it runs offline, generates every note live with Web Audio, and reproduces any piece from a seed or a shared link. Once GitHub Pages is enabled for this repo, the hub will also be browsable online.
+Five engines are live — tonal-classical, ambient-drift, groove-lofi, cantabile, and percussion — cataloged in the hub `docs/index.html`. Open the hub or any engine's `index.html` directly in a browser — each runs offline, generates every note live with Web Audio, and reproduces any piece from a seed or a shared link. **GitHub Pages is enabled**, so the hub and engines are browsable online as well.
 
 (The `previous-experiments/` folders contain the runnable earlier engines that motivated the project: open any `index.html` in a browser.)
 

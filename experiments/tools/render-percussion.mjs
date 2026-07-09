@@ -33,13 +33,17 @@ const HERE = path.dirname(url.fileURLToPath(import.meta.url));
 const PAGE = 'file://' + path.resolve(HERE, '../../docs/engines/05-percussion/_selftest.html');
 const argv = process.argv.slice(2);
 
+// v0.2: exercise the sliding-scale variety (auto seeds picking varied recipes),
+// the ensemble presets (which cover the new voices), odd meters, and a dry stress.
 const CASES = [
-  { seed: 'concert', style: 'ensemble', meter: '4/4', bpm: 112, bars: 28, melody: 0.5 },
-  { seed: 'ewe',     style: 'folk',     meter: '12/8', bpm: 120, bars: 28, melody: 0.6 },
-  { seed: 'clave',   style: 'folk',     meter: '4/4',  bpm: 100, bars: 28, melody: 0.7 },
-  { seed: 'circle',  style: 'circle',   meter: '4/4',  bpm: 116, bars: 28, melody: 0.4 },
-  { seed: 'aksak',   style: 'folk',     meter: '7/8',  bpm: 132, bars: 28, melody: 0.5 },
-  { seed: 'dry',     style: 'ensemble', meter: '4/4',  bpm: 108, bars: 24, melody: 0, ring: 0.5, bright: 1.4, tune: 2 },
+  { seed: 'auto-a',  style: 'auto',   meter: '4/4',  bpm: 112, bars: 28 },
+  { seed: 'auto-b',  style: 'auto',   meter: '4/4',  bpm: 100, bars: 28 },
+  { seed: 'ewe',     style: 'folk',   meter: '12/8', bpm: 120, bars: 28, pitched: 0.6 },
+  { seed: 'metals',  style: 'concert',meter: '4/4',  bpm: 104, bars: 28, ensemble: 'allMetal', arc: 'johakyu', development: 0.85 },
+  { seed: 'hands',   style: 'circle', meter: '4/4',  bpm: 116, bars: 28, ensemble: 'handsShaker' },
+  { seed: 'skins',   style: 'folk',   meter: '6/8',  bpm: 112, bars: 28, ensemble: 'skinsWood', timeline: 'bell' },
+  { seed: 'aksak',   style: 'auto',   meter: '7/8',  bpm: 132, bars: 28 },
+  { seed: 'dry',     style: 'concert',meter: '4/4',  bpm: 108, bars: 24, pitched: 0, density: 0.9, ring: 0.5, bright: 1.5, tune: 2 },
 ];
 
 function gates(r) {
@@ -54,7 +58,10 @@ function gates(r) {
     // A percussion piece is continuous (a pulse/timeline/ostinato) apart from a
     // deliberate stop-cut; no long silence in the body.
     [`${r.seed}: continuous (no silence > 2.2 s)`, m.silenceGapSec < 2.2, `gap=${m.silenceGapSec}s`],
-    [`${r.seed}: level in band (-26..-6 dBFS)`, m.rmsDb > -26 && m.rmsDb < -6, `${m.rmsDb} dBFS`],
+    // a wide band: the floor admits a very DRY kit (short Ring + no melodic
+    // sustain legitimately averages low even with healthy 0.6+ peaks), the ceiling
+    // is the clip guard. Not a mix target — just "not silent, not blown up."
+    [`${r.seed}: level in band (-32..-6 dBFS)`, m.rmsDb > -32 && m.rmsDb < -6, `${m.rmsDb} dBFS`],
     [`${r.seed}: a full piece rendered (>= 120 events)`, r.events >= 120, `${r.events} events`],
   ];
 }
@@ -74,6 +81,13 @@ async function main() {
 
   const allGates = [];
   for (const r of results) for (const g of gates(r)) allGates.push(g);
+  // palette coverage: across the varied cases, most of the 11 voices should render,
+  // and the four new ones (clap/scrape/chime/friction) should each appear at least
+  // once — proving they synthesize cleanly, not just that the composer emits them.
+  const union = new Set(); for (const r of results) for (const v of (r.voices || [])) union.add(v);
+  const newVoices = ['clap', 'scrape', 'chime', 'friction'].filter((v) => union.has(v));
+  allGates.push([`palette exercised (>= 9 of 11 voices render)`, union.size >= 9, `${union.size}: ${Array.from(union).sort().join(',')}`]);
+  allGates.push([`all four new voices render (clap/scrape/chime/friction)`, newVoices.length === 4, newVoices.join(',') || 'none']);
   allGates.push(['no console/page errors', errors.length === 0, errors.join('; ') || 'none']);
   const failed = allGates.filter((g) => !g[1]);
 
@@ -81,7 +95,7 @@ async function main() {
     console.log(JSON.stringify({ page: PAGE, results, gates: allGates.map(([l, p, d]) => ({ gate: l, pass: p, detail: d })), failed: failed.length }, null, 2));
   } else {
     console.log('\npercussion engine — offline render & measure\n');
-    for (const r of results) console.log(`  ${r.seed.padEnd(8)} ${r.style.padEnd(9)} ${r.meter.padEnd(5)} ${r.bars} bars / ${r.bpm} BPM  ${r.events} events  rms ${r.metrics.rmsDb} dBFS  peak ${r.metrics.peak}  maxStep ${r.metrics.maxStep}  gap ${r.metrics.silenceGapSec}s`);
+    for (const r of results) console.log(`  ${r.seed.padEnd(8)} ${r.style.padEnd(8)} ${r.meter.padEnd(5)} ${r.bars}b/${r.bpm}  ${r.events}ev ${(r.voices || []).length}v  rms ${r.metrics.rmsDb}  peak ${r.metrics.peak}  maxStep ${r.metrics.maxStep}  gap ${r.metrics.silenceGapSec}s`);
     console.log('');
     for (const [l, p, d] of allGates) console.log(`  ${p ? 'PASS' : 'FAIL'}  ${l}  (${d})`);
     console.log(`\n  ${allGates.length - failed.length} passed, ${failed.length} failed\n`);
