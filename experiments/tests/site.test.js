@@ -180,6 +180,40 @@ test('site: novelty budget control changes how many axes go off-convention', () 
   eq(v3.noveltyAxes.length, 3);
 });
 
+// ---- invented-style ensembles + names (Tom 2026-07-10) ----
+const PERC_VOICES = new Set(['kick', 'snare', 'hat', 'drum', 'wood', 'shaker', 'clap', 'metal', 'gong', 'boom', 'scrape', 'friction']);
+function inventedSample(n) {
+  const out = [];
+  for (let s = 1; s <= n; s++) out.push(AM.style.buildVector((s * 2654435761) >>> 0, { a: null, b: null, invent: true }, {}));
+  return out;
+}
+test('site: invented ensembles are varied across seeds (large template set)', () => {
+  const vs = inventedSample(80);
+  const sigs = new Set(vs.map((v) => v.ensemble.map((e) => e.voice).sort().join('+')));
+  ok(sigs.size >= 16, 'many distinct ensembles over 80 seeds (got ' + sigs.size + ')');
+});
+test('site: most invented ensembles balance high, mid, and low registers', () => {
+  const vs = inventedSample(80);
+  const balanced = vs.filter((v) => {
+    const roles = v.ensemble.map((e) => e.role);
+    const hi = roles.includes('lead') || roles.includes('counter');
+    const mid = roles.includes('comp') || roles.includes('pad') || roles.includes('tex');
+    const low = roles.includes('bass') || roles.includes('drone');
+    return hi && mid && low;
+  }).length;
+  ok(balanced / vs.length >= 0.85, 'high+mid+low present in most (' + balanced + '/' + vs.length + ')');
+});
+test('site: percussion appears in roughly half of invented ensembles', () => {
+  const vs = inventedSample(120);
+  const withPerc = vs.filter((v) => v.ensemble.some((e) => PERC_VOICES.has(e.voice))).length;
+  const frac = withPerc / vs.length;
+  ok(frac >= 0.30 && frac <= 0.70, 'percussion in ~half (' + withPerc + '/' + vs.length + ' = ' + frac.toFixed(2) + ')');
+});
+test('site: invented style names have the word + lowercase-letter + 3-digit form', () => {
+  const re = /^Invented [A-Z][a-z]+ [a-z]\d{3}$/;
+  for (const v of inventedSample(40)) ok(re.test(v.name), 'name matches: ' + v.name);
+});
+
 // ---- performer ----
 test('site: perform is deterministic and returns sane, sorted events', () => {
   const vec = AM.style.buildVector(64, { a: 'classical', b: null, invent: false }, {});

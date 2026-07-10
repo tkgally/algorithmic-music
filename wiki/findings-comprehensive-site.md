@@ -80,6 +80,15 @@ Tom's second batch of feedback drove a larger set of changes; the durable engine
 5. **Palettes: 3 authored (genre-appropriate, auto-sampled) + 5 generic (shared, opt-in).** Auto sampling draws only among a genre's own authored palettes, so a random percussion piece never gets a bowed-string lead unless the user picks it; the five generic recolor sets (bowed / reed / glass / electric / mallet) are appended for every genre and selectable in the Intermediate dropdown, which now shows real names + descriptions.
 6. **Small tuning:** the short-length target dropped to **60 s** (and per-genre auto minimums lowered) so many pieces can be auditioned quickly, especially in continuous play; continuous play now leaves a **~1 s gap** between pieces (the outgoing tail rings out) instead of overlapping; the playhead is centered, widened, and high-contrast; and **Invent a style** is available in Start.
 
+## Invented-style refinements (session 037)
+
+Two focused changes to `invent()` ahead of the larger dedicated-invented-composer work:
+
+1. **Ensemble variety.** The invented-style instrument templates grew from **6 to 32**. Each keeps a **register balance** — a HIGH lead, a MID comp/pad, a LOW bass/drone — and **~half add percussion** (a kit `kick`/`snare`/`hat`, or hand/world `perc1`/`perc2`); registers/levels reuse the shared `ROLE_REG`/`ROLE_LVL` tables. Over 80 seeds this yields far more distinct instrumentations, so different invented seeds stop converging on similar timbres. (`r.pick` still makes one draw regardless of set size, so downstream draws — novelty, signatures, name — are unchanged in count; only the chosen template differs. This does change what a given invented *seed* produces; presets and melds are unaffected.)
+2. **Name collisions.** Invented names went from `word + number(1–98)` (792 possible labels) to `word + lowercase-letter + 3-digit number` — e.g. **"Invented Nocturne c402"** — for ~208k labels (≈ 260× fewer accidental collisions). The name remains cosmetic and seed-derived; it does not describe the music. The **seed** is the real unique identifier.
+
+**Limitation this does *not* fix (deferred to the dedicated composer):** percussion in a template — and any melodic role beyond the routed strategy's small vocabulary — only *sounds* when the invented style routes to a strategy that voices those roles (percussion sounds on groove strategies: electronic/lofi/percussion). The expanded templates always add audible variety in the lead/comp/bass voices (voiced by every strategy); full-ensemble voicing awaits the planned invented-style composer, which is meant to voice the whole drawn ensemble rather than borrow one of the eight genre engines.
+
 ## Implications for generative engines
 
 1. **Compose-ahead-of-the-playhead should be the default architecture** for anything interactive: it cost nothing over compose-all-up-front (the scheduler already existed), and it converts "restart to hear a change" into "the change arrives with the music." The engines' compose-whole-piece model is only right for fixed renders.
