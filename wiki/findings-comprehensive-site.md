@@ -89,6 +89,10 @@ Two focused changes to `invent()` ahead of the larger dedicated-invented-compose
 
 **Limitation this does *not* fix (deferred to the dedicated composer):** percussion in a template — and any melodic role beyond the routed strategy's small vocabulary — only *sounds* when the invented style routes to a strategy that voices those roles (percussion sounds on groove strategies: electronic/lofi/percussion). The expanded templates always add audible variety in the lead/comp/bass voices (voiced by every strategy); full-ensemble voicing awaits the planned invented-style composer, which is meant to voice the whole drawn ensemble rather than borrow one of the eight genre engines.
 
+## The dedicated invented-style composer (session 038)
+
+The deferred limitation above is fixed: invented styles no longer route to a genre strategy at all. `invent()` draws a per-seed **style kernel** (texture architecture, rhythm system, melodic gamut, hierarchy pillars, form-grammar inputs) and the new first-party library **`docs/lib/invent.js`** realizes any kernel through one strategy — registered beside the pack registry via `compose._setInvented()` (deliberately not a pack: pack order is the URL genre enum) — voicing the whole drawn ensemble, percussion included. Old invented-style links play different (new-engine) pieces from the same seed; presets and melds are unaffected. Full design rationale, coherence couplings, and what the gates caught: **[findings-invented-composer](findings-invented-composer.md)**.
+
 ## Implications for generative engines
 
 1. **Compose-ahead-of-the-playhead should be the default architecture** for anything interactive: it cost nothing over compose-all-up-front (the scheduler already existed), and it converts "restart to hear a change" into "the change arrives with the music." The engines' compose-whole-piece model is only right for fixed renders.

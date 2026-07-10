@@ -419,7 +419,15 @@
     const motto = sigOf(vector, 'rhythmMotto');
     const sigMotif = motto && !opts.motif ? mottoToMotif(motto.motto, meter) : null;
     const { onsets, motif } = phraseRhythm(meter, bars, density, vector.variation, rng, opts.motif || sigMotif);
-    const pool = scalePool(vector, register);
+    let pool = scalePool(vector, register);
+    // opts.gamutPcs (invented styles): restrict the melodic pool to the style's
+    // gamut — the invented mode-within-the-scale. Opt-in; harmony keeps the
+    // full scale. Falls back to the full pool if the register window is too
+    // tight for the gamut alone.
+    if (opts.gamutPcs) {
+      const g = pool.filter((m) => opts.gamutPcs.has(pcOf(m)));
+      if (g.length >= 4) pool = g;
+    }
     if (!onsets.length || pool.length < 3) return { notes: [], motif, contour: null };
 
     const arche = opts.contour || pickContour(rng);
@@ -493,6 +501,10 @@
         const isCT = cPcs.has(pcOf(c));
         if (strong) score += isCT ? 1.4 : -1.2; else score += isCT ? 0.3 : 0;
         if (cellPcs && cellPcs.has(pcOf(c))) score += 0.9 * (vector.sigEmph == null ? 0.5 : vector.sigEmph);
+        // opts.pillarPcs (invented styles): the hierarchy pillars get a mild
+        // standing bonus so the style's structural tones are frequent — the
+        // teach-the-hierarchy-by-distribution move (Castellano; style-invention).
+        if (opts.pillarPcs && opts.pillarPcs.has(pcOf(c))) score += 0.45;
         if (prev != null) {
           const move = c - prev, step = Math.abs(move);
           if (step === 0) score -= 1.5;
@@ -699,7 +711,12 @@
       },
     };
   }
+  // The dedicated invented-style composer (docs/lib/invent.js) registers here.
+  // It is NOT a genre pack: pack order doubles as the URL genre enum and the
+  // Start-button list, so the invented strategy plugs in beside the registry.
+  let inventedStrategy = null;
   function resolveStrategy(registry, vector) {
+    if (vector.strategy === 'invented' && inventedStrategy) return inventedStrategy;
     const pack = registry && registry.get(vector.strategy);
     if (pack && pack.strategy) return pack.strategy;
     const first = registry && registry.list()[0];
@@ -721,5 +738,7 @@
     // the wrapper
     create,
     _setRegistry(fn) { getRegistry = fn; },
+    _setInvented(strategy) { inventedStrategy = strategy; },
+    _getInvented() { return inventedStrategy; },
   };
 });

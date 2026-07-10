@@ -20,6 +20,7 @@ AM.transport = require(path.join(DOCS, 'lib/transport.js'));
 AM.serialize = require(path.join(DOCS, 'lib/serialize.js'));
 AM.style = require(path.join(DOCS, 'lib/style.js'));
 AM.compose = require(path.join(DOCS, 'lib/compose.js'));
+AM.invent = require(path.join(DOCS, 'lib/invent.js')); // registers the invented strategy into compose
 AM.perform = require(path.join(DOCS, 'lib/perform.js'));
 const SYNTH = require(path.join(DOCS, 'lib/synth.js'));
 require(path.join(DOCS, 'styles/registry.js'));
@@ -169,7 +170,10 @@ test('site: invented styles are deterministic, coherent, and carry signatures', 
     eq(v1.kind, 'invented');
     ok(v1.noveltyAxes.length >= 1 && v1.noveltyAxes.length <= 3, 'novelty budget spent');
     ok(v1.signatures.length >= 2 && v1.signatures.length <= 3, 'signatures attached');
-    ok(AM.styles.get(v1.strategy), 'strategy exists: ' + v1.strategy);
+    // since session 038 the invented style is NOT routed to a genre pack: it
+    // carries its own strategy, registered into compose by docs/lib/invent.js
+    eq(v1.strategy, 'invented');
+    ok(AM.compose._getInvented(), 'invented strategy registered');
   }
 });
 
@@ -212,6 +216,77 @@ test('site: percussion appears in roughly half of invented ensembles', () => {
 test('site: invented style names have the word + lowercase-letter + 3-digit form', () => {
   const re = /^Invented [A-Z][a-z]+ [a-z]\d{3}$/;
   for (const v of inventedSample(40)) ok(re.test(v.name), 'name matches: ' + v.name);
+});
+
+// ---- the dedicated invented composer (session 038) ----
+test('site: invented vectors carry a valid style kernel', () => {
+  const TEX = ['melodyAccomp', 'ostinatoWeb', 'callResponse', 'strata', 'canon', 'hocket', 'chorale', 'tintinnabuli'];
+  const RM = ['flow', 'cell', 'timeline', 'groove'];
+  for (const v of inventedSample(40)) {
+    ok(v.kernel, 'kernel present');
+    ok(TEX.indexOf(v.kernel.texture) >= 0, 'texture known: ' + v.kernel.texture);
+    ok(RM.indexOf(v.kernel.rhythmMode) >= 0, 'rhythm mode known: ' + v.kernel.rhythmMode);
+    ok(v.kernel.gamut.indexOf(0) >= 0, 'gamut keeps the tonic');
+    const scaleLen = (AM.theory.SCALES[v.scale] || AM.theory.SCALES.major).length;
+    ok(v.kernel.gamut.length >= Math.min(5, scaleLen), 'gamut size sane: ' + v.kernel.gamut.length);
+    ok(v.kernel.pillars.length === 2 && v.kernel.pillars[0] === 0, 'pillars anchored on the tonic');
+    eq(v.strategy, 'invented');
+  }
+});
+
+test('site: invented kernels vary architecturally across seeds', () => {
+  const vs = inventedSample(40);
+  const tex = new Set(vs.map((v) => v.kernel.texture));
+  const rm = new Set(vs.map((v) => v.kernel.rhythmMode));
+  ok(tex.size >= 4, 'several texture architectures over 40 seeds (got ' + tex.size + ')');
+  ok(rm.size >= 2, 'several rhythm systems over 40 seeds (got ' + rm.size + ')');
+});
+
+test('site: the invented composer voices the whole drawn ensemble (percussion included)', () => {
+  for (let s = 1; s <= 12; s++) {
+    const seed = (s * 48271 + 7) >>> 0;
+    const r = composeAll(seed, { a: null, b: null, invent: true });
+    const wanted = AM.style.effectiveEnsemble(r.vec);
+    const played = new Set(r.events.map((e) => e.voice));
+    for (const e of wanted) {
+      ok(played.has(e.voice), 'seed ' + seed + ' (' + r.vec.kernel.texture + '/' + r.vec.kernel.rhythmMode + ') voices ' + e.role + ':' + e.voice);
+    }
+  }
+});
+
+test('site: invented pieces are deterministic and reach a real ending', () => {
+  for (const seed of [101, 202, 303]) {
+    const a = composeAll(seed, { a: null, b: null, invent: true });
+    const b = composeAll(seed, { a: null, b: null, invent: true });
+    eq(JSON.stringify(a.events), JSON.stringify(b.events));
+    ok(a.units.length > 0 && a.units[a.units.length - 1].last, 'piece ends with unit.last');
+    ok(a.units.some((u) => u.section === 'end'), 'an ending section is composed');
+  }
+});
+
+test('site: invented pieces state a theme and bring it back (recognizable return)', () => {
+  // In returning sections the lead's first-bar rhythm restates the committed
+  // motif (the invariant that makes a return audible). Checked on textures
+  // whose lead carries the theme directly.
+  const CARRIES = { melodyAccomp: 1, canon: 1, callResponse: 1, tintinnabuli: 1 };
+  let checked = 0;
+  for (let s = 1; s <= 40 && checked < 3; s++) {
+    const seed = (s * 2654435761) >>> 0;
+    const vec = AM.style.buildVector(seed, { a: null, b: null, invent: true }, {});
+    if (!CARRIES[vec.kernel.texture]) continue;
+    const r = composeAll(seed, { a: null, b: null, invent: true });
+    const bb = r.vec.meter.barBeats;
+    const bar0 = (u) => u.notes.filter((n) => n.role === 'lead' && n.beat < bb - 1e-6)
+      .map((n) => Math.round(n.beat * 1000) / 1000).sort((x, y) => x - y).join(',');
+    const stateU = r.units.find((u) => u.section === 'A');
+    const returnU = r.units.find((u) => u.section === 'A′' || u.section === 'A″');
+    if (!stateU || !returnU) continue;
+    const a = bar0(stateU), b = bar0(returnU);
+    if (!a || !b) continue;
+    eq(a, b);
+    checked++;
+  }
+  ok(checked >= 2, 'verified a recognizable return on ' + checked + ' seeds');
 });
 
 // ---- performer ----
