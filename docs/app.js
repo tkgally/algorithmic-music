@@ -34,6 +34,7 @@
   const LOOKAHEAD = 0.12;      // scheduler lookahead (two-clocks pattern)
   const START_DELAY = 0.2;
   const XFADE_BARS = 2;        // Tom's two-bar crossfade for genre/blend swaps
+  const CONT_GAP = 1.0;        // ~1 s gap between pieces in continuous play (Tom 2026-07-10)
 
   // ---------------------------------------------------------------- state ----
   // state = { seed (uint32), uiMode 0|1|2, sel: {a, b, invent} (pack IDS here;
@@ -133,7 +134,7 @@
           scheduler.push(startAt + unitStart + ev.tSec, ev);
           if (recent.length < 4000) recent.push({ t: unitStart + ev.tSec, durSec: ev.durSec, midi: ev.midi, voice: ev.voice, vel: ev.vel });
         }
-        timelineUnits.push({ startSec: unitStart, durSec: perf.durSec, section: unit.section, bar: unit.bar, name: vec.name });
+        timelineUnits.push({ startSec: unitStart, durSec: perf.durSec, section: unit.section, bar: unit.bar, bars: unit.bars, name: vec.name });
         unitStart += perf.durSec;
         if (unit.last) finishComposing();
       }
@@ -253,8 +254,23 @@
     state.seed = newSeed();
     if ($('seed')) $('seed').value = seedHex(state.seed);
     stateToUrl();
-    conductor = makeConductor(ctx, ctx.currentTime + 0.03, state).start();
+    // ~1 s gap: the outgoing piece's tail rings out, then the next one begins.
+    conductor = makeConductor(ctx, ctx.currentTime + CONT_GAP, state).start();
     refreshVectorPreview();
+    setStatus('next piece in the current style…');
+  }
+
+  /** Reset: return every manually changed (pinned) control to auto. Keeps the
+   *  current style and seed; the piece re-plans from here if playing. */
+  function resetControls() {
+    const had = Object.keys(state.controls).length > 0;
+    state.controls = {};
+    syncAllControls();
+    refreshDynamicControls();
+    stateToUrl();
+    refreshVectorPreview();
+    if (playing()) { conductor.applyControls(state); conductor.replan(); if (fading) { fading.applyControls(state); fading.replan(); } }
+    setStatus(had ? 'settings reset to auto' : (playing() ? 'playing' : 'stopped'));
   }
 
   /** Live genre/blend/invent swap: the two-bar crossfade (site-architecture §6). */
@@ -342,8 +358,8 @@
       if (btn.id === 'inventBtn') btn.classList.toggle('on', state.sel.invent);
       else btn.classList.toggle('on', state.sel.a === id || state.sel.b === id);
     }
-    $('inventBtn').style.display = state.uiMode === 0 ? 'none' : '';
-    if (state.uiMode === 0 && state.sel.invent) { state.sel = { a: 'classical', b: null, invent: false }; }
+    // Invent a style is available in every mode (Tom 2026-07-10 — added to Start).
+    $('inventBtn').style.display = '';
   }
 
   const GROUP_ORDER = ['Feel', 'Form', 'Sound', 'Time & feel', 'Pitch & harmony', 'Texture', 'Sound & space', 'Form & variation', 'Expression', 'Invented parameters'];
@@ -364,6 +380,8 @@
     }
   }
   function controlRow(c) {
+    // checkset (Advanced "Instruments"): a full-width grid of instrument checkboxes.
+    if (c.type === 'checkset') return checksetRow(c);
     const row = el('div', { class: 'ctl', 'data-ctl': c.id });
     const lab = el('label', { text: c.label, title: c.gloss || c.hint || '' });
     row.appendChild(lab);
@@ -389,6 +407,48 @@
     row.appendChild(auto);
     return row;
   }
+  function checksetRow(c) {
+    const row = el('div', { class: 'ctl ctlCheckset', 'data-ctl': c.id });
+    const head = el('div', { class: 'checksetHead' });
+    head.appendChild(el('label', { text: c.label, title: c.gloss || '' }));
+    const auto = el('button', {
+      class: 'autoChip on', type: 'button', text: 'auto', title: 'auto = the seed decides the ensemble. Click to un-pin.',
+      onclick: () => { delete state.controls[c.id]; syncCtl(c.id); controlChanged(c.id); },
+    });
+    head.appendChild(auto);
+    row.appendChild(head);
+    if (c.gloss) row.appendChild(el('div', { class: 'checksetHint muted', text: c.gloss }));
+    const grid = el('div', { class: 'checkset' });
+    const groups = {};
+    (c.options || []).forEach((opt, i) => {
+      let g = groups[opt.group];
+      if (!g) {
+        g = el('div', { class: 'checksetGroup' });
+        g.appendChild(el('div', { class: 'checksetGroupName', text: opt.group }));
+        groups[opt.group] = g;
+        grid.appendChild(g);
+      }
+      const item = el('label', { class: 'checkItem', title: opt.voice });
+      const cb = el('input', { type: 'checkbox', 'data-voice': opt.voice, 'data-idx': String(i),
+        onchange: () => onChecksetToggle(c) });
+      item.appendChild(cb);
+      item.appendChild(el('span', { text: opt.label }));
+      g.appendChild(item);
+    });
+    row.appendChild(grid);
+    return row;
+  }
+  function onChecksetToggle(c) {
+    const row = doc.querySelector('[data-ctl="' + c.id + '"]');
+    let mask = 0;
+    row.querySelectorAll('input[type=checkbox]').forEach((cb) => {
+      if (cb.checked) mask |= (1 << parseInt(cb.getAttribute('data-idx'), 10));
+    });
+    if (mask === 0) delete state.controls[c.id];   // unchecking all = back to auto
+    else state.controls[c.id] = mask >>> 0;
+    syncCtl(c.id);
+    controlChanged(c.id);
+  }
   function fmtCtl(c, raw) {
     if (c.fmt) return c.fmt(raw);
     if (c.type === 'enum') return (c.labels || c.values)[raw];
@@ -406,6 +466,14 @@
     const pinned = state.controls[id] != null;
     row.classList.toggle('pinned', pinned);
     row.querySelector('.autoChip').classList.toggle('on', !pinned);
+    if (c.type === 'checkset') {
+      // Reflect the CURRENT composition's instruments (accounts for the pin,
+      // since buildVector applies the mask): checked == in the effective ensemble.
+      let active = new Set();
+      try { active = new Set(AM.style.effectiveEnsemble(buildVector()).map((e) => e.voice)); } catch (e) {}
+      row.querySelectorAll('input[type=checkbox]').forEach((cb) => { cb.checked = active.has(cb.getAttribute('data-voice')); });
+      return;
+    }
     const input = row.querySelector('input,select');
     const val = row.querySelector('.ctlVal');
     if (pinned) {
@@ -422,8 +490,31 @@
     for (let i = 0; i < 3; i++) $('mode' + i).classList.toggle('on', i === m);
     $('intControls').style.display = m >= 1 ? '' : 'none';
     $('advControls').style.display = m === 2 ? '' : 'none';
+    // Advanced replaces the palette dropdown with the Instruments checkboxes.
+    const palRow = doc.querySelector('[data-ctl="palette"]');
+    if (palRow) palRow.style.display = m === 2 ? 'none' : '';
     refreshGenreButtons();
+    refreshDynamicControls();
     stateToUrl();
+  }
+
+  /** Update the controls whose options depend on the current style/piece: the
+   *  palette dropdown (real names + descriptions) and the instrument checkboxes. */
+  function refreshDynamicControls(v) {
+    try { v = v || buildVector(); } catch (e) { v = null; }
+    const palRow = doc.querySelector('[data-ctl="palette"]');
+    if (palRow && v && v.palettes) {
+      const sel = palRow.querySelector('select');
+      if (sel) {
+        const cur = state.controls.palette != null ? state.controls.palette : v.paletteId;
+        sel.innerHTML = '';
+        v.palettes.forEach((pal, i) => {
+          sel.appendChild(el('option', { value: String(i), text: pal.name + (pal.desc ? ' — ' + pal.desc : '') }));
+        });
+        sel.value = String(Math.min(cur, v.palettes.length - 1));
+      }
+    }
+    syncCtl('instruments');
   }
 
   function refreshVectorPreview() {
@@ -438,6 +529,8 @@
         (v.kind === 'meld' ? ' · meld: ' + v.meld.a + ' × ' + v.meld.b + ' (chassis ' + v.meld.chassis + ')' : '') +
         (v.kind === 'invented' ? ' · novelty: ' + (v.noveltyAxes || []).join(', ') : '');
       global.__vector = v; // inspectability (engine-architecture self-report rule)
+      refreshDynamicControls(v);
+      renderStructure(v);
     } catch (e) {
       $('pieceDetail').textContent = 'error: ' + e.message;
     }
@@ -447,7 +540,7 @@
   function setPlayingUi(on) {
     $('play').textContent = on ? '◼ Stop' : '▶ Play';
     $('play').classList.toggle('playing', on);
-    if (!on) { $('nowlabel').textContent = 'stopped'; drawViz(null); }
+    if (!on) { $('nowlabel').textContent = 'stopped'; drawViz(null); if ($('structSections')) $('structSections').innerHTML = ''; }
   }
   function setStatus(t) { $('nowlabel').textContent = t; }
 
@@ -474,6 +567,7 @@
       const mm = Math.floor(t / 60), ss = ('0' + Math.floor(t % 60)).slice(-2);
       setStatus('playing ' + mm + ':' + ss + (cur ? ' · ' + cur.section + ' · bar ' + (cur.bar + 1) : '') + (fading ? ' · crossfade' : ''));
       drawViz(t);
+      renderSections(t);
     }
     raf = requestAnimationFrame(tickUi);
   }
@@ -489,7 +583,7 @@
     if (t == null || !conductor) return;
     const evs = conductor.recentEvents;
     const span = 24; // seconds of window
-    const t0 = t - span * 0.7;
+    const t0 = t - span * 0.5; // playhead centered in the window (Tom 2026-07-10)
     ctx2.globalAlpha = 1;
     for (const ev of evs) {
       if (ev.t + ev.durSec < t0 || ev.t > t0 + span) continue;
@@ -501,9 +595,94 @@
       ctx2.fillStyle = played ? 'rgba(154,140,255,0.85)' : 'rgba(154,140,255,0.35)';
       ctx2.fillRect(x, y - 2, w, 4);
     }
+    // playhead: centered, wider, high-contrast (a coral line reads on both themes)
+    const dpr = global.devicePixelRatio || 1;
+    const lw = 3 * dpr;
     const xNow = (t - t0) / span * W;
-    ctx2.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx2.fillRect(xNow, 0, 1.5, H);
+    ctx2.fillStyle = 'rgba(255,96,86,0.28)';
+    ctx2.fillRect(xNow - lw * 1.5, 0, lw * 3, H); // soft halo
+    ctx2.fillStyle = 'rgba(255,72,64,0.98)';
+    ctx2.fillRect(xNow - lw / 2, 0, lw, H);        // crisp center line
+  }
+
+  // ---- structure window ("what this piece is doing", generalized) ----------
+  const INSTR_LABEL = (function () {
+    const m = {};
+    for (const mi of (AM.style.MASTER_INSTRUMENTS || [])) m[mi.voice] = mi.label;
+    // voices outside the checkbox master list still get friendly names here
+    Object.assign(m, { keys: 'Piano / keys', strings: 'Strings', tex: 'Texture pad', boom: 'Low drum', gong: 'Gong', scrape: 'Scraper', friction: 'Friction drum' });
+    return m;
+  })();
+  function instrLabel(voice) { return INSTR_LABEL[voice] || voice; }
+  function roleWord(role) {
+    return ({ lead: 'lead', comp: 'chords', counter: 'counter-line', pad: 'pad', tex: 'texture', bass: 'bass', drone: 'drone',
+      kick: 'drums', snare: 'drums', hat: 'drums', perc1: 'percussion', perc2: 'percussion', timeline: 'timeline', boom: 'low drum', high: 'percussion' })[role] || role;
+  }
+  function prettyScale(s) {
+    return String(s || '').replace('naturalMinor', 'minor').replace('majorPentatonic', 'major pentatonic')
+      .replace('minorPentatonic', 'minor pentatonic').replace('wholeTone', 'whole-tone').replace('inScale', 'custom scale');
+  }
+  function prettyArc(arc) {
+    const c = AM.style.CONTROL_BY_ID.arc; const i = (c.values || []).indexOf(arc);
+    return i >= 0 ? c.labels[i] : String(arc || '');
+  }
+  const HARM_WORD = { functional: 'goal-directed harmony', modal: 'modal / static harmony', loop: 'a looping vamp', drone: 'a drone' };
+  const END_WORD = { cadence: 'a resolved cadence', fade: 'a fade-out', stop: 'a hard stop', ringout: 'a ring-out' };
+  function sigWord(s) {
+    if (!s) return '';
+    if (s.type === 'intervalCell') return 'a recurring melodic cell';
+    if (s.type === 'rhythmMotto') return 'a recurring rhythmic motto';
+    if (s.type === 'echoTail') return 'lead notes answered by a soft echo';
+    if (s.type === 'voicingHabit') return 'a signature chord voicing (' + (s.habit || '') + ')';
+    if (s.type === 'cadenceDrop') return 'phrases falling to a resting tone';
+    return '';
+  }
+  function renderStructure(v) {
+    const box = $('structDesc');
+    if (!box) return;
+    if (!v) { box.innerHTML = ''; return; }
+    const key = AM.theory.PC_NAMES_SHARP[v.tonicPc] + ' ' + prettyScale(v.scale);
+    const time = v.free ? 'free time' : (v.meter.id + ' · ' + Math.round(v.bpm) + ' BPM');
+    const harm = HARM_WORD[v.harmonyType] || v.harmonyType;
+    const arc = prettyArc(v.arc);
+    const ending = END_WORD[v.ending] || v.ending;
+    const mins = Math.max(1, Math.round((v.lengthSec || 120) / 60 * 10) / 10);
+    const head = v.kind === 'meld'
+      ? '<b>Meld:</b> ' + v.meld.a + ' × ' + v.meld.b + ' <span class="muted">(rhythm from ' + v.meld.chassis + ', harmony from the other)</span>. '
+      : v.kind === 'invented'
+        ? '<b>' + v.name + '</b> <span class="muted">— an invented style. Novelty in: ' + ((v.noveltyAxes || []).join(', ') || 'none') + '.</span> '
+        : '<b>' + v.name + '.</b> ';
+    let ens = [];
+    try { ens = AM.style.effectiveEnsemble(v); } catch (e) {}
+    const seen = {};
+    const ensLine = ens.map((e) => {
+      const rw = roleWord(e.role); const key2 = e.voice + '|' + rw;
+      if (seen[key2]) return null; seen[key2] = 1;
+      return instrLabel(e.voice) + (rw ? ' <span class="muted">(' + rw + ')</span>' : '');
+    }).filter(Boolean).join(' · ');
+    box.innerHTML =
+      '<p class="structHead">' + head + '<span class="muted">' + key + ' · ' + time + ' · ' + harm + ' · ' + arc + ' arc → ' + ending + ' · ~' + mins + ' min</span></p>' +
+      '<p class="structEns"><span class="muted">Instruments:</span> ' + (ensLine || '—') + '</p>';
+    const listen = $('structListen');
+    if (listen) {
+      const sigs = (v.signatures || []).map(sigWord).filter(Boolean);
+      listen.innerHTML = (sigs.length && (v.sigEmph == null || v.sigEmph > 0.05)) ? '<span class="muted">Listen for:</span> ' + sigs.join('; ') + '.' : '';
+    }
+  }
+  function renderSections(t) {
+    const box = $('structSections');
+    if (!box || !conductor) return;
+    const units = conductor.timelineUnits || [];
+    const groups = [];
+    for (const u of units) {
+      const last = groups[groups.length - 1];
+      if (last && last.section === u.section) { last.endSec = u.startSec + u.durSec; last.bars += (u.bars || 1); }
+      else groups.push({ section: u.section, startSec: u.startSec, endSec: u.startSec + u.durSec, bars: (u.bars || 1) });
+    }
+    box.innerHTML = groups.map((g) => {
+      const cur = t >= g.startSec && t < g.endSec;
+      return '<span class="secChip' + (cur ? ' cur' : '') + '" title="' + g.bars + ' bars">' + g.section + '</span>';
+    }).join('<span class="secArrow">›</span>');
   }
 
   // feedback JSON (listening-tests-and-feedback.md affordance)
@@ -609,6 +788,7 @@
       $('loop').setAttribute('aria-pressed', continuous ? 'true' : 'false');
       if (!playing()) setStatus(continuous ? 'continuous play — press play' : 'stopped');
     });
+    $('reset').addEventListener('click', resetControls);
     $('seed').addEventListener('change', () => {
       state.seed = parseSeed($('seed').value);
       $('seed').value = seedHex(state.seed);
@@ -634,7 +814,7 @@
 
   // exports (the dev harness + inspectability)
   global.AMApp = {
-    state, play, stopAll, playing, advancePiece, buildVector, composeAll, renderOffline,
+    state, play, stopAll, playing, advancePiece, resetControls, buildVector, composeAll, renderOffline,
     seedHex, parseSeed, setMode, version: SITE_VERSION,
     get continuous() { return continuous; },
     set continuous(v) { continuous = !!v; if (doc && $('loop')) { $('loop').classList.toggle('on', continuous); $('loop').setAttribute('aria-pressed', continuous ? 'true' : 'false'); } },

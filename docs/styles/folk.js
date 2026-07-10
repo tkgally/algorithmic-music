@@ -91,9 +91,9 @@
         { role: 'shaker', voice: 'shaker', register: [0, 0], level: 0.42, prio: 4 },
       ],
       palettes: [
-        { name: 'fiddle band (bowed lead)', map: {} },
-        { name: 'piper (electric lead)', map: { lead: 'wire' } },
-        { name: 'session (free-reed & bar)', map: { lead: 'reed', pluck: 'mallet' } },
+        { name: 'Fiddle band (bowed lead)', desc: 'a bowed fiddle leads the tune — the default', map: {} },
+        { name: 'Piper (electric lead)', desc: 'a piercing lead stands in for pipes', map: { lead: 'wire' } },
+        { name: 'Session (free-reed & bar)', desc: 'a reedy lead with a struck-bar backing', map: { lead: 'reed', pluck: 'mallet' } },
       ],
     },
 

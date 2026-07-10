@@ -18,7 +18,10 @@
      7. mode switching reveals the Intermediate/Advanced tiers and the
         invent-a-style button;
      8. continuous play advances to a fresh piece (new conductor + new seed)
-        without stopping the transport.
+        without stopping the transport;
+     9. batch-2 controls: invent-a-style in Start, the Intermediate palette
+        dropdown (8 described sets), the Advanced instrument checkboxes + new
+        parameters, the reset button, and the live structure window.
 
    Usage:  node experiments/tools/site-smoke.mjs [--json] [--quick]
            --quick skips the per-genre spin (step 6).
@@ -184,6 +187,43 @@ async function main() {
     g('continuous: advanced to a fresh piece (new conductor)', before.start != null && after.start != null && after.start > before.start, before.start + ' -> ' + after.start);
     g('continuous: new seed, transport still playing', after.seed !== before.seed && after.playing, before.seed + ' -> ' + after.seed);
     g('continuous page: no errors', errs.length === 0, errs.slice(0, 2).join('; ') || 'none');
+    await p.close();
+  }
+
+  // 9 — batch-2 controls: invent-in-Start, palette descriptions (Intermediate),
+  //     Advanced instrument checkboxes + new params, reset, structure window.
+  {
+    const errs = [];
+    const p = await newPage(browser, errs);
+    await p.goto(PAGE);
+    await p.waitForSelector('#reset', { timeout: 8000 });
+    g('invent-a-style visible in Start', await p.$eval('#inventBtn', (b) => b.style.display !== 'none'), '');
+    await p.click('#mode1');
+    const palOpts = await p.$$eval('[data-ctl="palette"] select option', (os) => os.map((o) => o.textContent));
+    g('Intermediate palette: 8 sets with descriptions', palOpts.length === 8 && palOpts.every((t) => t.includes('—')), palOpts.length + ' opts');
+    await p.click('#mode2');
+    const palHidden = await p.$eval('[data-ctl="palette"]', (r) => r.style.display === 'none');
+    const nBoxes = await p.$$eval('[data-ctl="instruments"] input[type=checkbox]', (b) => b.length);
+    const nChecked = await p.$$eval('[data-ctl="instruments"] input[type=checkbox]:checked', (b) => b.length);
+    const advCtls = await p.$$eval('#advControls [data-ctl]', (rs) => rs.map((r) => r.getAttribute('data-ctl')));
+    g('Advanced replaces palette with instrument checkboxes', palHidden && nBoxes === 24 && nChecked >= 2, 'hidden=' + palHidden + ' boxes=' + nBoxes + ' checked=' + nChecked);
+    g('Advanced exposes the new params', ['laidBack', 'rubato', 'harmonicRhythm', 'stepBias', 'melRange'].every((id) => advCtls.includes(id)), '');
+    // uncheck an active instrument -> removed from the composition
+    const before = await p.evaluate(() => AM.style.effectiveEnsemble(window.AMApp.buildVector()).map((e) => e.voice));
+    await p.evaluate((v) => { const cb = document.querySelector('[data-ctl="instruments"] input[data-voice="' + v + '"]'); cb.checked = false; cb.dispatchEvent(new Event('change', { bubbles: true })); }, before[before.length - 1]);
+    const after = await p.evaluate(() => AM.style.effectiveEnsemble(window.AMApp.buildVector()).map((e) => e.voice));
+    g('unchecking an instrument removes it', after.length === before.length - 1, before.join(',') + ' -> ' + after.join(','));
+    // reset returns everything to auto
+    await p.click('#reset');
+    g('reset clears pinned controls', await p.evaluate(() => Object.keys(window.AMApp.state.controls).length) === 0, '');
+    // structure window populates on play
+    await p.click('#play');
+    await p.waitForTimeout(2400);
+    const desc = await p.$eval('#structDesc', (d) => d.textContent);
+    const chips = await p.$$eval('#structSections .secChip', (c) => c.length);
+    g('structure window populated + live section chips', /Instruments:/.test(desc) && chips >= 1, chips + ' chips');
+    await p.click('#play');
+    g('batch-2 page: no errors', errs.length === 0, errs.slice(0, 3).join('; ') || 'none');
     await p.close();
   }
 

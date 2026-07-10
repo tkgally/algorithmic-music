@@ -259,15 +259,66 @@ test('site: URL codec — invented selection and empty pins round-trip', () => {
   eq(AM.serialize.decode(AM.serialize.encode(st)), st);
 });
 
+test('site: URL codec round-trips V2 controls (wide palette, adv params, 24-bit instrument mask)', () => {
+  const st = { seed: 0x12345678, uiMode: 2, sel: { a: 1, b: null, invent: false },
+    controls: { palette: 7, laidBack: 4, rubato: 3, harmonicRhythm: 5, stepBias: 2, melRange: 4, instruments: 0xABCDEF } };
+  eq(AM.serialize.decode(AM.serialize.encode(st)), st);
+});
+
+test('site: Advanced instruments mask rebuilds the ensemble to exactly the checked voices', () => {
+  const mi = AM.style.MASTER_INSTRUMENTS;
+  const idx = (voice) => mi.findIndex((m) => m.voice === voice);
+  const mask = (1 << idx('melody')) | (1 << idx('bass')) | (1 << idx('kick'));
+  const v = AM.style.buildVector(42, { a: 'classical', b: null, invent: false }, { instruments: mask >>> 0 });
+  const voices = AM.style.effectiveEnsemble(v).map((e) => e.voice).sort();
+  eq(voices, ['bass', 'kick', 'melody'], 'ensemble is exactly the checked instruments');
+});
+
+test('site: a zero instrument mask leaves the natural ensemble untouched', () => {
+  const a = AM.style.buildVector(7, { a: 'jazz', b: null, invent: false }, {});
+  const b = AM.style.buildVector(7, { a: 'jazz', b: null, invent: false }, { instruments: 0 });
+  eq(AM.style.effectiveEnsemble(b).map((e) => e.voice), AM.style.effectiveEnsemble(a).map((e) => e.voice));
+});
+
+test('site: every genre exposes 8 instrument palettes (3+ authored + 5 generic)', () => {
+  for (const p of AM.styles.list()) {
+    const v = AM.style.buildVector(3, { a: p.id, b: null, invent: false }, {});
+    ok(v.palettes.length === v.paletteAuthored + 5, p.id + ' has authored+5 palettes');
+    ok(v.palettes.length >= 8, p.id + ' has >= 8 palettes (' + v.palettes.length + ')');
+    ok(v.palettes.every((pal) => pal.desc), p.id + ' palettes all have descriptions');
+  }
+});
+
+test('site: pieces can be ~60 s (short length target lowered)', () => {
+  eq(AM.style.LENGTH_SECS[0], 60);
+  const v = AM.style.buildVector(9, { a: 'lofi', b: null, invent: false }, { length: 0 });
+  eq(v.lengthSec, 60);
+});
+
 test('site: URL codec rejects garbage without throwing', () => {
   eq(AM.serialize.decode('!!!'), null);
   eq(AM.serialize.decode(''), null);
   eq(AM.serialize.decode('AAAA'), null); // version 0 -> unknown
 });
 
-test('site: v1 URL layout snapshot matches the live control registry', () => {
+test('site: current (V2) URL layout snapshot matches the live control registry', () => {
   const live = AM.style.CONTROLS.map((c) => [c.id, c.bits]);
-  eq(AM.serialize.V1_CONTROLS, live.slice(0, AM.serialize.V1_CONTROLS.length));
+  eq(AM.serialize.V2_CONTROLS, live, 'V2 layout must mirror the live registry (id + bits)');
+});
+
+test('site: V1 layout stays a frozen historical prefix (ids match; only palette width changed)', () => {
+  const liveIds = AM.style.CONTROLS.map((c) => c.id);
+  const v1 = AM.serialize.V1_CONTROLS;
+  ok(v1.length <= liveIds.length, 'v1 is a prefix length');
+  for (let i = 0; i < v1.length; i++) eq(v1[i][0], liveIds[i], 'v1 id at ' + i);
+  // decoding an old V1 link must still work (new controls default to auto)
+  const st = { seed: 0x0defaced, uiMode: 0, sel: { a: 2, b: null, invent: false }, controls: {} };
+  const w = new AM.serialize.BitWriter();
+  w.write(1, 6); w.write(st.seed >>> 0, 32); w.write(0, 2); w.write(2, 4); w.write(15, 4);
+  for (let i = 0; i < v1.length; i++) w.write(0, 1); // nothing pinned
+  const dec = AM.serialize.decode(w.toBase64url());
+  eq(dec.seed, st.seed >>> 0, 'V1 link still decodes');
+  eq(dec.sel.a, 2);
 });
 
 // ---- generators ----

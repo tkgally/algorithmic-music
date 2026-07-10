@@ -67,7 +67,56 @@
   const TIMELINES = ['none', 'clave', 'bell', 'euclid', 'sieve', 'pulse'];
   const ENDINGS = ['cadence', 'fade', 'stop', 'ringout'];
   const ARCS = generators.ARC_SHAPES; // 9 shapes
-  const LENGTH_SECS = [65, 150, 330]; // short / medium / long targets
+  const LENGTH_SECS = [60, 150, 330]; // short / medium / long targets (min ~60 s, Tom 2026-07-10)
+
+  // ---- Shared instrument palettes -------------------------------------------
+  // Every genre pack authors a few genre-appropriate palettes (its first N,
+  // auto-sampled); these five GENERIC sets are appended to every genre so the
+  // user can recolor any style with a contrasting instrument combination. They
+  // remap the common melodic roles (a role absent in a genre is simply skipped),
+  // and each carries a `desc` shown in the Intermediate palette dropdown.
+  const EXTRA_PALETTES = [
+    { name: 'Bowed strings', desc: 'a warm, singing bowed lead over soft sustained chords', map: { lead: 'aria', counter: 'aria', comp: 'pad', tex: 'pad' } },
+    { name: 'Reed & breath', desc: 'a breathy woodwind-like lead', map: { lead: 'reed', counter: 'reed' } },
+    { name: 'Glass & bells', desc: 'crystalline high shimmer — glass lead with bell/chime accents', map: { lead: 'glass', counter: 'chime', comp: 'bell', tex: 'bell' } },
+    { name: 'Electric', desc: 'a blooming electric-guitar-like lead', map: { lead: 'wire', counter: 'wire' } },
+    { name: 'Mallets & plucks', desc: 'struck, plucked timbres — mallet lead over a plucked comp', map: { lead: 'mallet', comp: 'pluck', counter: 'mallet' } },
+  ];
+
+  // ---- Master instrument list (Advanced instrument checkboxes) --------------
+  // The frozen, ordered set of instruments the Advanced "Instruments" control
+  // exposes as checkboxes (index = bit position in the serialized mask — never
+  // reorder or remove; append only). `role` is the ensemble role a freshly
+  // ADDED instrument takes (so a strategy that voices that role will play it);
+  // an instrument already in the piece keeps its own role/register when kept.
+  const MASTER_INSTRUMENTS = [
+    { voice: 'melody', label: 'Piano / keys', group: 'Melodic', role: 'lead' },
+    { voice: 'rhodes', label: 'Electric piano', group: 'Melodic', role: 'comp' },
+    { voice: 'pluck', label: 'Plucked', group: 'Melodic', role: 'comp' },
+    { voice: 'aria', label: 'Bowed strings', group: 'Melodic', role: 'lead' },
+    { voice: 'reed', label: 'Reed / wind', group: 'Melodic', role: 'lead' },
+    { voice: 'wire', label: 'Electric lead', group: 'Melodic', role: 'lead' },
+    { voice: 'glass', label: 'Glass', group: 'Melodic', role: 'lead' },
+    { voice: 'bell', label: 'Bells', group: 'Melodic', role: 'counter' },
+    { voice: 'chime', label: 'Chimes', group: 'Melodic', role: 'counter' },
+    { voice: 'mallet', label: 'Mallets', group: 'Melodic', role: 'lead' },
+    { voice: 'chord', label: 'Strings (chords)', group: 'Melodic', role: 'comp' },
+    { voice: 'pad', label: 'Pad', group: 'Melodic', role: 'pad' },
+    { voice: 'bass', label: 'Bass', group: 'Low', role: 'bass' },
+    { voice: 'drone', label: 'Drone', group: 'Low', role: 'drone' },
+    { voice: 'kick', label: 'Kick', group: 'Percussion', role: 'kick' },
+    { voice: 'snare', label: 'Snare', group: 'Percussion', role: 'snare' },
+    { voice: 'hat', label: 'Hi-hat', group: 'Percussion', role: 'hat' },
+    { voice: 'shaker', label: 'Shaker', group: 'Percussion', role: 'perc2' },
+    { voice: 'clap', label: 'Clap', group: 'Percussion', role: 'perc1' },
+    { voice: 'wood', label: 'Woodblock', group: 'Percussion', role: 'perc1' },
+    { voice: 'drum', label: 'Drum', group: 'Percussion', role: 'perc1' },
+    { voice: 'metal', label: 'Metal', group: 'Percussion', role: 'timeline' },
+    { voice: 'boom', label: 'Low drum', group: 'Percussion', role: 'boom' },
+    { voice: 'gong', label: 'Gong', group: 'Percussion', role: 'perc2' },
+  ]; // 24 instruments -> the `instruments` control is a 24-bit mask (V2 URL)
+  const ROLE_REG = { lead: [62, 86], comp: [50, 72], counter: [58, 80], pad: [46, 70], tex: [52, 76], bass: [36, 55], drone: [33, 45], kick: [0, 0], snare: [0, 0], hat: [0, 0], perc1: [0, 0], perc2: [0, 0], timeline: [0, 0], boom: [0, 0] };
+  const ROLE_LVL = { lead: 0.95, comp: 0.5, counter: 0.6, pad: 0.4, tex: 0.4, bass: 0.75, drone: 0.6, kick: 0.9, snare: 0.8, hat: 0.5, perc1: 0.55, perc2: 0.45, timeline: 0.5, boom: 0.7 };
 
   // ---- Region sampling --------------------------------------------------------
   // A preset field region is one of:
@@ -99,7 +148,7 @@
     density: 0.5, interlock: 0.2, leadProm: 0.6, melTex: 0.35,
     grammar: { stepBias: 0.72, range: 14, leapMax: 7 },
     form: 'sections', arc: 'arch', development: 0.4, variation: 0.5,
-    lengthSec: { pick: [95, 150, 190], w: [0.3, 0.5, 0.2] }, ending: 'cadence',
+    lengthSec: { pick: [65, 125, 190], w: [0.3, 0.5, 0.2] }, ending: 'cadence',
     brightness: 0.5, dynRange: 0.5, expression: 0.5, reverb: 0.3, width: 0.55,
   };
 
@@ -114,9 +163,14 @@
     v.bpmBand = clone(p.bpmBand || PRESET_DEFAULTS.bpmBand);
     if (v.bpm == null) v.bpm = v.bpmBand[0] + (v.bpmBand[1] - v.bpmBand[0]) * rng.next();
     v.meter = clone(METERS[v.meterId] || METERS['4/4']);
-    // ensemble + palettes are authored per pack (arrays; sampled if regions)
-    v.palettes = clone(p.palettes || [{ name: 'default', map: {} }]);
-    v.paletteId = p.paletteId !== undefined ? drawField(p.paletteId, rng) : rng.int(0, v.palettes.length - 1);
+    // ensemble + palettes are authored per pack; the 5 generic EXTRA_PALETTES
+    // are appended so any genre can be recolored. AUTO sampling picks only among
+    // the genre's own authored palettes (kept genre-appropriate); the generic
+    // sets are opt-in via the Intermediate dropdown.
+    const authored = clone(p.palettes || [{ name: 'default', desc: 'the genre default ensemble', map: {} }]);
+    v.paletteAuthored = authored.length;
+    v.palettes = authored.concat(EXTRA_PALETTES.map(clone));
+    v.paletteId = p.paletteId !== undefined ? drawField(p.paletteId, rng) : rng.int(0, Math.max(0, authored.length - 1));
     v.ensemble = clone(p.ensemble || [
       { role: 'lead', voice: 'melody', register: [60, 84], level: 1.0, prio: 0 },
       { role: 'comp', voice: 'chord', register: [48, 72], level: 0.5, prio: 1 },
@@ -203,6 +257,7 @@
     v.ensemble = ens;
     // palettes: keep the harmony parent's palette bank for pitched voices
     v.palettes = clone(other.palettes || chassis.palettes);
+    v.paletteAuthored = other.paletteAuthored || chassis.paletteAuthored || Math.max(1, (v.palettes || []).length - EXTRA_PALETTES.length);
     v.paletteId = Math.min(v.paletteId, Math.max(0, (v.palettes || []).length - 1));
     // signatures: one from each parent if present
     v.signatures = (chassis.signatures || []).slice(0, 1).concat((other.signatures || []).slice(0, 1));
@@ -244,7 +299,7 @@
       leadProm: 0.4 + 0.4 * r.next(), melTex: 0.2 + 0.5 * r.next(),
       grammar: { stepBias: 0.62 + 0.2 * r.next(), range: 10 + r.int(0, 8), leapMax: 7 },
       form: 'sections', arc: r.pick(ARCS), development: r.next(), variation: 0.3 + 0.5 * r.next(),
-      lengthSec: 100 + 110 * r.next(), ending: r.weighted(ENDINGS, [0.4, 0.25, 0.1, 0.25]),
+      lengthSec: 65 + 130 * r.next(), ending: r.weighted(ENDINGS, [0.4, 0.25, 0.1, 0.25]),
       brightness: 0.3 + 0.4 * r.next(), dynRange: 0.35 + 0.4 * r.next(),
       expression: 0.35 + 0.4 * r.next(), reverb: 0.15 + 0.45 * r.next(), width: 0.4 + 0.35 * r.next(),
       bpmBand: [60, 160], bpm: 60 + 100 * r.next(),
@@ -265,7 +320,8 @@
     v.ensemble = r.pick(ENSEMBLE_TEMPLATES).map((e, i) => ({
       role: e.role, voice: e.voice, register: (REGISTERS[e.role] || [48, 72]).slice(), level: LEVELS[e.role] || 0.5, prio: i,
     }));
-    v.palettes = [{ name: 'invented', map: {} }]; v.paletteId = 0;
+    v.palettes = [{ name: 'invented', desc: 'the invented ensemble', map: {} }].concat(EXTRA_PALETTES.map(clone));
+    v.paletteAuthored = 1; v.paletteId = 0;
 
     // Spend the novelty budget: push 1-3 axes off-convention; everything else
     // stays at the perceptual universals the base draw above encodes.
@@ -410,7 +466,10 @@
       hint: 'background ↔ up-front', apply(v, x) { v.leadProm = x / 4; } },
     { id: 'melTex', label: 'Melodic ↔ textural', tier: 'int', group: 'Texture', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
       hint: 'tune-forward ↔ texture-forward', apply(v, x) { v.melTex = x / 4; } },
-    { id: 'palette', label: 'Instrument palette', tier: 'int', group: 'Sound & space', type: 'enum', values: [0, 1, 2, 3], labels: ['set 1', 'set 2', 'set 3', 'set 4'], dynamicValues: 'palettes', bits: 2, speed: 'boundary',
+    { id: 'palette', label: 'Instrument palette', tier: 'int', group: 'Sound & space', type: 'enum',
+      values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      labels: ['set 1', 'set 2', 'set 3', 'set 4', 'set 5', 'set 6', 'set 7', 'set 8', 'set 9', 'set 10', 'set 11', 'set 12', 'set 13', 'set 14', 'set 15', 'set 16'],
+      dynamicValues: 'palettes', bits: 4, speed: 'boundary',
       apply(v, x) { v.paletteId = Math.min(x, Math.max(0, (v.palettes || []).length - 1)); } },
     { id: 'brightness', label: 'Brightness / tone', tier: 'int', group: 'Sound & space', type: 'slider', steps: 5, bits: 3, speed: 'instant',
       hint: 'dark ↔ bright', apply(v, x) { v.brightness = x / 4; } },
@@ -453,6 +512,43 @@
     { id: 'sigEmph', label: 'Signature emphasis', tier: 'adv', group: 'Invented parameters', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
       gloss: 'how strongly the piece repeats its defining fingerprints',
       apply(v, x) { v.sigEmph = x / 4; } },
+    // ---- Advanced: further playback/compositional parameters (Tom 2026-07-10) ----
+    // These map onto vector fields the composer/performer already read but that
+    // no control previously exposed.
+    { id: 'laidBack', label: 'Micro-timing', tier: 'adv', group: 'Timing (advanced)', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
+      gloss: 'how far behind the beat the parts sit (a laid-back feel)', hint: 'tight ↔ laid-back',
+      apply(v, x) { v.laidBack = x / 4; } },
+    { id: 'rubato', label: 'Rubato', tier: 'adv', group: 'Timing (advanced)', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
+      gloss: 'strict tempo ↔ freely elastic phrase timing', hint: 'strict ↔ elastic',
+      apply(v, x) { v.rubato = x / 4; } },
+    { id: 'harmonicRhythm', label: 'Chord rate', tier: 'adv', group: 'Harmony (advanced)', type: 'enum',
+      values: [0, 1, 2, 3, 4, 5], labels: ['1 chord / 4 bars', '1 / 2 bars', '1 / bar', '2 / bar', '3 / bar', '4 / bar'], bits: 3, speed: 'replan',
+      gloss: 'how often the harmony changes',
+      apply(v, x) { v.harmonicRhythm = [0.25, 0.5, 1, 2, 3, 4][x]; } },
+    { id: 'stepBias', label: 'Melodic motion', tier: 'adv', group: 'Harmony (advanced)', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
+      gloss: 'leapy ↔ stepwise melodic motion', hint: 'leapy ↔ stepwise',
+      apply(v, x) { v.grammar = Object.assign({}, v.grammar, { stepBias: 0.45 + 0.5 * (x / 4) }); } },
+    { id: 'melRange', label: 'Melodic range', tier: 'adv', group: 'Harmony (advanced)', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
+      gloss: 'narrow ↔ wide melodic compass', hint: 'narrow ↔ wide',
+      apply(v, x) { v.grammar = Object.assign({}, v.grammar, { range: 7 + Math.round(13 * (x / 4)) }); } },
+    { id: 'instruments', label: 'Instruments', tier: 'adv', group: 'Instruments', type: 'checkset', options: MASTER_INSTRUMENTS, bits: 24, speed: 'boundary',
+      gloss: 'the exact instruments in the piece — check to add, uncheck to remove',
+      apply(v, mask) {
+        if (!mask) return;                         // 0 = untouched: keep the natural ensemble
+        const present = {};
+        for (const e of (v.ensemble || [])) if (present[e.voice] == null) present[e.voice] = e;
+        const chosen = [];
+        for (let i = 0; i < MASTER_INSTRUMENTS.length; i++) {
+          if (!((mask >>> i) & 1)) continue;
+          const mi = MASTER_INSTRUMENTS[i];
+          if (present[mi.voice]) chosen.push(clone(present[mi.voice]));
+          else chosen.push({ role: mi.role, voice: mi.voice, register: (ROLE_REG[mi.role] || [48, 72]).slice(), level: ROLE_LVL[mi.role] || 0.6 });
+        }
+        if (!chosen.length) return;                // never leave the piece silent
+        chosen.forEach((e, i) => { e.prio = i; });
+        v.ensemble = chosen;
+        v._instrumentsSet = true;                  // effectiveEnsemble skips the palette remap
+      } },
   ];
   const CONTROL_BY_ID = {};
   for (const c of CONTROLS) CONTROL_BY_ID[c.id] = c;
@@ -499,14 +595,18 @@
   function effectiveEnsemble(v) {
     let ens = (v.ensemble || []).slice().sort((a, b) => (a.prio || 0) - (b.prio || 0));
     if (v.layerCap != null) ens = ens.slice(0, Math.max(1, v.layerCap));
-    const pal = (v.palettes || [])[v.paletteId] || null;
-    if (pal && pal.map) ens = ens.map((e) => (pal.map[e.role] ? Object.assign({}, e, { voice: pal.map[e.role] }) : e));
+    // The Advanced instrument selection already chose exact voices; don't let a
+    // (possibly still-pinned) palette remap override the user's picks.
+    if (!v._instrumentsSet) {
+      const pal = (v.palettes || [])[v.paletteId] || null;
+      if (pal && pal.map) ens = ens.map((e) => (pal.map[e.role] ? Object.assign({}, e, { voice: pal.map[e.role] }) : e));
+    }
     return ens;
   }
 
   return {
     METERS, METER_IDS, MODE_IDS, HARMONY_TYPES, TIMELINES, ENDINGS, ARCS, LENGTH_SECS,
-    PRESET_DEFAULTS, CONTROLS, CONTROL_BY_ID,
+    PRESET_DEFAULTS, CONTROLS, CONTROL_BY_ID, EXTRA_PALETTES, MASTER_INSTRUMENTS,
     sample, meld, invent, coherence, buildVector, effectiveEnsemble, drawField,
     _setRegistry(fn) { getRegistry = fn; },
   };

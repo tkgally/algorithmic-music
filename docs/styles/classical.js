@@ -53,9 +53,9 @@
         { role: 'bass', voice: 'bass', register: [36, 55], level: 0.8, prio: 2 },
       ],
       palettes: [
-        { name: 'piano & strings', map: {} },
-        { name: 'chamber (bowed lead)', map: { lead: 'aria' } },
-        { name: 'glass & pluck', map: { lead: 'glass', comp: 'pluck' } },
+        { name: 'Piano & strings', desc: 'a keyboard lead over a string comp — the default', map: {} },
+        { name: 'Chamber (bowed lead)', desc: 'a warm bowed-string lead, chamber-music feel', map: { lead: 'aria' } },
+        { name: 'Glass & pluck', desc: 'a pure glass lead over a plucked comp', map: { lead: 'glass', comp: 'pluck' } },
       ],
     },
 

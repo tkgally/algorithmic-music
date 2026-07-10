@@ -130,10 +130,10 @@
         { role: 'mallet', voice: 'mallet', register: [55, 79], level: 0.4, prio: 6 },
       ],
       palettes: [
-        { name: 'mixed kit', map: {} },
-        { name: 'skins & wood', map: { timeline: 'wood', perc1: 'drum', perc2: 'wood', high: 'shaker', lead: 'drum' } },
-        { name: 'all metal', map: { timeline: 'metal', perc1: 'metal', perc2: 'chime', high: 'metal', lead: 'metal', mallet: 'chime' } },
-        { name: 'hands & shakers', map: { timeline: 'clap', perc1: 'drum', perc2: 'clap', high: 'shaker', lead: 'drum' } },
+        { name: 'Mixed kit', desc: 'a varied kit of skins, wood, and metal — the default', map: {} },
+        { name: 'Skins & wood', desc: 'warm and woody: drums and woodblocks', map: { timeline: 'wood', perc1: 'drum', perc2: 'wood', high: 'shaker', lead: 'drum' } },
+        { name: 'All metal', desc: 'bright and ringing: bells, chimes, metal', map: { timeline: 'metal', perc1: 'metal', perc2: 'chime', high: 'metal', lead: 'metal', mallet: 'chime' } },
+        { name: 'Hands & shakers', desc: 'hand-drum and shaker textures, claps on top', map: { timeline: 'clap', perc1: 'drum', perc2: 'clap', high: 'shaker', lead: 'drum' } },
       ],
     },
 

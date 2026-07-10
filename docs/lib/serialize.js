@@ -12,8 +12,8 @@
  * because the seed re-derives them. RFC 4648 §5 base64url alphabet
  * (A-Z a-z 0-9 - _), no padding.
  *
- * With nothing pinned the payload is 14 characters; everything pinned ≈ 30 —
- * comfortably compact (the wiki page's ≈32-char estimate holds).
+ * With nothing pinned the payload is 14 characters; everything pinned ≈ 36
+ * (V2, incl. the 24-bit instrument mask) — still comfortably compact.
  *
  * The V1 layout is snapshotted HERE (ids + widths), independently of the live
  * control registry in style.js, so future registry growth cannot silently
@@ -79,6 +79,25 @@
     ['arc', 4], ['development', 3], ['timeline', 3], ['interlock', 3],
     ['blend', 3], ['novelty', 2], ['coherenceStrict', 3], ['sigEmph', 3],
   ];
+  // ---- V2 layout (FROZEN 2026-07-10 — append-only from here) --------------------
+  // Adds the Advanced params (laidBack, rubato, harmonicRhythm, stepBias,
+  // melRange) and the 24-bit instrument mask, and widens `palette` 2->3 bits
+  // (8 palettes: 3 authored + 5 generic). encode() writes V2; decode() still
+  // reads V1 links (their palette is 2-bit, the new controls default to auto).
+  const V2_CONTROLS = [
+    ['energy', 3], ['mood', 3], ['length', 2], ['space', 3],
+    ['tempo', 6], ['swing', 3], ['meter', 3], ['key', 4], ['mode', 3],
+    ['harmRich', 3], ['harmMotion', 2], ['density', 3], ['layers', 3],
+    ['leadProm', 3], ['melTex', 3], ['palette', 4], ['brightness', 3],
+    ['width', 3], ['variation', 3], ['ending', 2], ['expression', 3],
+    ['dynRange', 3],
+    ['arc', 4], ['development', 3], ['timeline', 3], ['interlock', 3],
+    ['blend', 3], ['novelty', 2], ['coherenceStrict', 3], ['sigEmph', 3],
+    ['laidBack', 3], ['rubato', 3], ['harmonicRhythm', 3], ['stepBias', 3], ['melRange', 3],
+    ['instruments', 24],
+  ];
+  const VERSIONS = { 1: V1_CONTROLS, 2: V2_CONTROLS };
+  const CUR_VERSION = 2;
   const GENRE_INVENTED = 8, GENRE_NONE = 15;
 
   /**
@@ -88,7 +107,7 @@
    */
   function encode(state) {
     const w = new BitWriter();
-    w.write(1, 6);                        // version
+    w.write(CUR_VERSION, 6);              // version (current)
     w.write(state.seed >>> 0, 32);
     w.write(state.uiMode & 3, 2);
     const a = state.sel && state.sel.invent ? GENRE_INVENTED
@@ -97,8 +116,9 @@
     w.write(a & 15, 4);
     w.write(b & 15, 4);
     const controls = state.controls || {};
-    for (const [id] of V1_CONTROLS) w.write(controls[id] != null ? 1 : 0, 1);
-    for (const [id, bits] of V1_CONTROLS) if (controls[id] != null) w.write(controls[id], bits);
+    const layout = VERSIONS[CUR_VERSION];
+    for (const [id] of layout) w.write(controls[id] != null ? 1 : 0, 1);
+    for (const [id, bits] of layout) if (controls[id] != null) w.write((controls[id] >>> 0) & ((bits >= 32 ? 0xffffffff : ((1 << bits) - 1)) >>> 0), bits);
     return w.toBase64url();
   }
 
@@ -108,15 +128,16 @@
       if (!str) return null;
       const r = new BitReader(String(str).trim());
       const version = r.read(6);
-      if (version !== 1) return null;      // unknown version: fall back to defaults
+      const layout = VERSIONS[version];
+      if (!layout) return null;            // unknown version: fall back to defaults
       const seed = r.read(32) >>> 0;
       const uiMode = r.read(2);
       const a = r.read(4), b = r.read(4);
       const pinned = [];
-      for (const [id, bits] of V1_CONTROLS) pinned.push(r.read(1));
+      for (const [id, bits] of layout) pinned.push(r.read(1));
       const controls = {};
-      for (let i = 0; i < V1_CONTROLS.length; i++) {
-        if (pinned[i]) controls[V1_CONTROLS[i][0]] = r.read(V1_CONTROLS[i][1]);
+      for (let i = 0; i < layout.length; i++) {
+        if (pinned[i]) controls[layout[i][0]] = r.read(layout[i][1]);
       }
       return {
         seed, uiMode,
@@ -132,5 +153,5 @@
     }
   }
 
-  return { encode, decode, V1_CONTROLS, GENRE_INVENTED, GENRE_NONE, BitWriter, BitReader };
+  return { encode, decode, V1_CONTROLS, V2_CONTROLS, CUR_VERSION, GENRE_INVENTED, GENRE_NONE, BitWriter, BitReader };
 });
