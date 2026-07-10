@@ -100,9 +100,9 @@
       // film-and-game-music.md's stinger concept) fired once at the very end
       // when ending==='ringout', never a standing layer subject to layerCap.
       palettes: [
-        { name: 'strings & aria (default)', map: {} },
-        { name: 'breathy reed lead',        map: { lead: 'reed' } },
-        { name: 'electric trailer lead',    map: { lead: 'wire' } },
+        { name: 'Strings & aria (default)', desc: 'a bowed, orchestral lead over strings', map: {} },
+        { name: 'Breathy reed lead',        desc: 'a woodwind-like reed carries the theme', map: { lead: 'reed' } },
+        { name: 'Electric trailer lead',    desc: 'a modern electric lead for a trailer feel', map: { lead: 'wire' } },
       ],
     },
 

@@ -172,9 +172,9 @@
         { role: 'lead', voice: 'wire',   register: [60, 84], level: 0.62, prio: 5 },
       ],
       palettes: [
-        { name: 'house (rhodes stabs · wire lead)', map: {} },
-        { name: 'deep (pad chords · glass lead)', map: { comp: 'pad', lead: 'glass' } },
-        { name: 'hard (snare backbeat · wire lead)', map: { clap: 'snare' } },
+        { name: 'House (rhodes stabs · wire lead)', desc: 'classic house: e-piano stabs and an electric lead', map: {} },
+        { name: 'Deep (pad chords · glass lead)', desc: 'deeper and smoother: pad chords, a glass lead', map: { comp: 'pad', lead: 'glass' } },
+        { name: 'Hard (snare backbeat · wire lead)', desc: 'harder-hitting: a snare backbeat drives it', map: { clap: 'snare' } },
       ],
     },
 

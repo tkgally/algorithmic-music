@@ -64,6 +64,9 @@ button.genre.invent.on { color: var(--fg); }
   background: var(--soft); color: var(--fg); cursor: pointer; }
 .loopBtn:hover { border-color: var(--accent); }
 .loopBtn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.resetBtn { font: inherit; font-size: .95rem; padding: .5rem .9rem; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--soft); color: var(--fg); cursor: pointer; }
+.resetBtn:hover { border-color: var(--accent); }
 .seedWrap { font-size: .85rem; color: var(--muted); display: inline-flex; align-items: center; gap: .4rem; }
 .seedWrap input { font: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9rem; width: 7.5rem;
   background: var(--soft); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: .3rem .5rem; }
@@ -75,6 +78,27 @@ button.genre.invent.on { color: var(--fg); }
 .now { font-variant-numeric: tabular-nums; font-size: .88rem; color: var(--accent); }
 .pieceInfo { font-size: .88rem; }
 #viz { width: 100%; height: 120px; margin-top: .6rem; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; display: block; }
+
+/* structure window ("what this piece is doing") */
+.structure { margin-top: .6rem; font-size: .9rem; }
+.structHead { margin: 0 0 .15rem; }
+.structEns { margin: .1rem 0 .35rem; }
+.structSections { display: flex; flex-wrap: wrap; align-items: center; gap: .18rem; margin: .15rem 0; min-height: 1.2rem; }
+.secChip { font-size: .76rem; padding: .1rem .5rem; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--soft); white-space: nowrap; }
+.secChip.cur { background: var(--accent); border-color: var(--accent); color: #fff; }
+.secArrow { color: var(--muted); font-size: .76rem; }
+#structListen { font-size: .84rem; margin-top: .15rem; }
+
+/* Advanced instrument checkboxes (replaces the palette dropdown at Advanced) */
+.ctl.ctlCheckset { display: block; grid-template-columns: none; padding: .3rem 0 .5rem; }
+.checksetHead { display: flex; align-items: center; gap: .6rem; }
+.checksetHead label { font-size: .92rem; }
+.checksetHint { font-size: .8rem; margin: .1rem 0 .45rem; }
+.checkset { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .3rem 1rem; }
+.checksetGroupName { font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: .1rem 0 .2rem; }
+.checkItem { display: flex; align-items: center; gap: .35rem; font-size: .86rem; padding: .05rem 0; cursor: pointer; }
+.checkItem input { accent-color: var(--accent); }
+@media (max-width: 640px) { .checkset { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* feedback */
 .fb summary { cursor: pointer; font-size: .95rem; }

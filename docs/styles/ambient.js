@@ -55,9 +55,9 @@
         { role: 'tex', voice: 'glass', register: [55, 79], level: 0.4, prio: 3 },
       ],
       palettes: [
-        { name: 'warm (bell & pad)', map: {} },
-        { name: 'dark (low glass)', map: { lead: 'glass', tex: 'pad' } },
-        { name: 'air (high chime)', map: { lead: 'chime', tex: 'bell' } },
+        { name: 'Warm (bell & pad)', desc: 'soft bells over a warm pad — the default drift', map: {} },
+        { name: 'Dark (low glass)', desc: 'a darker wash: low glass lead over pad', map: { lead: 'glass', tex: 'pad' } },
+        { name: 'Air (high chime)', desc: 'bright and airy: high chimes over bells', map: { lead: 'chime', tex: 'bell' } },
       ],
     },
 

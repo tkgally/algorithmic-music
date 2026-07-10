@@ -197,19 +197,22 @@
   };
 
   window.__checkSerialize = function () {
-    // v1 layout snapshot must match the live control registry's prefix
+    // the CURRENT (V2) layout must mirror the live control registry (id + bits)
     const live = AM.style.CONTROLS.map((c) => [c.id, c.bits]);
-    const v1 = AM.serialize.V1_CONTROLS;
-    let layoutOk = v1.length <= live.length;
-    for (let i = 0; i < v1.length && layoutOk; i++) {
-      if (v1[i][0] !== live[i][0] || v1[i][1] !== live[i][1]) layoutOk = false;
+    const v2 = AM.serialize.V2_CONTROLS;
+    let layoutOk = v2.length === live.length;
+    for (let i = 0; i < v2.length && layoutOk; i++) {
+      if (v2[i][0] !== live[i][0] || v2[i][1] !== live[i][1]) layoutOk = false;
     }
     // pack orders must be unique, 0..7
     const orders = AM.styles.list().map((p) => p.order).sort((a, b) => a - b);
     const ordersOk = orders.length === 8 && orders.every((o, i) => o === i);
     // round-trip with every control pinned at an extreme
     const controls = {};
-    AM.style.CONTROLS.forEach((c, i) => { controls[c.id] = i % 2 ? 0 : (c.type === 'enum' ? (c.values.length - 1) : (c.steps - 1)); });
+    AM.style.CONTROLS.forEach((c, i) => {
+      controls[c.id] = c.type === 'checkset' ? ((i % 2) ? 0 : (((1 << Math.min(30, c.bits)) - 1) >>> 0))
+        : (i % 2 ? 0 : (c.type === 'enum' ? (c.values.length - 1) : (c.steps - 1)));
+    });
     const st = { seed: 0xfeedbeef, uiMode: 2, sel: { a: 3, b: 6, invent: false }, controls };
     const enc = AM.serialize.encode(st);
     const dec = AM.serialize.decode(enc);

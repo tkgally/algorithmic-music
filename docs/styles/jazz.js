@@ -316,9 +316,9 @@
         { role: 'snare', voice: 'snare', register: [0, 0], level: 0.42, prio: 5 },
       ],
       palettes: [
-        { name: 'combo (e-piano lead)', map: {} },
-        { name: 'saxophone (reed lead)', map: { lead: 'reed' } },
-        { name: 'guitar (electric lead)', map: { lead: 'wire' } },
+        { name: 'Combo (e-piano lead)', desc: 'an electric-piano-led combo — the default', map: {} },
+        { name: 'Saxophone (reed lead)', desc: 'a breathy reed takes the front line', map: { lead: 'reed' } },
+        { name: 'Guitar (electric lead)', desc: 'an electric guitar leads the changes', map: { lead: 'wire' } },
       ],
     },
 

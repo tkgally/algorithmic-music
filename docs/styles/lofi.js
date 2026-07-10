@@ -175,9 +175,9 @@
         { role: 'lead', voice: 'bell', register: [72, 96], level: 0.5, prio: 5 },
       ],
       palettes: [
-        { name: 'tape (Rhodes & bell)', map: {} },
-        { name: 'mellow keys lead', map: { lead: 'melody' } },
-        { name: 'plucked comp', map: { comp: 'pluck' } },
+        { name: 'Tape (Rhodes & bell)', desc: 'warm Rhodes with a bell accent — the default', map: {} },
+        { name: 'Mellow keys lead', desc: 'a soft keyboard carries the melody', map: { lead: 'melody' } },
+        { name: 'Plucked comp', desc: 'a plucked chord comp under the beat', map: { comp: 'pluck' } },
       ],
     },
 
