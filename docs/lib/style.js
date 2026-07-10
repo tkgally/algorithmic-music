@@ -264,12 +264,14 @@
     return v;
   }
 
-  // ---- Invented styles (schema §4, M7) ----------------------------------------
+  // ---- Invented styles (schema §4, M7; dedicated composer session 038) --------
   // EMI-minus-corpus: draw each field from a genre-plausible prior, spend a
   // novelty budget of 1-3 axes off-convention, attach 2-3 signature rules, and
-  // let the coherence gate repair the rest. The compose strategy is picked to
-  // suit the drawn fields (one composer core serves presets, melds, and
-  // inventions alike — schema §2).
+  // let the coherence gate repair the rest. Since session 038 an invented style
+  // is no longer routed to a genre strategy: invent() also draws a style KERNEL
+  // (texture architecture, rhythm system, melodic gamut, hierarchy pillars) and
+  // the dedicated invented composer (docs/lib/invent.js) realizes it, voicing
+  // the whole drawn ensemble including percussion.
   const NOVELTY_AXES = ['meter', 'timeline', 'scale', 'arc', 'ensemble', 'registerShift', 'harmonicRhythm'];
   const SIGNATURE_BANK = [
     { type: 'intervalCell', cells: [[0, 3, 5], [0, 2, 5], [0, 5, 7], [0, 1, 5], [0, 4, 6], [0, 2, 3]] },
@@ -391,27 +393,98 @@
     });
     v.novelty = budget; v.coherenceStrict = 0.5; v.sigEmph = 0.5;
 
-    // Strategy: pick the composer family that suits the drawn material
-    // (schema §2: provenance is the only difference — same engine).
-    if (v.harmonyType === 'drone') v.strategy = r.bool(0.6) ? 'ambient' : 'folk';
-    else if (v.harmonyType === 'loop') v.strategy = r.weighted(['electronic', 'lofi', 'folk'], [0.4, 0.35, 0.25]);
-    else if (v.harmonyType === 'modal') v.strategy = r.weighted(['cinematic', 'folk', 'classical'], [0.4, 0.3, 0.3]);
-    else v.strategy = r.weighted(['classical', 'jazz'], [0.6, 0.4]);
-    if (!v.ensemble.some((e) => e.role === 'bass' || e.role === 'drone')) v.strategy = 'percussion';
-    // Hostability repairs (coherence for the ROUTER): the ambient strategy
-    // needs something that sustains (a drone or pad loop) or the texture has
-    // multi-second holes; groove/functional strategies assume their home
-    // meters, so an off-meter draw (e.g. a 5/8 novelty) moves to a family
-    // that genuinely hosts aksak/compound bars (folk does, by construction).
-    const hasSustain = v.ensemble.some((e) => e.role === 'drone' || e.role === 'pad');
-    if (v.strategy === 'ambient' && !hasSustain) v.strategy = 'cinematic';
-    const METER_HOSTS = {
-      lofi: { '4/4': 1 }, electronic: { '4/4': 1 }, jazz: { '4/4': 1, '3/4': 1 },
-      classical: { '4/4': 1, '3/4': 1, '6/8': 1, '2/4': 1 },
-      cinematic: { '4/4': 1, '3/4': 1, '6/8': 1, '2/4': 1, 'free': 1 },
+    // ---- The style KERNEL — the freshly generated "engine" (session 038) ----
+    // Instead of routing the invented style to one of the eight genre
+    // strategies, draw a compact generative SYSTEM the dedicated invented
+    // composer (docs/lib/invent.js) realizes: a texture architecture (how the
+    // ensemble relates — wiki/texture-and-density.md's cross-cultural menu), a
+    // rhythm system (the shared temporal germ), a melodic gamut + hierarchy
+    // pillars (an invented mode-within-the-scale, taught by distribution —
+    // wiki/style-invention-and-style-space.md), and per-texture parameters.
+    // Architectural draws, not slider values: each combination is its own
+    // small engine, while everything not drawn stays at the perceptual
+    // universals the base draw above encodes. Drawn from a dedicated stream so
+    // it can grow without disturbing the base style draw.
+    v.strategy = 'invented';
+    const k = rng.stream('inventKernel');
+    const hasPercRole = v.ensemble.some((e) => /kick|snare|hat|perc|timeline|boom|shaker/.test(e.role));
+    let texture = k.weighted(
+      ['melodyAccomp', 'ostinatoWeb', 'callResponse', 'strata', 'canon', 'hocket', 'chorale', 'tintinnabuli'],
+      [0.20, 0.17, 0.14, 0.12, 0.12, 0.10, 0.08, 0.07]);
+    let rhythmMode = v.timeline !== 'none' ? 'timeline'
+      : k.weighted(['flow', 'cell', 'timeline', 'groove'], [0.30, 0.28, 0.20, 0.22]);
+    if (rhythmMode === 'groove' && !hasPercRole) rhythmMode = 'cell';
+    if (rhythmMode === 'timeline' && v.timeline === 'none') {
+      v.timeline = k.weighted(['euclid', 'bell', 'clave', 'sieve'], [0.35, 0.25, 0.25, 0.15]);
+    }
+    const cell = { a: 0, b: 0 };
+    { const pair = k.pick([[3, 2], [4, 3], [5, 2], [5, 3], [5, 4]]); cell.a = pair[0]; cell.b = pair[1]; }
+    // Texture coherence couplings (repair, never resample — determinism):
+    if (texture === 'hocket') {
+      if (v.bpm < 88) v.bpm = 88 + 30 * k.next();       // a composite line needs motion
+      v.density = Math.max(v.density, 0.45);
+    } else if (texture === 'tintinnabuli') {
+      // the T-voice is triad-locked: functional/loop harmony fights it
+      if (v.harmonyType === 'functional' || v.harmonyType === 'loop') v.harmonyType = k.bool(0.6) ? 'drone' : 'modal';
+      v.density = Math.min(v.density, 0.5);
+      v.harmonicRhythm = Math.min(v.harmonicRhythm, 1);
+      v.rubato = Math.max(v.rubato, 0.3);
+      rhythmMode = 'flow';
+    } else if (texture === 'chorale') {
+      v.density = Math.min(v.density, 0.55);
+      v.harmRich = Math.max(v.harmRich, 0.3);            // the voicings carry the interest
+      v.melTex = Math.min(v.melTex, 0.4);
+      v.harmonicRhythm = Math.max(1, v.harmonicRhythm);
+      v.bpm = Math.min(v.bpm, 116);                      // homorhythm at speed = machine-gun chords
+      if (rhythmMode === 'groove') rhythmMode = 'cell';
+    } else if (texture === 'strata') {
+      v.harmonicRhythm = Math.min(v.harmonicRhythm, 1);  // dense surface ↔ slow harmony
+    } else if (texture === 'ostinatoWeb') {
+      if (v.harmonyType === 'functional') v.harmonyType = 'loop'; // a ground wants a cycle
+    }
+    // chord-rate ceiling: a chord change every < ~0.6 s reads as texture, not
+    // harmony — cap the harmonicRhythm novelty against bar length and tempo
+    // (events/sec is capped by the base coherence; this is the harmonic analog)
+    if (v.harmonicRhythm > 1) {
+      const chordSec = (v.meter ? v.meter.barBeats : 4) / v.harmonicRhythm * (60 / v.bpm);
+      if (chordSec < 0.6) v.harmonicRhythm = v.meter && v.meter.barBeats < 3 ? Math.min(v.harmonicRhythm, 2) : Math.min(v.harmonicRhythm, 3);
+      if ((v.meter ? v.meter.barBeats : 4) / v.harmonicRhythm * (60 / v.bpm) < 0.45) v.harmonicRhythm = 1;
+    }
+    // melodic gamut: a seeded 5-7-degree subset of the scale (tonic always
+    // kept; the hierarchy pillars and any interval-cell signature degrees are
+    // kept) — the invented mode-within-the-mode whose gaps are audible while
+    // harmony keeps the full scale (pentatonic melodies over parent harmony).
+    const scaleLen = (theory.SCALES[v.scale] || theory.SCALES.major).length;
+    const pillar2 = scaleLen >= 7 ? k.weighted([4, 3, 2, 5], [0.4, 0.25, 0.2, 0.15]) : Math.min(2, scaleLen - 1);
+    const pillars = [0, pillar2];
+    let gamut;
+    if (scaleLen <= 5) { gamut = []; for (let i = 0; i < scaleLen; i++) gamut.push(i); }
+    else {
+      const size = k.weighted([5, 6, 7], [0.4, 0.35, 0.25]);
+      const keep = new Set(pillars);
+      const cellSig = v.signatures.filter((s) => s.type === 'intervalCell')[0];
+      if (cellSig) {
+        const pat = theory.SCALES[v.scale] || theory.SCALES.major;
+        const degPc = []; let acc = 0;
+        for (let i = 0; i < pat.length; i++) { degPc.push(acc % 12); acc += pat[i]; }
+        for (const iv of cellSig.cell) { const d = degPc.indexOf(((iv % 12) + 12) % 12); if (d >= 0) keep.add(d); }
+      }
+      const droppable = k.shuffle([1, 2, 3, 4, 5, 6].filter((d) => !keep.has(d)));
+      const drop = new Set(droppable.slice(0, Math.max(0, scaleLen - size)));
+      gamut = [];
+      for (let i = 0; i < scaleLen; i++) if (!drop.has(i)) gamut.push(i);
+    }
+    let entry = k.weighted(['layered', 'leadFirst', 'together'], [0.45, 0.3, 0.25]);
+    if ((texture === 'chorale' || texture === 'tintinnabuli') && entry === 'layered') entry = 'together';
+    v.kernel = {
+      texture, rhythmMode, cell, gamut, pillars, entry,
+      canon: texture === 'canon' ? { delay: k.pick([1, 2]), step: k.pick([-7, -4, -3]) } : null,
+      strata: texture === 'strata' ? { mult: v.bpm <= 96 ? k.pick([4, 8]) : 4 } : null,
+      tin: texture === 'tintinnabuli' ? { pos: k.pick([1, 2]), side: k.pick(['sup', 'inf', 'alt']) } : null,
+      respGap: (v.lengthSec < 80 ? 1 : k.pick([1, 2])),
+      midCycle: k.pick([2, 3]),
+      endTogether: k.bool(0.5),
     };
-    const hosts = METER_HOSTS[v.strategy];
-    if (hosts && !hosts[v.meterId]) v.strategy = 'folk';
     // Name = evocative word + a lowercase letter + a 3-digit number, e.g.
     // "Invented Nocturne c402" — the letter+digits cut accidental name collisions
     // (8×26×1000 ≈ 208k labels) (Tom 2026-07-10). The name is cosmetic and

@@ -50,6 +50,7 @@ node experiments/tools/render-measure.mjs   # audio harness: renders the primiti
 node experiments/tools/render-engine.mjs    # audio harness: renders the full public engine, measures, gates
 node experiments/tools/site-check.js sweep classical   # fast symbolic sweep of a site genre (also: melds, invent)
 node experiments/tools/render-site.mjs      # the site's offline render gates (add --genre <id> to filter)
+node experiments/tools/render-invent-quick.mjs  # bounded invented-composer audio gate (short pieces; for slow environments)
 node experiments/tools/site-smoke.mjs       # the site's live-playback smoke (add --quick to skip per-genre spins)
 ```
 

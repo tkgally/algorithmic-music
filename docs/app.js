@@ -527,7 +527,7 @@
         ' · ' + AM.theory.PC_NAMES_SHARP[v.tonicPc] + ' ' + v.scale.replace('naturalMinor', 'minor').replace('majorPentatonic', 'pentatonic') +
         ' · ' + v.harmonyType + ' · ' + describeLen(v.lengthSec) +
         (v.kind === 'meld' ? ' · meld: ' + v.meld.a + ' × ' + v.meld.b + ' (chassis ' + v.meld.chassis + ')' : '') +
-        (v.kind === 'invented' ? ' · novelty: ' + (v.noveltyAxes || []).join(', ') : '');
+        (v.kind === 'invented' ? ' · ' + (TEXTURE_WORD[(v.kernel || {}).texture] || 'invented') + ' · novelty: ' + ((v.noveltyAxes || []).join(', ') || 'none') : '');
       global.__vector = v; // inspectability (engine-architecture self-report rule)
       refreshDynamicControls(v);
       renderStructure(v);
@@ -628,6 +628,17 @@
   }
   const HARM_WORD = { functional: 'goal-directed harmony', modal: 'modal / static harmony', loop: 'a looping vamp', drone: 'a drone' };
   const END_WORD = { cadence: 'a resolved cadence', fade: 'a fade-out', stop: 'a hard stop', ringout: 'a ring-out' };
+  // invented-style kernel words (docs/lib/invent.js: the per-seed engine)
+  const TEXTURE_WORD = {
+    melodyAccomp: 'a tune over accompaniment', ostinatoWeb: 'a web of repeating patterns',
+    callResponse: 'call and response', strata: 'layered strata (slow to fast)',
+    canon: 'a round — the lead echoed', hocket: 'two voices interlocking one line',
+    chorale: 'chords moving together', tintinnabuli: 'a bell-voice shadowing the melody',
+  };
+  const RHYTHM_WORD = {
+    flow: 'flowing phrase rhythm', cell: 'one rhythmic cell everywhere',
+    timeline: 'a repeating timeline pattern', groove: 'a groove with a backbeat',
+  };
   function sigWord(s) {
     if (!s) return '';
     if (s.type === 'intervalCell') return 'a recurring melodic cell';
@@ -647,10 +658,16 @@
     const arc = prettyArc(v.arc);
     const ending = END_WORD[v.ending] || v.ending;
     const mins = Math.max(1, Math.round((v.lengthSec || 120) / 60 * 10) / 10);
+    const K = v.kernel || {};
     const head = v.kind === 'meld'
       ? '<b>Meld:</b> ' + v.meld.a + ' × ' + v.meld.b + ' <span class="muted">(rhythm from ' + v.meld.chassis + ', harmony from the other)</span>. '
       : v.kind === 'invented'
-        ? '<b>' + v.name + '</b> <span class="muted">— an invented style. Novelty in: ' + ((v.noveltyAxes || []).join(', ') || 'none') + '.</span> '
+        ? '<b>' + v.name + '</b> <span class="muted">— an invented style with its own engine: '
+          + (TEXTURE_WORD[K.texture] || 'melody and accompaniment') + '; '
+          + (RHYTHM_WORD[K.rhythmMode] || 'flowing rhythm')
+          + (K.rhythmMode === 'cell' && K.cell ? ' (' + K.cell.a + ':' + K.cell.b + ')' : '')
+          + (K.gamut && K.gamut.length < 7 ? '; a ' + K.gamut.length + '-tone melodic gamut' : '')
+          + '. Novelty in: ' + ((v.noveltyAxes || []).join(', ') || 'none') + '.</span> '
         : '<b>' + v.name + '.</b> ';
     let ens = [];
     try { ens = AM.style.effectiveEnsemble(v); } catch (e) {}

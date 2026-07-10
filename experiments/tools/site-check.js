@@ -26,6 +26,7 @@ AM.transport = require(path.join(DOCS, 'lib/transport.js'));
 AM.serialize = require(path.join(DOCS, 'lib/serialize.js'));
 AM.style = require(path.join(DOCS, 'lib/style.js'));
 AM.compose = require(path.join(DOCS, 'lib/compose.js'));
+AM.invent = require(path.join(DOCS, 'lib/invent.js')); // registers the invented strategy into compose
 AM.perform = require(path.join(DOCS, 'lib/perform.js'));
 const SYNTH_VOICES = new Set(Object.keys(require(path.join(DOCS, 'lib/synth.js')).VOICES));
 require(path.join(DOCS, 'styles/registry.js'));
