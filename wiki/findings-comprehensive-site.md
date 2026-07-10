@@ -3,7 +3,7 @@ title: Findings — the comprehensive site (Phase 3c build)
 tags: [findings, implementation, project]
 status: draft
 created: 2026-07-09
-updated: 2026-07-09
+updated: 2026-07-10
 summary: What building the comprehensive site (session 034) established — the just-in-time composition loop works and is the right architecture; one vector-driven composer core really can serve presets, melds, and invented styles; the concrete bugs the offline gates caught (unit-boundary note truncation, chord-slot tiling, a PCM-fingerprint pitfall); and what the first working version deliberately defers.
 ---
 
@@ -59,6 +59,15 @@ The v1 URL payload (6-bit version, 32-bit seed, 2-bit mode, two 4-bit genre code
 - **Live morph edge cases**: rapid repeated genre swaps stack crossfades sanely (the previous outgoing conductor is force-faded), but a swap *during* a swap hasn't been stress-tested beyond the smoke.
 - **No playlist/queue, no visual theming options** — vision items for later phases.
 - **Vinyl-crackle bed for lo-fi** (Engine 03 had one in-engine; the shared synth has no crackle voice yet).
+
+## Product decisions from Tom's first listen (session 035)
+
+Tom listened to the first live build and gave a round of UI feedback. The durable decisions (the implementation is in `docs/index.html` / `docs/app.js` / `docs/css/site.css`):
+
+1. **Style selection is single-select.** The Start/Intermediate/Advanced UI now picks **exactly one style at a time** (radio semantics: choosing a style clears the previous one; re-clicking the sole selection is a no-op — there is always exactly one style active). The two-genre **meld remains in the engine** — `style.buildVector`/`serialize` still accept two parents, so a previously shared meld URL still plays and `site.test.js`'s meld assertions are unchanged — but the button UI no longer *creates* one. Rationale: Tom asked to pick one style at a time; the melds were first-pass and their balance was flagged provisional from the start ([style-vector-schema] design doc). The engine capability is retained (not deleted) so it can be re-surfaced or driven by invented-style blending later.
+2. **Transport-first layout.** The Play box moved to the **top of the page, directly under the mode toggles**, so the primary action is immediately reachable; Style and the control tiers follow it.
+3. **Continuous play.** A new **Continuous** toggle in the Play box: when on, each piece auto-advances at its *music end* to a fresh piece in the **current style with a new random seed**, gaplessly — the outgoing piece keeps ringing its natural reverb/release tail while the next one starts (no crossfade, no silence). Mechanism: `advancePiece()` retires the old conductor into the fade slot and starts a new one; the UI tick fires it once per piece, gated on the conductor's `musicEndAt` (music end, before the tail), so the fresh conductor's `musicEndAt = Infinity` prevents re-fire until it too finishes. This reuses the existing JIT conductor wholesale — no new audio path. Verified end-to-end headless (a short-length piece plays to its ~64 s end and auto-advances to a new seed, still playing, 0 errors) plus a `site-smoke.mjs` gate (step 8) using the same `advancePiece` hook.
+4. **Copy relabeled + intro relocated.** The seed **copy** button is now **copy seed** (distinct from copy link); the "composed while it plays…" intro paragraph moved from the header lede into the **About** section, and the About prose no longer describes blending as a user action.
 
 ## Implications for generative engines
 

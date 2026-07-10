@@ -16,7 +16,9 @@
         monotonic, piece name updates);
      6. every Start genre plays (short spin each) with zero errors;
      7. mode switching reveals the Intermediate/Advanced tiers and the
-        invent-a-style button.
+        invent-a-style button;
+     8. continuous play advances to a fresh piece (new conductor + new seed)
+        without stopping the transport.
 
    Usage:  node experiments/tools/site-smoke.mjs [--json] [--quick]
            --quick skips the per-genre spin (step 6).
@@ -152,6 +154,36 @@ async function main() {
     g('Intermediate mode reveals its tier', intVisible, '');
     g('Advanced mode reveals its tier + invent button', advVisible && inventVisible, '');
     g('mode page: no errors', errs.length === 0, errs.slice(0, 2).join('; ') || 'none');
+    await p.close();
+  }
+
+  // 8 — continuous play advances to a NEW piece without stopping. Uses the
+  //     advancePiece hook so we don't wait a full piece; the auto-advance path
+  //     in tickUi calls the same function at the music-end.
+  {
+    const errs = [];
+    const p = await newPage(browser, errs);
+    await p.goto(PAGE);
+    await p.waitForSelector('#loop', { timeout: 8000 });
+    await p.click('#loop');
+    const armed = await p.$eval('#loop', (b) => b.classList.contains('on'));
+    await p.click('#play');
+    await p.waitForTimeout(1400);
+    const before = await p.evaluate(() => ({
+      start: window.AMApp.conductor ? window.AMApp.conductor.startAt : null,
+      seed: window.AMApp.seedHex(window.AMApp.state.seed),
+    }));
+    await p.evaluate(() => window.AMApp.advancePiece());
+    await p.waitForTimeout(1200);
+    const after = await p.evaluate(() => ({
+      start: window.AMApp.conductor ? window.AMApp.conductor.startAt : null,
+      seed: window.AMApp.seedHex(window.AMApp.state.seed),
+      playing: /stop/i.test(document.getElementById('play').textContent),
+    }));
+    g('continuous: toggle arms the button', armed, '');
+    g('continuous: advanced to a fresh piece (new conductor)', before.start != null && after.start != null && after.start > before.start, before.start + ' -> ' + after.start);
+    g('continuous: new seed, transport still playing', after.seed !== before.seed && after.playing, before.seed + ' -> ' + after.seed);
+    g('continuous page: no errors', errs.length === 0, errs.slice(0, 2).join('; ') || 'none');
     await p.close();
   }
 
