@@ -278,6 +278,45 @@
     { type: 'voicingHabit', habits: ['openFifth', 'clusterSecond', 'tenthSpread'] },
     { type: 'echoTail', delays: [0.5, 0.75, 1.5] },      // lead notes answered by a soft echo, in beats
   ];
+  // Invented-style ensembles: a broad, curated set (32) — each has a HIGH lead,
+  // a MID comp/pad, and a LOW bass/drone; ~half add percussion. Wider variety so
+  // seeds don't converge on similar instrumentation (Tom 2026-07-10).
+  const ENSEMBLE_TEMPLATES = [
+    // --- melodic, no percussion (16) ---
+    [{ role: 'lead', voice: 'melody' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'aria' }, { role: 'pad', voice: 'chord' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'reed' }, { role: 'comp', voice: 'pluck' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'glass' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'bell' }, { role: 'pad', voice: 'pad' }, { role: 'drone', voice: 'drone' }],
+    [{ role: 'lead', voice: 'mallet' }, { role: 'comp', voice: 'pluck' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'wire' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'chime' }, { role: 'comp', voice: 'mallet' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'aria' }, { role: 'pad', voice: 'pad' }, { role: 'drone', voice: 'drone' }],
+    [{ role: 'lead', voice: 'pluck' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'reed' }, { role: 'pad', voice: 'chord' }, { role: 'drone', voice: 'drone' }],
+    [{ role: 'lead', voice: 'glass' }, { role: 'comp', voice: 'bell' }, { role: 'drone', voice: 'drone' }],
+    [{ role: 'lead', voice: 'melody' }, { role: 'pad', voice: 'chord' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'rhodes' }, { role: 'comp', voice: 'pluck' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'mallet' }, { role: 'comp', voice: 'bell' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'glass' }, { role: 'comp', voice: 'mallet' }, { role: 'drone', voice: 'drone' }],
+    // --- with percussion (16): kit = kick/snare/hat; hand/world = perc1/perc2 ---
+    [{ role: 'lead', voice: 'glass' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'drum' }, { role: 'perc2', voice: 'chime' }],
+    [{ role: 'lead', voice: 'wire' }, { role: 'pad', voice: 'pad' }, { role: 'bass', voice: 'bass' }, { role: 'kick', voice: 'kick' }, { role: 'hat', voice: 'hat' }],
+    [{ role: 'lead', voice: 'mallet' }, { role: 'comp', voice: 'pluck' }, { role: 'drone', voice: 'drone' }, { role: 'perc1', voice: 'clap' }, { role: 'perc2', voice: 'shaker' }],
+    [{ role: 'lead', voice: 'melody' }, { role: 'comp', voice: 'chord' }, { role: 'bass', voice: 'bass' }, { role: 'kick', voice: 'kick' }, { role: 'snare', voice: 'snare' }, { role: 'hat', voice: 'hat' }],
+    [{ role: 'lead', voice: 'reed' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'shaker' }],
+    [{ role: 'lead', voice: 'chime' }, { role: 'comp', voice: 'mallet' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'wood' }, { role: 'perc2', voice: 'shaker' }],
+    [{ role: 'lead', voice: 'rhodes' }, { role: 'comp', voice: 'pluck' }, { role: 'bass', voice: 'bass' }, { role: 'kick', voice: 'kick' }, { role: 'hat', voice: 'hat' }],
+    [{ role: 'lead', voice: 'wire' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }, { role: 'kick', voice: 'kick' }, { role: 'perc1', voice: 'clap' }],
+    [{ role: 'lead', voice: 'glass' }, { role: 'pad', voice: 'pad' }, { role: 'drone', voice: 'drone' }, { role: 'perc1', voice: 'gong' }, { role: 'perc2', voice: 'shaker' }],
+    [{ role: 'lead', voice: 'pluck' }, { role: 'comp', voice: 'mallet' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'clap' }, { role: 'perc2', voice: 'shaker' }],
+    [{ role: 'lead', voice: 'aria' }, { role: 'pad', voice: 'chord' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'shaker' }],
+    [{ role: 'lead', voice: 'melody' }, { role: 'comp', voice: 'pluck' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'wood' }],
+    [{ role: 'lead', voice: 'bell' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }, { role: 'hat', voice: 'hat' }],
+    [{ role: 'lead', voice: 'mallet' }, { role: 'comp', voice: 'bell' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'drum' }, { role: 'perc2', voice: 'clap' }],
+    [{ role: 'lead', voice: 'reed' }, { role: 'pad', voice: 'pad' }, { role: 'bass', voice: 'bass' }, { role: 'kick', voice: 'kick' }, { role: 'snare', voice: 'snare' }, { role: 'hat', voice: 'hat' }],
+    [{ role: 'lead', voice: 'chime' }, { role: 'pad', voice: 'pad' }, { role: 'drone', voice: 'drone' }, { role: 'perc1', voice: 'metal' }, { role: 'perc2', voice: 'shaker' }],
+  ];
 
   function invent(rng, opts) {
     opts = opts || {};
@@ -306,19 +345,13 @@
       energy: null, mood: null, layerCap: null,
       moodModePool: ['phrygian', 'naturalMinor', 'dorian', 'mixolydian', 'major', 'lydian'],
     };
-    // ensemble from a role-template draw
-    const ENSEMBLE_TEMPLATES = [
-      [{ role: 'lead', voice: 'melody' }, { role: 'comp', voice: 'pluck' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'wood' }],
-      [{ role: 'lead', voice: 'reed' }, { role: 'pad', voice: 'pad' }, { role: 'bass', voice: 'drone' }, { role: 'perc1', voice: 'shaker' }],
-      [{ role: 'lead', voice: 'glass' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'drum' }, { role: 'perc2', voice: 'chime' }],
-      [{ role: 'lead', voice: 'wire' }, { role: 'pad', voice: 'chord' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'hat' }],
-      [{ role: 'lead', voice: 'mallet' }, { role: 'comp', voice: 'pluck' }, { role: 'drone', voice: 'drone' }, { role: 'perc1', voice: 'clap' }],
-      [{ role: 'lead', voice: 'aria' }, { role: 'comp', voice: 'melody' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'scrape' }],
-    ];
-    const REGISTERS = { lead: [62, 86], comp: [50, 72], pad: [48, 70], bass: [36, 55], drone: [33, 45], perc1: [0, 0], perc2: [0, 0] };
-    const LEVELS = { lead: 0.95, comp: 0.45, pad: 0.4, bass: 0.75, drone: 0.6, perc1: 0.5, perc2: 0.4 };
+    // ensemble from a role-template draw. A broad set (Tom 2026-07-10) so
+    // different seeds give audibly different instrumentation: each template
+    // keeps a HIGH lead, a MID comp/pad, and a LOW bass/drone (register balance),
+    // and about half add percussion (a kit = kick/snare/hat, or hand/world =
+    // perc1/perc2). Registers/levels come from the shared ROLE_REG/ROLE_LVL tables.
     v.ensemble = r.pick(ENSEMBLE_TEMPLATES).map((e, i) => ({
-      role: e.role, voice: e.voice, register: (REGISTERS[e.role] || [48, 72]).slice(), level: LEVELS[e.role] || 0.5, prio: i,
+      role: e.role, voice: e.voice, register: (ROLE_REG[e.role] || [48, 72]).slice(), level: ROLE_LVL[e.role] || 0.5, prio: i,
     }));
     v.palettes = [{ name: 'invented', desc: 'the invented ensemble', map: {} }].concat(EXTRA_PALETTES.map(clone));
     v.paletteAuthored = 1; v.paletteId = 0;
@@ -379,7 +412,13 @@
     };
     const hosts = METER_HOSTS[v.strategy];
     if (hosts && !hosts[v.meterId]) v.strategy = 'folk';
-    v.name = 'Invented ' + ['Nocturne', 'Current', 'Meridian', 'Tessellation', 'Halcyon', 'Vessel', 'Orrery', 'Aperture'][r.int(0, 7)] + ' ' + (1 + r.int(0, 98));
+    // Name = evocative word + a lowercase letter + a 3-digit number, e.g.
+    // "Invented Nocturne c402" — the letter+digits cut accidental name collisions
+    // (8×26×1000 ≈ 208k labels) (Tom 2026-07-10). The name is cosmetic and
+    // reproducible from the seed; it does not describe the music.
+    const word = ['Nocturne', 'Current', 'Meridian', 'Tessellation', 'Halcyon', 'Vessel', 'Orrery', 'Aperture'][r.int(0, 7)];
+    const letter = 'abcdefghijklmnopqrstuvwxyz'.charAt(r.int(0, 25));
+    v.name = 'Invented ' + word + ' ' + letter + ('00' + r.int(0, 999)).slice(-3);
     return v;
   }
 
