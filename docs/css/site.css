@@ -60,6 +60,10 @@ button.genre.invent.on { color: var(--fg); }
 .diceBtn { font: inherit; font-size: .95rem; padding: .5rem .9rem; border-radius: 10px; border: 1px solid var(--line);
   background: var(--soft); color: var(--fg); cursor: pointer; }
 .diceBtn:hover, .mini:hover { border-color: var(--accent); }
+.loopBtn { font: inherit; font-size: .95rem; padding: .5rem .9rem; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--soft); color: var(--fg); cursor: pointer; }
+.loopBtn:hover { border-color: var(--accent); }
+.loopBtn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 .seedWrap { font-size: .85rem; color: var(--muted); display: inline-flex; align-items: center; gap: .4rem; }
 .seedWrap input { font: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9rem; width: 7.5rem;
   background: var(--soft); color: var(--fg); border: 1px solid var(--line); border-radius: 8px; padding: .3rem .5rem; }

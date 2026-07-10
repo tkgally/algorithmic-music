@@ -17,12 +17,31 @@
         <button id="mode0" type="button" class="on">Start</button><button id="mode1" type="button">Intermediate</button><button id="mode2" type="button">Advanced</button>
       </nav>
     </div>
-    <p class="lede">Instrumental music composed <em>while it plays</em>, right here in your browser — no recordings, no samples, no server. Pick one style (or blend two), press play. Every piece is reproducible: the seed and your settings live in the page address, so copying the link keeps the piece.</p>
   </header>
 
-  <!-- genre selection: multi-select, max 2, two selections blend -->
+  <!-- transport (the Play box) — directly under the mode toggles -->
+  <section class="panel transport" aria-label="transport">
+    <div class="transportRow">
+      <button id="play" type="button" class="playBtn">▶ Play</button>
+      <button id="dice" type="button" class="diceBtn" title="New piece: reseed everything that isn't pinned, within the current style.">🎲 New piece</button>
+      <button id="loop" type="button" class="loopBtn" aria-pressed="false" title="Continuous play: when a piece ends, another begins automatically in the current style, with a new random seed.">↻ Continuous</button>
+      <label class="seedWrap">seed
+        <input id="seed" type="text" spellcheck="false" autocomplete="off">
+      </label>
+      <button id="copySeed" type="button" class="mini" title="Copy the seed">copy seed</button>
+      <button id="copyLink" type="button" class="mini" title="Copy a link that reproduces this exact piece">copy link</button>
+      <label class="volWrap">vol <input id="volume" type="range" min="0" max="100" value="70"></label>
+    </div>
+    <div class="nowRow">
+      <span id="nowlabel" class="now">stopped</span>
+      <span class="pieceInfo"><b id="pieceName"></b> <span id="pieceDetail" class="muted"></span></span>
+    </div>
+    <canvas id="viz" height="120" aria-hidden="true"></canvas>
+  </section>
+
+  <!-- genre selection: single-select (one style at a time) -->
   <section class="panel" aria-label="style">
-    <div class="panelHead"><h2>Style</h2><span class="hintText">pick one — or two, and they blend</span></div>
+    <div class="panelHead"><h2>Style</h2><span class="hintText">pick one</span></div>
     <div id="genres" class="genres"></div>
   </section>
 
@@ -32,25 +51,6 @@
     <div id="intControls" class="ctlTier" style="display:none"></div>
     <div id="advControls" class="ctlTier" style="display:none"></div>
     <p class="autoNote">Every control starts on <b>auto</b> — the seed decides. Moving a control pins it; “auto” un-pins it. Changes land while the music plays, without restarting.</p>
-  </section>
-
-  <!-- transport -->
-  <section class="panel transport" aria-label="transport">
-    <div class="transportRow">
-      <button id="play" type="button" class="playBtn">▶ Play</button>
-      <button id="dice" type="button" class="diceBtn" title="New piece: reseed everything that isn't pinned, within this style selection.">🎲 New piece</button>
-      <label class="seedWrap">seed
-        <input id="seed" type="text" spellcheck="false" autocomplete="off">
-      </label>
-      <button id="copySeed" type="button" class="mini" title="Copy the seed">copy</button>
-      <button id="copyLink" type="button" class="mini" title="Copy a link that reproduces this exact piece">copy link</button>
-      <label class="volWrap">vol <input id="volume" type="range" min="0" max="100" value="70"></label>
-    </div>
-    <div class="nowRow">
-      <span id="nowlabel" class="now">stopped</span>
-      <span class="pieceInfo"><b id="pieceName"></b> <span id="pieceDetail" class="muted"></span></span>
-    </div>
-    <canvas id="viz" height="120" aria-hidden="true"></canvas>
   </section>
 
   <!-- feedback -->
@@ -63,7 +63,8 @@
 
   <section class="about">
     <h2>About</h2>
-    <p class="muted">This site is a single self-contained folder of original code: it composes each piece from scratch — harmony, melody, rhythm, form — and performs it with expressive timing through the Web Audio API, fetching nothing from the network. Two selected styles <b>blend</b>: the meld takes its rhythmic chassis from one parent and its harmony from the other, the way real fusions work. At Intermediate and Advanced levels the site can also <b>invent a style</b> — a seeded new point in style space with its own audible signatures — and every setting can change <em>while the music plays</em>: the piece morphs at the next musical boundary instead of restarting, because the composer only ever writes a few seconds ahead of what you hear.</p>
+    <p class="muted">Instrumental music composed <em>while it plays</em>, right here in your browser — no recordings, no samples, no server. Pick a style, press play. Every piece is reproducible: the seed and your settings live in the page address, so copying the link keeps the piece.</p>
+    <p class="muted">This site is a single self-contained folder of original code: it composes each piece from scratch — harmony, melody, rhythm, form — and performs it with expressive timing through the Web Audio API, fetching nothing from the network. At Intermediate and Advanced levels the site can also <b>invent a style</b> — a seeded new point in style space with its own audible signatures — and every setting can change <em>while the music plays</em>: the piece morphs at the next musical boundary instead of restarting, because the composer only ever writes a few seconds ahead of what you hear.</p>
     <p class="muted"><b>Everything here is written and built by Claude</b> (Anthropic’s AI), across many autonomous sessions directed by <a href="https://github.com/tkgally">Tom Gally</a>, who judges the music. The code, the music, and the prose are dedicated to the public domain. The five earlier <a href="preliminary-tests/index.html">preliminary test engines</a> — the style studies this site grew from — remain playable, and the <a href="design/index.html">design documents</a> describe how this works.</p>
   </section>
 

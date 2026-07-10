@@ -48,6 +48,7 @@
   let conductor = null;    // the playing conductor
   let fading = null;       // outgoing conductor during a crossfade
   let volume = 0.7;
+  let continuous = false;  // continuous play: auto-advance to a new piece at end
 
   function newSeed() {
     try { const u = new Uint32Array(1); crypto.getRandomValues(u); return u[0] >>> 0; }
@@ -157,6 +158,7 @@
       get fadeNode() { return fade; },
       get startAt() { return startAt; },
       get endAt() { return endAt; },
+      get musicEndAt() { return composedDone ? startAt + unitStart : Infinity; },
       get done() { return composedDone; },
       get timelineUnits() { return timelineUnits; },
       get recentEvents() { return recent; },
@@ -235,6 +237,26 @@
   }
   function playing() { return !!conductor; }
 
+  /** Continuous play: seamlessly begin the NEXT piece in the current style with a
+   *  fresh seed. The outgoing piece keeps ringing its natural tail (reverb/release)
+   *  while the new one starts, so there is no gap. Called at the current piece's
+   *  music-end (see tickUi) and reused as a manual/test hook. */
+  function advancePiece() {
+    const { ctx } = ensureAudio();
+    const old = conductor;
+    if (fading) { fading.stop(); fading = null; }   // retire any prior tail first
+    if (old) {
+      fading = old;
+      const tailLeft = old.endAt === Infinity ? 0.4 : Math.max(0.4, old.endAt - ctx.currentTime);
+      setTimeout(() => { if (fading === old) { old.stop(); fading = null; } }, (tailLeft + 0.4) * 1000);
+    }
+    state.seed = newSeed();
+    if ($('seed')) $('seed').value = seedHex(state.seed);
+    stateToUrl();
+    conductor = makeConductor(ctx, ctx.currentTime + 0.03, state).start();
+    refreshVectorPreview();
+  }
+
   /** Live genre/blend/invent swap: the two-bar crossfade (site-architecture §6). */
   function swapStyle() {
     refreshVectorPreview(); stateToUrl();
@@ -298,13 +320,11 @@
   }
   function toggleGenre(id) {
     const s = state.sel;
+    // single-select: exactly one style at a time (radio semantics). Clicking the
+    // current sole selection is a no-op; clicking another switches to it.
+    if (s.a === id && !s.b && !s.invent) { refreshGenreButtons(); return; }
     s.invent = false;
-    if (s.a === id && !s.b) { refreshGenreButtons(); return; }       // must keep one
-    if (s.a === id) { s.a = s.b; s.b = null; }
-    else if (s.b === id) { s.b = null; }
-    else if (!s.a) s.a = id;
-    else if (!s.b) s.b = id;
-    else { s.a = s.b; s.b = id; }                                     // oldest out
+    s.a = id; s.b = null;
     refreshGenreButtons();
     swapStyle();
     stateToUrl();
@@ -435,6 +455,14 @@
     if (!conductor) return;
     const { ctx } = audio;
     const t = ctx.currentTime - conductor.startAt;
+    // continuous play: the moment the composed music ends, start the next piece
+    // (the old one's tail overlaps → gapless). Gated on musicEndAt, so it fires
+    // once per piece; the fresh conductor's musicEndAt is Infinity until it too finishes.
+    if (continuous && conductor.done && ctx.currentTime >= conductor.musicEndAt) {
+      advancePiece();
+      raf = requestAnimationFrame(tickUi);
+      return;
+    }
     if (ctx.currentTime > conductor.endAt) {
       stopAll();
       return;
@@ -575,6 +603,12 @@
       stateToUrl(); refreshVectorPreview();
       if (playing()) play(); else refreshVectorPreview();
     });
+    $('loop').addEventListener('click', () => {
+      continuous = !continuous;
+      $('loop').classList.toggle('on', continuous);
+      $('loop').setAttribute('aria-pressed', continuous ? 'true' : 'false');
+      if (!playing()) setStatus(continuous ? 'continuous play — press play' : 'stopped');
+    });
     $('seed').addEventListener('change', () => {
       state.seed = parseSeed($('seed').value);
       $('seed').value = seedHex(state.seed);
@@ -600,8 +634,10 @@
 
   // exports (the dev harness + inspectability)
   global.AMApp = {
-    state, play, stopAll, playing, buildVector, composeAll, renderOffline,
+    state, play, stopAll, playing, advancePiece, buildVector, composeAll, renderOffline,
     seedHex, parseSeed, setMode, version: SITE_VERSION,
+    get continuous() { return continuous; },
+    set continuous(v) { continuous = !!v; if (doc && $('loop')) { $('loop').classList.toggle('on', continuous); $('loop').setAttribute('aria-pressed', continuous ? 'true' : 'false'); } },
     get conductor() { return conductor; },
   };
   if (doc && doc.readyState !== 'loading') boot();
