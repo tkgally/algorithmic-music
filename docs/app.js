@@ -883,7 +883,11 @@
     opts = opts || {};
     const sr = opts.sampleRate || 44100;
     const all = composeAll(st, opts.capUnits);
-    const tail = 0.4 + (1.7 + all.vector.reverb * 3.4) * 0.8;
+    // A rendered file plays STANDALONE (background mode), so give the reverb room
+    // to ring out to near-silence before the file ends — otherwise the boundary
+    // lands mid-tail and sounds truncated (the live engine masks this by
+    // overlapping the next piece; a file has nothing after it).
+    const tail = 0.6 + (1.7 + all.vector.reverb * 3.4) * 1.1;
     const totalSec = Math.min(opts.maxSec || 400, all.musicSec + tail);
     const Ctor = global.OfflineAudioContext || global.webkitOfflineAudioContext;
     const ctx = new Ctor(2, Math.ceil(totalSec * sr), sr);
@@ -902,6 +906,16 @@
       const fadeLen = Math.min(7, Math.max(3, all.musicSec * 0.08));
       fade.gain.setValueAtTime(1, Math.max(0, all.musicSec - fadeLen));
       fade.gain.exponentialRampToValueAtTime(0.001, all.musicSec + tail * 0.5);
+    } else {
+      // Non-fade endings (cadence/stop/ringout): the last notes + reverb ring out
+      // over the tail, then a short safety fade to silence at the very end so the
+      // rendered file never stops on an abrupt CUT. This only shapes the final
+      // ~0.8 s once the music has essentially ended — it does not soften a
+      // composed cadence, it just guarantees a clean file boundary. Live playback
+      // does not use renderOffline, so it is unaffected.
+      const fadeStart = Math.max(all.musicSec, totalSec - 0.8);
+      fade.gain.setValueAtTime(1, fadeStart);
+      fade.gain.exponentialRampToValueAtTime(0.0008, totalSec - 0.02);
     }
     for (const ev of all.events) {
       if (ev.tSec > totalSec - 0.1) continue;
