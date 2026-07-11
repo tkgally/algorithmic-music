@@ -26,6 +26,7 @@
       <button id="dice" type="button" class="diceBtn" title="New piece: reseed everything that isn't pinned, within the current style.">🎲 New piece</button>
       <button id="loop" type="button" class="loopBtn" aria-pressed="false" title="Continuous play: when a piece ends, another begins automatically in the current style, with a new random seed (a ~1 s gap between pieces).">↻ Continuous</button>
       <button id="reset" type="button" class="resetBtn" title="Reset: return every manually changed setting to auto (keeps the current style and seed).">⟲ Reset</button>
+      <button id="bgmode" type="button" class="loopBtn" aria-pressed="false" title="Background mode (experimental, for iPhone/iPad): render the current piece to an audio file and play it through a media element, so it keeps playing when the screen locks — with lock-screen controls. Live setting changes don't apply while a rendered piece plays; changing the style/seed re-renders.">📱 Background</button>
       <label class="seedWrap">seed
         <input id="seed" type="text" spellcheck="false" autocomplete="off">
       </label>
@@ -43,6 +44,10 @@
       <div id="structSections" class="structSections"></div>
       <div id="structListen" class="muted"></div>
     </div>
+    <!-- Background mode (experimental): a rendered piece plays through this media
+         element so iOS keeps it going with the screen locked. Kept in the DOM and
+         off-screen (not display:none) so it stays "rendered." -->
+    <audio id="bgAudio" playsinline preload="auto" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px"></audio>
   </section>
 
   <!-- genre selection: single-select (one style at a time) -->
@@ -97,6 +102,7 @@
 <script src="lib/invent.js"></script>
 <script src="lib/perform.js"></script>
 <script src="lib/serialize.js"></script>
+<script src="lib/wav.js"></script>
 <script src="styles/registry.js"></script>
 <script src="styles/classical.js"></script>
 <script src="styles/ambient.js"></script>

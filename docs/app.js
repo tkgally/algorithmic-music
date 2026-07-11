@@ -50,6 +50,8 @@
   let fading = null;       // outgoing conductor during a crossfade
   let volume = 0.7;
   let continuous = false;  // continuous play: auto-advance to a new piece at end
+  let bgMode = false;      // background mode: render to a file, play via <audio> (iOS lock-screen)
+  const bg = { url: null, active: false, rendering: false, seq: 0 }; // background-playback state
 
   function newSeed() {
     try { const u = new Uint32Array(1); crypto.getRandomValues(u); return u[0] >>> 0; }
@@ -234,6 +236,7 @@
     if (conductor) { conductor.stop(); conductor = null; }
     if (fading) { fading.stop(); fading = null; }
     if (raf) { cancelAnimationFrame(raf); raf = null; }
+    bgStop();
     if (!silent) setPlayingUi(false);
   }
   function playing() { return !!conductor; }
@@ -276,7 +279,7 @@
   /** Live genre/blend/invent swap: the two-bar crossfade (site-architecture §6). */
   function swapStyle() {
     refreshVectorPreview(); stateToUrl();
-    if (!playing()) return;
+    if (!playing()) { if (bg.active) playRendered(); return; }   // background mode: re-render the new style
     const { ctx } = ensureAudio();
     const old = conductor;
     const xfSec = Math.min(8, Math.max(2.4, XFADE_BARS * old.barSec));
@@ -299,6 +302,132 @@
     conductor.applyControls(state);
     if (ctl && ctl.speed === 'replan') conductor.replan();
     if (fading) fading.applyControls(state);
+  }
+
+  // ------------------------------------------- background / rendered playback ----
+  // The live conductor above is pure Web Audio, which iOS suspends when the phone
+  // screen locks (wiki/web-audio-fundamentals.md -> "Background and lock-screen
+  // playback"). Background mode instead RENDERS the whole piece offline, encodes
+  // it to a WAV blob (lib/wav.js), and plays it through a real <audio> element —
+  // the one thing iOS keeps alive in the background, with lock-screen controls
+  // via the Media Session API. Experimental proof-of-concept: it trades the live
+  // no-restart setting changes for durability (a settings change re-renders).
+
+  function bgEl() { return $('bgAudio'); }
+
+  /** Render the current state to a 16-bit PCM WAV blob URL (same deterministic
+   *  pipeline as live/offline). opts.capUnits bounds it for the dev/smoke hook. */
+  async function renderToWavUrl(st, opts) {
+    const { buffer, info } = await renderOffline(st, Object.assign({ sampleRate: 44100 }, opts || {}));
+    const bytes = AM.wav.encodeWav(buffer);
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'audio/wav' }));
+    return { url, info, bytes: bytes.length };
+  }
+
+  // A tiny silent WAV, made once, used to "unlock" the <audio> element inside the
+  // Play tap: iOS only starts media playback from a user gesture, but rendering
+  // the real piece is async. Playing looping silence in-gesture claims the media
+  // session so the later src-swap + play() is permitted once the render finishes.
+  let SILENCE_URL = null;
+  function silenceUrl() {
+    if (SILENCE_URL) return SILENCE_URL;
+    const sr = 8000, n = Math.round(sr * 0.05);
+    const silent = { numberOfChannels: 1, sampleRate: sr, length: n, getChannelData: () => new Float32Array(n) };
+    SILENCE_URL = URL.createObjectURL(new Blob([AM.wav.encodeWav(silent)], { type: 'audio/wav' }));
+    return SILENCE_URL;
+  }
+  function revokeBgUrl() { if (bg.url) { try { URL.revokeObjectURL(bg.url); } catch (e) {} bg.url = null; } }
+
+  /** Background-mode Play: render this piece to a file and play it through <audio>. */
+  async function playRendered() {
+    stopAll(true);                     // tear down any live conductor + prior bg audio
+    const el = bgEl();
+    if (!el || !AM.wav) { setStatus('background mode unavailable'); return; }
+    const mySeq = ++bg.seq;            // guards against overlapping/superseded renders
+    bg.active = true; bg.rendering = true;
+    setPlayingUi(true);
+    // 1) unlock the element inside the gesture with looping silence
+    try { el.loop = true; el.src = silenceUrl(); const pr = el.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (e) {}
+    setStatus('composing this piece to a file… (background mode)');
+    // 2) render + encode the real piece
+    let out;
+    try { out = await renderToWavUrl(state); }
+    catch (e) { if (mySeq === bg.seq) { setStatus('render failed: ' + e.message); bgStop(); setPlayingUi(false); } return; }
+    if (mySeq !== bg.seq || !bg.active) { try { URL.revokeObjectURL(out.url); } catch (e) {} return; } // superseded
+    // 3) swap the rendered file in and play it (element already user-activated)
+    revokeBgUrl();
+    bg.url = out.url;
+    bg.rendering = false;
+    el.loop = false;
+    el.onended = () => { if (bg.active && mySeq === bg.seq) { if (continuous) advanceRendered(); else { bgStop(); setPlayingUi(false); } } };
+    el.src = out.url;
+    try { const pr = el.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (e) {}
+    const secs = Math.round(out.info.musicSec || 0);
+    setStatus('playing (background) · ' + Math.floor(secs / 60) + ':' + ('0' + (secs % 60)).slice(-2) +
+      ' · ' + (out.bytes / 1048576).toFixed(1) + ' MB WAV — keeps playing with the screen locked');
+    setupMediaSession(out.info);
+  }
+
+  /** Background continuous / "next track": reseed and render the next piece. */
+  function advanceRendered() {
+    state.seed = newSeed();
+    if ($('seed')) $('seed').value = seedHex(state.seed);
+    stateToUrl(); refreshVectorPreview();
+    playRendered();
+  }
+
+  /** Stop background playback and release the file + media session. */
+  function bgStop() {
+    bg.seq++;                          // invalidate any in-flight render
+    bg.active = false; bg.rendering = false;
+    const el = bgEl();
+    if (el) { try { el.pause(); } catch (e) {} el.onended = null; el.loop = false; try { el.removeAttribute('src'); el.load(); } catch (e) {} }
+    revokeBgUrl();
+    clearMediaSession();
+  }
+
+  // Media Session: the lock-screen "now playing" card + transport controls.
+  function bgArtwork(v) {
+    try {
+      const c = doc.createElement('canvas'); c.width = c.height = 256;
+      const g2 = c.getContext('2d');
+      g2.fillStyle = '#12101c'; g2.fillRect(0, 0, 256, 256);
+      g2.fillStyle = '#9a8cff'; g2.font = '600 30px system-ui, sans-serif';
+      g2.fillText('algorithmic', 22, 118); g2.fillText('music', 22, 156);
+      g2.fillStyle = '#ff6056'; g2.fillRect(22, 182, 212, 5);
+      return c.toDataURL('image/png');
+    } catch (e) { return null; }
+  }
+  function setupMediaSession(info) {
+    if (!('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    try {
+      const v = info && info.vector;
+      if (typeof MediaMetadata !== 'undefined') {
+        const art = bgArtwork(v);
+        ms.metadata = new MediaMetadata({
+          title: (v && v.name) || 'algorithmic-music',
+          artist: 'algorithmic-music · seed ' + seedHex(state.seed),
+          album: 'composed in your browser',
+          artwork: art ? [{ src: art, sizes: '256x256', type: 'image/png' }] : [],
+        });
+      }
+      const set = (a, fn) => { try { ms.setActionHandler(a, fn); } catch (e) {} };
+      set('play', () => { const el = bgEl(); if (el) el.play(); ms.playbackState = 'playing'; });
+      set('pause', () => { const el = bgEl(); if (el) el.pause(); ms.playbackState = 'paused'; });
+      set('nexttrack', () => advanceRendered());
+      set('previoustrack', () => playRendered());       // restart the current piece
+      ms.playbackState = 'playing';
+    } catch (e) {}
+  }
+  function clearMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    try {
+      ms.metadata = null;
+      for (const a of ['play', 'pause', 'nexttrack', 'previoustrack']) { try { ms.setActionHandler(a, null); } catch (e) {} }
+      ms.playbackState = 'none';
+    } catch (e) {}
   }
 
   // ------------------------------------------------------------------- UI ----
@@ -798,25 +927,42 @@
     $('siteVersion').textContent = 'v' + SITE_VERSION;
     refreshVectorPreview();
 
-    $('play').addEventListener('click', () => { if (playing()) stopAll(); else play(); });
+    $('play').addEventListener('click', () => {
+      if (playing() || bg.active) stopAll();
+      else if (bgMode) playRendered();
+      else play();
+    });
     $('dice').addEventListener('click', () => {
       state.seed = newSeed();
       $('seed').value = seedHex(state.seed);
       stateToUrl(); refreshVectorPreview();
-      if (playing()) play(); else refreshVectorPreview();
+      if (playing()) play(); else if (bg.active) playRendered(); else refreshVectorPreview();
     });
     $('loop').addEventListener('click', () => {
       continuous = !continuous;
       $('loop').classList.toggle('on', continuous);
       $('loop').setAttribute('aria-pressed', continuous ? 'true' : 'false');
-      if (!playing()) setStatus(continuous ? 'continuous play — press play' : 'stopped');
+      if (!playing() && !bg.active) setStatus(continuous ? 'continuous play — press play' : 'stopped');
     });
     $('reset').addEventListener('click', resetControls);
+    // Background mode toggle (experimental, for iPhone/iPad lock-screen playback).
+    $('bgmode').addEventListener('click', () => {
+      bgMode = !bgMode;
+      $('bgmode').classList.toggle('on', bgMode);
+      $('bgmode').setAttribute('aria-pressed', bgMode ? 'true' : 'false');
+      if (bgMode) {
+        if (playing()) playRendered();   // hand off the live piece to a rendered file
+        else setStatus('background mode ON — Play renders this piece to a file so it keeps playing when the screen locks (experimental)');
+      } else {
+        if (bg.active) play();           // hand back to the live engine
+        else setStatus(playing() ? 'playing' : 'stopped');
+      }
+    });
     $('seed').addEventListener('change', () => {
       state.seed = parseSeed($('seed').value);
       $('seed').value = seedHex(state.seed);
       stateToUrl(); refreshVectorPreview();
-      if (playing()) play();
+      if (playing()) play(); else if (bg.active) playRendered();
     });
     $('copySeed').addEventListener('click', () => {
       try { navigator.clipboard.writeText(seedHex(state.seed)); setStatus('seed copied'); } catch (e) {}
@@ -839,8 +985,15 @@
   global.AMApp = {
     state, play, stopAll, playing, advancePiece, resetControls, buildVector, composeAll, renderOffline,
     seedHex, parseSeed, setMode, version: SITE_VERSION,
+    playRendered,
+    // dev/smoke hook: render the current state to a WAV blob, bounded by capUnits
+    // so the encoder + blob path can be exercised fast (a full render is slow).
+    async renderWavURL(opts) { const r = await renderToWavUrl(state, opts); return { url: r.url, bytes: r.bytes, musicSec: r.info.musicSec }; },
     get continuous() { return continuous; },
     set continuous(v) { continuous = !!v; if (doc && $('loop')) { $('loop').classList.toggle('on', continuous); $('loop').setAttribute('aria-pressed', continuous ? 'true' : 'false'); } },
+    get bgMode() { return bgMode; },
+    set bgMode(v) { bgMode = !!v; if (doc && $('bgmode')) { $('bgmode').classList.toggle('on', bgMode); $('bgmode').setAttribute('aria-pressed', bgMode ? 'true' : 'false'); } },
+    get bgActive() { return bg.active; },
     get conductor() { return conductor; },
   };
   if (doc && doc.readyState !== 'loading') boot();
