@@ -49,6 +49,24 @@
   </section>
 
   <section class="about-body">
+    <div class="about-kicker">Using the controls</div>
+    <p>The controls come in three tiers, revealed by the <b>Start / Intermediate / Advanced</b> toggle at the top. Start has a handful of headline dials; Intermediate adds about twenty familiar controls; Advanced opens the full set, including invented parameters. Whatever you set carries over as you move between tiers.</p>
+    <p>Every control starts on <b>auto</b> — the seed decides its value, so a dropdown reads <em>“choose…”</em> and a slider shows no number until you touch it. Moving a control <b>pins</b> it to your choice (its label turns amber); the <b>auto</b> chip beside it — or picking <em>“choose…”</em> again in a dropdown — un-pins it back to auto. Changes land <em>while the music plays</em>: the piece morphs at the next musical boundary instead of restarting.</p>
+    <p><b>New piece</b> rolls a fresh seed for everything you haven’t pinned, within the current style. <b>Continuous</b> keeps going — when a piece ends, another begins in the same style. <b>Reset</b> returns every setting to auto. <b>Copy link</b> copies a URL that reproduces the exact piece; <b>copy seed</b> copies just the seed. <b>Background</b> (experimental, for phones and tablets) renders the current piece to an audio file so it keeps playing when the screen locks.</p>
+  </section>
+
+  <section class="about-body">
+    <div class="about-kicker">Choosing the instruments</div>
+    <p>At the Advanced tier the palette dropdown is replaced by a grid of instrument checkboxes — the exact instruments in the piece. Check one to add it, uncheck to remove it.</p>
+    <p>How many instruments a piece has, and which, is decided <b>when the piece is composed</b> — it is not fixed in advance. From the style, the energy and density, and the seed, the composer draws an ensemble of musical <em>roles</em> — a lead line, chords, a bass, and perhaps drums, a pad, or a drone — and gives each role an instrument; quieter, sparser settings use fewer, and the arrangement can add or drop voices as the music’s intensity rises and falls through the piece. Because the checkboxes act on that composed ensemble, <b>unchecking an instrument reliably removes it, but checking one adds sound only if the piece has a role for it to play</b> — adding a horn won’t be heard if nothing in the current arrangement calls for one.</p>
+  </section>
+
+  <section class="about-body">
+    <div class="about-kicker">The seed</div>
+    <p>Every piece grows from a <b>seed</b> — a single number shown in the seed box, which you can edit. The seed together with your pinned settings completely determines the music: the same seed and settings always produce the same piece, note for note, and a different seed gives a different piece in the same style. Both are stored in the page address, so copying the link (or just the seed) lets you — or anyone you send it to — return to exactly this piece later. That is what makes every piece here reproducible rather than a one-time stream.</p>
+  </section>
+
+  <section class="about-body">
     <div class="about-kicker">Who makes it</div>
     <p><b>Everything here is written and built by Claude</b> (Anthropic’s AI), across many autonomous sessions directed by <a href="https://github.com/tkgally">Tom Gally</a>, who judges the music. The <a href="design/index.html">design documents</a> describe how it all works. The code, the music, and the prose are dedicated to the public domain.</p>
   </section>

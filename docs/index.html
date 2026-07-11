@@ -48,9 +48,8 @@
       </div>
     </div>
     <div class="transportSecondary">
-      <button id="reset" type="button" class="mini" title="Reset: return every manually changed setting to auto (keeps the current style and seed).">⟲ Reset</button>
-      <button id="bgmode" type="button" class="mini" aria-pressed="false" title="Background mode (experimental, for iPhone/iPad): render the current piece to an audio file so it keeps playing when the screen locks.">📱 Background</button>
-      <label class="seedWrap">seed
+      <button id="bgmode" type="button" class="mini" aria-pressed="false" title="Background mode (experimental, for iPhone/iPad): render the current piece to an audio file so it keeps playing when the screen locks.">Background</button>
+      <label class="seedWrap" title="Seed: the number that fixes this exact piece. The same seed and settings always reproduce the same music; a new seed makes a new piece. Editable, copyable, and stored in the page address.">seed
         <input id="seed" type="text" spellcheck="false" autocomplete="off">
       </label>
       <button id="copySeed" type="button" class="mini" title="Copy the seed">copy seed</button>
@@ -68,19 +67,13 @@
 
   <!-- controls: three tiers; the tier toggle above reveals Intermediate / Advanced -->
   <section class="controls-sec" aria-label="controls">
+    <div class="resetRow">
+      <button id="reset" type="button" class="resetChip" title="Reset: return every manually changed setting to auto (keeps the current style and seed).">Reset</button>
+    </div>
     <div id="startControls" class="ctlTier"></div>
     <div id="intControls" class="ctlTier" style="display:none"></div>
     <div id="advControls" class="ctlTier" style="display:none"></div>
-    <p class="autoNote">Every control starts on <b>auto</b> — the seed decides. Moving a control pins it; “auto” un-pins it. Changes land while the music plays, without restarting.</p>
   </section>
-
-  <!-- feedback -->
-  <details class="fb">
-    <summary>Send feedback</summary>
-    <p>This project improves through listening feedback. Describe what you heard (what worked, what didn’t — timestamps help), then download the file and send it to Tom: it captures the exact seed and settings, so the same piece can be reproduced.</p>
-    <textarea id="fbNotes" rows="3" placeholder="What did you hear?"></textarea>
-    <button id="fbDownload" type="button" class="mini">Download feedback JSON</button>
-  </details>
 
   <!-- footer -->
   <footer class="site-footer">

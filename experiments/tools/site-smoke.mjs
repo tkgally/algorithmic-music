@@ -204,7 +204,8 @@ async function main() {
     await p.waitForSelector('#reset', { timeout: 8000 });
     g('invent-a-style visible in Start', await p.$eval('#inventBtn', (b) => b.style.display !== 'none'), '');
     await p.click('#mode1');
-    const palOpts = await p.$$eval('[data-ctl="palette"] select option', (os) => os.map((o) => o.textContent));
+    // ignore the "choose…" auto placeholder (value ""); check the real sets only
+    const palOpts = await p.$$eval('[data-ctl="palette"] select option', (os) => os.filter((o) => o.value !== '').map((o) => o.textContent));
     g('Intermediate palette: 10-16 sets with descriptions', palOpts.length >= 10 && palOpts.length <= 16 && palOpts.every((t) => t.includes('—')), palOpts.length + ' opts');
     await p.click('#mode2');
     const palHidden = await p.$eval('[data-ctl="palette"]', (r) => r.style.display === 'none');

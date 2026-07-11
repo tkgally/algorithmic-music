@@ -586,8 +586,17 @@
     let input;
     if (c.type === 'enum') {
       input = el('select', {
-        onchange: () => { state.controls[c.id] = parseInt(input.value, 10); syncCtl(c.id); controlChanged(c.id); },
+        class: 'placeheld',
+        onchange: () => {
+          // Selecting the "choose…" placeholder (value "") returns to auto.
+          if (input.value === '') delete state.controls[c.id];
+          else state.controls[c.id] = parseInt(input.value, 10);
+          syncCtl(c.id); controlChanged(c.id);
+        },
       });
+      // Placeholder shown while the control is on auto — the seed decides, so no
+      // concrete value is displayed until the user pins one (styled italic).
+      input.appendChild(el('option', { value: '', text: 'choose…' }));
       (c.values || []).forEach((v, i) => input.appendChild(el('option', { value: String(i), text: (c.labels || c.values)[i] })));
     } else {
       input = el('input', {
@@ -615,7 +624,8 @@
     });
     head.appendChild(auto);
     row.appendChild(head);
-    if (c.gloss) row.appendChild(el('div', { class: 'checksetHint muted', text: c.gloss }));
+    // (The "check to add / uncheck to remove" explanation now lives on the About
+    //  page, not inline here; c.gloss remains as the label's hover tooltip.)
     const grid = el('div', { class: 'checkset' });
     const groups = {};
     (c.options || []).forEach((opt, i) => {
@@ -674,10 +684,15 @@
     }
     const input = row.querySelector('input,select');
     const val = row.querySelector('.ctlVal');
+    const isSelect = input.tagName === 'SELECT';
     if (pinned) {
       input.value = String(state.controls[id]);
+      if (isSelect) input.classList.remove('placeheld');
       val.textContent = fmtCtl(c, state.controls[id]);
     } else {
+      // Auto: a dropdown shows the italic "choose…" placeholder (value "");
+      // a slider keeps its thumb position but shows no value in the readout.
+      if (isSelect) { input.value = ''; input.classList.add('placeheld'); }
       val.textContent = '';
     }
   }
@@ -704,12 +719,15 @@
     if (palRow && v && v.palettes) {
       const sel = palRow.querySelector('select');
       if (sel) {
-        const cur = state.controls.palette != null ? state.controls.palette : v.paletteId;
+        const pinned = state.controls.palette != null;
         sel.innerHTML = '';
+        sel.appendChild(el('option', { value: '', text: 'choose…' }));
         v.palettes.forEach((pal, i) => {
           sel.appendChild(el('option', { value: String(i), text: pal.name + (pal.desc ? ' — ' + pal.desc : '') }));
         });
-        sel.value = String(Math.min(cur, v.palettes.length - 1));
+        // On auto the palette shows the "choose…" placeholder; a pin shows the set.
+        if (pinned) { sel.value = String(Math.min(state.controls.palette, v.palettes.length - 1)); sel.classList.remove('placeheld'); }
+        else { sel.value = ''; sel.classList.add('placeheld'); }
       }
     }
     syncCtl('instruments');
@@ -763,7 +781,9 @@
       let cur = null;
       for (const u of units) if (t >= u.startSec && t < u.startSec + u.durSec) { cur = u; break; }
       const mm = Math.floor(t / 60), ss = ('0' + Math.floor(t % 60)).slice(-2);
-      setStatus('playing ' + mm + ':' + ss + (cur ? ' · ' + cur.section + ' · bar ' + (cur.bar + 1) : '') + (fading ? ' · crossfade' : ''));
+      // section name is shown in the chips line below (renderSections), so keep
+      // this line to just the transport clock + bar number (no duplicate section).
+      setStatus('playing ' + mm + ':' + ss + (cur ? ' · bar ' + (cur.bar + 1) : '') + (fading ? ' · crossfade' : ''));
       drawViz(t);
       renderSections(t);
     }
@@ -991,7 +1011,7 @@
   }
 
   // ------------------------------------------------------------------ boot ----
-  const SITE_VERSION = '0.1.0';
+  const SITE_VERSION = '1.0.0';
   function boot() {
     buildGenreButtons();
     buildControls();
@@ -1055,7 +1075,10 @@
       if (conductor) conductor.setVolume(volume);
     });
     for (let i = 0; i < 3; i++) $('mode' + i).addEventListener('click', () => setMode(i));
-    $('fbDownload').addEventListener('click', downloadFeedback);
+    // Feedback capture stays in the code but is no longer surfaced on the player
+    // page (the #fbDownload/#fbNotes elements were removed from index.html), so
+    // wire it only if present.
+    if ($('fbDownload')) $('fbDownload').addEventListener('click', downloadFeedback);
     global.addEventListener('hashchange', () => {
       if (stateFromUrl()) { syncAllControls(); refreshGenreButtons(); setMode(state.uiMode); $('seed').value = seedHex(state.seed); refreshVectorPreview(); }
     });
