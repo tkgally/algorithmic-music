@@ -8,25 +8,48 @@
 <link rel="stylesheet" href="css/site.css">
 </head>
 <body>
-<main>
-  <header>
-    <div class="titleRow">
-      <h1>algorithmic-music</h1>
-      <span class="ver" id="siteVersion"></span>
+<div class="shell">
+
+  <!-- top bar: wordmark · tier toggle (progressive disclosure) · version -->
+  <header class="topbar">
+    <div class="wordmark">algorithmic_music<span class="caret">_</span></div>
+    <div class="topright">
       <nav class="modes" aria-label="control level">
         <button id="mode0" type="button" class="on">Start</button><button id="mode1" type="button">Intermediate</button><button id="mode2" type="button">Advanced</button>
       </nav>
+      <span class="ver" id="siteVersion"></span>
     </div>
   </header>
 
-  <!-- transport (the Play box) — directly under the mode toggles -->
-  <section class="panel transport" aria-label="transport">
-    <div class="transportRow">
+  <!-- live visualization band (the engine draws the piano roll into #viz) -->
+  <section class="vizband" aria-label="visualization">
+    <canvas id="viz" height="130" aria-hidden="true"></canvas>
+  </section>
+
+  <!-- status readout + section indicators + piece line -->
+  <section class="statusbar" aria-label="now playing">
+    <div id="nowlabel" class="now">stopped</div>
+    <div id="structSections" class="structSections"></div>
+    <div class="pieceInfo"><b id="pieceName"></b> <span id="pieceDetail" class="muted"></span></div>
+    <!-- the engine still fills these; hidden by CSS in this design -->
+    <div class="structure">
+      <div id="structDesc"></div>
+      <div id="structListen" class="muted"></div>
+    </div>
+  </section>
+
+  <!-- transport -->
+  <section class="transport" aria-label="transport">
+    <div class="transportMain">
       <button id="play" type="button" class="playBtn">▶ Play</button>
-      <button id="dice" type="button" class="diceBtn" title="New piece: reseed everything that isn't pinned, within the current style.">🎲 New piece</button>
-      <button id="loop" type="button" class="loopBtn" aria-pressed="false" title="Continuous play: when a piece ends, another begins automatically in the current style, with a new random seed (a ~1 s gap between pieces).">↻ Continuous</button>
-      <button id="reset" type="button" class="resetBtn" title="Reset: return every manually changed setting to auto (keeps the current style and seed).">⟲ Reset</button>
-      <button id="bgmode" type="button" class="loopBtn" aria-pressed="false" title="Background mode (experimental, for iPhone/iPad): render the current piece to an audio file and play it through a media element, so it keeps playing when the screen locks — with lock-screen controls. Live setting changes don't apply while a rendered piece plays; changing the style/seed re-renders.">📱 Background</button>
+      <div class="transportPrimary">
+        <button id="dice" type="button" class="tbtn" title="New piece: reseed everything that isn't pinned, within the current style.">↻ New piece</button>
+        <button id="loop" type="button" class="tbtn" aria-pressed="false" title="Continuous play: when a piece ends, another begins automatically in the current style (a ~1 s gap between pieces).">∞ Continuous</button>
+      </div>
+    </div>
+    <div class="transportSecondary">
+      <button id="reset" type="button" class="mini" title="Reset: return every manually changed setting to auto (keeps the current style and seed).">⟲ Reset</button>
+      <button id="bgmode" type="button" class="mini" aria-pressed="false" title="Background mode (experimental, for iPhone/iPad): render the current piece to an audio file so it keeps playing when the screen locks.">📱 Background</button>
       <label class="seedWrap">seed
         <input id="seed" type="text" spellcheck="false" autocomplete="off">
       </label>
@@ -34,30 +57,17 @@
       <button id="copyLink" type="button" class="mini" title="Copy a link that reproduces this exact piece">copy link</button>
       <label class="volWrap">vol <input id="volume" type="range" min="0" max="100" value="70"></label>
     </div>
-    <div class="nowRow">
-      <span id="nowlabel" class="now">stopped</span>
-      <span class="pieceInfo"><b id="pieceName"></b> <span id="pieceDetail" class="muted"></span></span>
-    </div>
-    <canvas id="viz" height="120" aria-hidden="true"></canvas>
-    <div id="structure" class="structure" aria-label="what this piece is doing">
-      <div id="structDesc"></div>
-      <div id="structSections" class="structSections"></div>
-      <div id="structListen" class="muted"></div>
-    </div>
-    <!-- Background mode (experimental): a rendered piece plays through this media
-         element so iOS keeps it going with the screen locked. Kept in the DOM and
-         off-screen (not display:none) so it stays "rendered." -->
+    <!-- background-mode media element: off-screen, not display:none, so it stays "rendered" -->
     <audio id="bgAudio" playsinline preload="auto" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px"></audio>
   </section>
 
-  <!-- genre selection: single-select (one style at a time) -->
-  <section class="panel" aria-label="style">
-    <div class="panelHead"><h2>Style</h2><span class="hintText">pick one</span></div>
+  <!-- style: single-select (the engine injects button.genre + the Invent button) -->
+  <section class="styles-sec" aria-label="style">
     <div id="genres" class="genres"></div>
   </section>
 
-  <!-- controls: three tiers, settings preserved across modes -->
-  <section class="panel" aria-label="controls">
+  <!-- controls: three tiers; the tier toggle above reveals Intermediate / Advanced -->
+  <section class="controls-sec" aria-label="controls">
     <div id="startControls" class="ctlTier"></div>
     <div id="intControls" class="ctlTier" style="display:none"></div>
     <div id="advControls" class="ctlTier" style="display:none"></div>
@@ -65,30 +75,24 @@
   </section>
 
   <!-- feedback -->
-  <details class="panel fb">
-    <summary>Send feedback to the project</summary>
-    <p class="muted">This project improves through listening feedback. Describe what you heard (what worked, what didn’t — timestamps help), then download the file and send it to Tom: it captures the exact seed and settings, so the same piece can be reproduced.</p>
+  <details class="fb">
+    <summary>Send feedback</summary>
+    <p>This project improves through listening feedback. Describe what you heard (what worked, what didn’t — timestamps help), then download the file and send it to Tom: it captures the exact seed and settings, so the same piece can be reproduced.</p>
     <textarea id="fbNotes" rows="3" placeholder="What did you hear?"></textarea>
     <button id="fbDownload" type="button" class="mini">Download feedback JSON</button>
   </details>
 
-  <section class="about">
-    <h2>About</h2>
-    <p class="muted">Instrumental music composed <em>while it plays</em>, right here in your browser — no recordings, no samples, no server. Pick a style, press play. Every piece is reproducible: the seed and your settings live in the page address, so copying the link keeps the piece. On iPhone and iPad, playback pauses when the screen locks or you leave Safari — iOS keeps only recorded media playing in the background, and this music is generated live.</p>
-    <p class="muted">This site is a single self-contained folder of original code: it composes each piece from scratch — harmony, melody, rhythm, form — and performs it with expressive timing through the Web Audio API, fetching nothing from the network. At Intermediate and Advanced levels the site can also <b>invent a style</b> — a seeded new point in style space with its own audible signatures — and every setting can change <em>while the music plays</em>: the piece morphs at the next musical boundary instead of restarting, because the composer only ever writes a few seconds ahead of what you hear.</p>
-    <p class="muted"><b>Everything here is written and built by Claude</b> (Anthropic’s AI), across many autonomous sessions directed by <a href="https://github.com/tkgally">Tom Gally</a>, who judges the music. The code, the music, and the prose are dedicated to the public domain. The five earlier <a href="preliminary-tests/index.html">preliminary test engines</a> — the style studies this site grew from — remain playable, and the <a href="design/index.html">design documents</a> describe how this works.</p>
-  </section>
-
-  <footer>
-    <p>
-      <a href="preliminary-tests/index.html">preliminary tests</a> ·
-      <a href="design/index.html">design docs</a> ·
-      <a href="https://github.com/tkgally/algorithmic-music">source &amp; knowledge base</a> ·
-      <a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0 — public domain</a>
-    </p>
-    <p class="muted">Written and built by Claude, directed by Tom Gally. Instrumental music only; every piece is generated in your browser at play time. Vanilla HTML/CSS/JS + Web Audio — no dependencies, no build step.</p>
+  <!-- footer -->
+  <footer class="site-footer">
+    <div class="footlinks">
+      <a href="about.html">About</a>
+      <a href="https://github.com/tkgally/algorithmic-music">Source</a>
+      <a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0</a>
+    </div>
+    <div>Composed in your browser · no server, no samples</div>
   </footer>
-</main>
+
+</div>
 
 <!-- original first-party libraries, classic scripts into one namespace (file://-safe) -->
 <script src="lib/rng.js"></script>
