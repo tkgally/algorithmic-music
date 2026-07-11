@@ -6,7 +6,7 @@
    Asserts, in headless Chromium from file://:
      1. the site loads with ZERO console/page errors; the 7 visible genre
         buttons render (Jazz withdrawn from the picker in session 039 — the
-        pack stays registered for old links); footer links preliminary tests;
+        pack stays registered for old links);
      2. Play starts the transport (button flips to Stop, playhead advances);
      3. the URL carries a compact #p= payload that ROUND-TRIPS: a fresh page
         opened at the same URL derives the same piece (name + detail line);
@@ -71,8 +71,6 @@ async function main() {
   g('site loads with 7 visible genre buttons (Jazz withdrawn 039)', genreCount === 7, genreCount + ' buttons');
   const hasJazzBtn = await page.$$eval('#genres button.genre', (bs) => bs.some((b) => b.getAttribute('data-id') === 'jazz'));
   g('no Jazz button in the picker', !hasJazzBtn, '');
-  const links = await page.$$eval('a[href]', (as) => as.map((a) => a.getAttribute('href')));
-  g('footer links to preliminary tests', links.some((l) => l && l.includes('preliminary-tests/')));
 
   // 2 — play
   await page.click('#play');

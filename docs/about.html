@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About — algorithmic-music</title>
+<meta name="description" content="About algorithmic-music: instrumental music composed live in your browser, written and built entirely by Claude, directed by Tom Gally. Public domain (CC0).">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  .about-hero { padding: 64px 34px 40px; border-bottom: 1px solid var(--edge); }
+  .about-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .24em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; }
+  .about-hero h1 { font-family: var(--grot); font-weight: 600; font-size: 54px; line-height: 1.05; letter-spacing: -0.01em; margin: 0; max-width: 20ch; }
+  .about-hero h1 .hl { color: var(--accent); }
+  .about-hero .lede { font-family: var(--grot); font-size: 19px; line-height: 1.6; color: #b7b3aa; max-width: 62ch; margin: 28px 0 0; }
+  .about-body { padding: 44px 34px 8px; max-width: 760px; }
+  .about-body + .about-body { padding-top: 8px; }
+  .about-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); margin-bottom: 16px; }
+  .about-body p { font-family: var(--grot); font-size: 17px; line-height: 1.7; color: var(--fg-soft); margin: 0 0 22px; }
+  .about-body p b { color: var(--fg); }
+  .about-cta { padding: 24px 34px 56px; }
+  .about-cta a { display: inline-flex; align-items: center; gap: 14px; font-family: var(--mono); font-size: 14px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; color: #0c0c0f; background: var(--accent); padding: 20px 36px; text-decoration: none; }
+  .about-cta a:hover { background: #f6c079; }
+  @media (max-width: 860px) {
+    .about-hero, .about-body, .about-cta { padding-left: 20px; padding-right: 20px; }
+    .about-hero h1 { font-size: 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <div class="wordmark">algorithmic_music<span class="caret">_</span></div>
+    <a href="index.html" style="font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:#0c0c0f; background:var(--accent); padding:8px 16px; text-decoration:none;">▶ Open the player</a>
+  </header>
+
+  <section class="about-hero">
+    <div class="about-eyebrow">About</div>
+    <h1>Instrumental music, composed <span class="hl">while it plays</span> — right here in your browser.</h1>
+    <p class="lede">No recordings, no samples, no server. Pick a style, press play. Every piece is reproducible: the seed and your settings live in the page address, so copying the link keeps the piece exactly.</p>
+  </section>
+
+  <section class="about-body">
+    <div class="about-kicker">How it works</div>
+    <p>This site is a single self-contained folder of original code. It composes each piece from scratch — harmony, melody, rhythm, form — and performs it with expressive timing through the Web Audio API, fetching nothing from the network.</p>
+    <p>At Intermediate and Advanced levels the site can also <b>invent a style</b> — a seeded new point in style space with its own audible signatures. Every setting can change <em>while the music plays</em>: the piece morphs at the next musical boundary instead of restarting, because the composer only ever writes a few seconds ahead of what you hear.</p>
+    <p>On iPhone and iPad, playback pauses when the screen locks or you leave Safari — iOS keeps only recorded media playing in the background, and this music is generated live.</p>
+  </section>
+
+  <section class="about-body">
+    <div class="about-kicker">Who makes it</div>
+    <p><b>Everything here is written and built by Claude</b> (Anthropic’s AI), across many autonomous sessions directed by <a href="https://github.com/tkgally">Tom Gally</a>, who judges the music. The <a href="design/index.html">design documents</a> describe how it all works. The code, the music, and the prose are dedicated to the public domain.</p>
+  </section>
+
+  <section class="about-cta">
+    <a href="index.html">▶ Pick a style, press play</a>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footlinks">
+      <a href="index.html">Player</a>
+      <a href="https://github.com/tkgally/algorithmic-music">Source</a>
+      <a href="https://github.com/tkgally/algorithmic-music/blob/main/LICENSE">CC0</a>
+    </div>
+    <div>Written &amp; built by Claude · directed by Tom Gally</div>
+  </footer>
+
+</div>
+</body>
+</html>
