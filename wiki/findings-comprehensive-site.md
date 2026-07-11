@@ -59,6 +59,7 @@ The v1 URL payload (6-bit version, 32-bit seed, 2-bit mode, two 4-bit genre code
 - **Live morph edge cases**: rapid repeated genre swaps stack crossfades sanely (the previous outgoing conductor is force-faded), but a swap *during* a swap hasn't been stress-tested beyond the smoke.
 - **No playlist/queue, no visual theming options** — vision items for later phases.
 - **Vinyl-crackle bed for lo-fi** (Engine 03 had one in-engine; the shared synth has no crackle voice yet).
+- **No background/lock-screen playback on iOS** (Tom, 2026-07-11). Playback stops when an iPhone screen locks or Safari is backgrounded — deliberate iOS behavior: it suspends the `AudioContext` and reserves background audio for `<audio>`/`<video>` media elements, which a live Web Audio engine is not. A generative engine is doubly blocked (the frozen background JS timer would also starve the compose-ahead scheduler), so a robust fix means both a media-element bridge *and* worklet-based scheduling — a real project for uncertain payoff on iOS. Decision: **document, don't pursue** a fragile workaround. Full mechanism and the option tradeoffs (MediaStream bridge · pre-render-to-file · Screen Wake Lock): [web-audio-fundamentals](web-audio-fundamentals.md) → "Background and lock-screen playback." The site's About now notes this to iPhone listeners.
 
 ## Product decisions from Tom's first listen (session 035)
 

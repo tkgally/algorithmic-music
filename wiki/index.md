@@ -105,7 +105,7 @@ The catalog of every page in this wiki, grouped for navigation. One-line summari
 
 ## Browser implementation
 
-- [web-audio-fundamentals](web-audio-fundamentals.md) ·reviewed — The audio-graph mental model, AudioContext lifecycle, AudioParam automation and click-safety, the node zoo, envelope patterns, and OfflineAudioContext rendering — the base layer every engine builds on.
+- [web-audio-fundamentals](web-audio-fundamentals.md) ·reviewed — The audio-graph mental model, AudioContext lifecycle (including mobile background/lock-screen suspension), AudioParam automation and click-safety, the node zoo, envelope patterns, and OfflineAudioContext rendering — the base layer every engine builds on.
 - [scheduling-and-timing](scheduling-and-timing.md) ·reviewed — How to schedule notes sample-accurately from JavaScript — the two-clock problem, the lookahead pattern, hidden-tab throttling, tempo maps, latency compensation, and long-session stability.
 - [synthesis-recipes](synthesis-recipes.md) ·reviewed — Practical node-graph recipes with starting parameters for basses, keys, plucks, mallets, organs, pads, winds, and drums — convincing instruments from oscillators, filters, and noise alone.
 - [original-sound-design](original-sound-design.md) ·reviewed — Why oscillator-plus-filter voices read as "a synthesizer" even when well made, and a repertoire of original, sample-free techniques (micro-pitch drift, fixed body/formant resonance, differentiated onset transients, decorrelated partial motion, slight inharmonicity) that push a voice toward sounding like a physical, living instrument rather than a generic patch.
