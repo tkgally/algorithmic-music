@@ -81,6 +81,9 @@
     { name: 'Glass & bells', desc: 'crystalline high shimmer — glass lead with bell/chime accents', map: { lead: 'glass', counter: 'chime', comp: 'bell', tex: 'bell' } },
     { name: 'Electric', desc: 'a blooming electric-guitar-like lead', map: { lead: 'wire', counter: 'wire' } },
     { name: 'Mallets & plucks', desc: 'struck, plucked timbres — mallet lead over a plucked comp', map: { lead: 'mallet', comp: 'pluck', counter: 'mallet' } },
+    // session 039 (Tom: richer, sustained, variable-pitch voices):
+    { name: 'Voice & organ', desc: 'a soft singing voice over a glowing sustained organ', map: { lead: 'voce', counter: 'voce', comp: 'organ', tex: 'organ', pad: 'organ' } },
+    { name: 'Dark brass', desc: 'a dark, blooming brass-like lead over sustained chords', map: { lead: 'horn', counter: 'horn', comp: 'chord' } },
   ];
 
   // ---- Master instrument list (Advanced instrument checkboxes) --------------
@@ -114,7 +117,12 @@
     { voice: 'metal', label: 'Metal', group: 'Percussion', role: 'timeline' },
     { voice: 'boom', label: 'Low drum', group: 'Percussion', role: 'boom' },
     { voice: 'gong', label: 'Gong', group: 'Percussion', role: 'perc2' },
-  ]; // 24 instruments -> the `instruments` control is a 24-bit mask (V2 URL)
+    // session 039 additions (append-only — the mask widened 24->27 bits in the
+    // V3 URL layout; V2 links with 24-bit masks still decode):
+    { voice: 'organ', label: 'Organ', group: 'Melodic', role: 'comp' },
+    { voice: 'horn', label: 'Horn / brass', group: 'Melodic', role: 'lead' },
+    { voice: 'voce', label: 'Voice', group: 'Melodic', role: 'lead' },
+  ]; // 27 instruments -> the `instruments` control is a 27-bit mask (V3 URL)
   const ROLE_REG = { lead: [62, 86], comp: [50, 72], counter: [58, 80], pad: [46, 70], tex: [52, 76], bass: [36, 55], drone: [33, 45], kick: [0, 0], snare: [0, 0], hat: [0, 0], perc1: [0, 0], perc2: [0, 0], timeline: [0, 0], boom: [0, 0] };
   const ROLE_LVL = { lead: 0.95, comp: 0.5, counter: 0.6, pad: 0.4, tex: 0.4, bass: 0.75, drone: 0.6, kick: 0.9, snare: 0.8, hat: 0.5, perc1: 0.55, perc2: 0.45, timeline: 0.5, boom: 0.7 };
 
@@ -318,6 +326,15 @@
     [{ role: 'lead', voice: 'mallet' }, { role: 'comp', voice: 'bell' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'drum' }, { role: 'perc2', voice: 'clap' }],
     [{ role: 'lead', voice: 'reed' }, { role: 'pad', voice: 'pad' }, { role: 'bass', voice: 'bass' }, { role: 'kick', voice: 'kick' }, { role: 'snare', voice: 'snare' }, { role: 'hat', voice: 'hat' }],
     [{ role: 'lead', voice: 'chime' }, { role: 'pad', voice: 'pad' }, { role: 'drone', voice: 'drone' }, { role: 'perc1', voice: 'metal' }, { role: 'perc2', voice: 'shaker' }],
+    // --- session 039: sustained rich-voice ensembles (organ / horn / voce) ---
+    [{ role: 'lead', voice: 'voce' }, { role: 'pad', voice: 'organ' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'horn' }, { role: 'comp', voice: 'chord' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'aria' }, { role: 'comp', voice: 'organ' }, { role: 'drone', voice: 'drone' }],
+    [{ role: 'lead', voice: 'organ' }, { role: 'comp', voice: 'pluck' }, { role: 'bass', voice: 'bass' }],
+    [{ role: 'lead', voice: 'voce' }, { role: 'comp', voice: 'rhodes' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'shaker' }],
+    [{ role: 'lead', voice: 'horn' }, { role: 'pad', voice: 'pad' }, { role: 'bass', voice: 'bass' }, { role: 'kick', voice: 'kick' }, { role: 'hat', voice: 'hat' }],
+    [{ role: 'lead', voice: 'glass' }, { role: 'comp', voice: 'organ' }, { role: 'drone', voice: 'drone' }, { role: 'perc2', voice: 'chime' }],
+    [{ role: 'lead', voice: 'voce' }, { role: 'comp', voice: 'aria' }, { role: 'bass', voice: 'bass' }, { role: 'perc1', voice: 'wood' }],
   ];
 
   function invent(rng, opts) {
@@ -329,7 +346,7 @@
       name: 'Invented style',
       scale: r.weighted(['dorian', 'mixolydian', 'naturalMinor', 'major', 'lydian', 'majorPentatonic', 'minorPentatonic'], [0.2, 0.16, 0.16, 0.14, 0.12, 0.12, 0.1]),
       tonicPc: r.int(0, 11),
-      harmonyType: r.weighted(HARMONY_TYPES, [0.22, 0.34, 0.26, 0.18]),
+      harmonyType: r.weighted(HARMONY_TYPES, [0.24, 0.36, 0.26, 0.14]), // drone trimmed (039): static harmony narrows every texture's room to move
       harmonicRhythm: r.weighted([0.5, 1, 2], [0.3, 0.55, 0.15]),
       harmRich: 0.15 + 0.5 * r.next(),
       timeline: 'none',
@@ -437,10 +454,25 @@
       v.harmonicRhythm = Math.max(1, v.harmonicRhythm);
       v.bpm = Math.min(v.bpm, 116);                      // homorhythm at speed = machine-gun chords
       if (rhythmMode === 'groove') rhythmMode = 'cell';
+      // a chorale IS moving chords: over a static drone it collapses to one
+      // repeated sonority (Tom's 2026-07-11 repeated-note report, seed
+      // c069e05b — the lead hammered a single pitch for the whole piece)
+      if (v.harmonyType === 'drone') v.harmonyType = 'modal';
     } else if (texture === 'strata') {
       v.harmonicRhythm = Math.min(v.harmonicRhythm, 1);  // dense surface ↔ slow harmony
     } else if (texture === 'ostinatoWeb') {
       if (v.harmonyType === 'functional') v.harmonyType = 'loop'; // a ground wants a cycle
+    }
+    // Singing textures want singing voices (session 039): chorale and
+    // tintinnabuli live on held tones — a fast-decaying struck lead leaves
+    // their long slots hanging in silence. Usually remap such a lead to a
+    // sustained voice (kept probabilistic so a bell-led chorale stays possible).
+    if (texture === 'chorale' || texture === 'tintinnabuli') {
+      const PLONKY = { bell: 1, pluck: 1, mallet: 1, chime: 1, melody: 1, rhodes: 1, metal: 1 };
+      const leadSlot = v.ensemble.find((e) => e.role === 'lead');
+      if (leadSlot && PLONKY[leadSlot.voice] && k.bool(0.7)) {
+        leadSlot.voice = k.pick(['aria', 'voce', 'organ', 'reed', 'glass']);
+      }
     }
     // chord-rate ceiling: a chord change every < ~0.6 s reads as texture, not
     // harmony — cap the harmonicRhythm novelty against bar length and tempo
@@ -464,10 +496,11 @@
       const keep = new Set(pillars);
       const cellSig = v.signatures.filter((s) => s.type === 'intervalCell')[0];
       if (cellSig) {
+        // SCALES entries are semitone offsets from the tonic — match the
+        // cell's intervals against them directly (039 fix; the old step-wise
+        // accumulation produced out-of-scale degree pitch classes)
         const pat = theory.SCALES[v.scale] || theory.SCALES.major;
-        const degPc = []; let acc = 0;
-        for (let i = 0; i < pat.length; i++) { degPc.push(acc % 12); acc += pat[i]; }
-        for (const iv of cellSig.cell) { const d = degPc.indexOf(((iv % 12) + 12) % 12); if (d >= 0) keep.add(d); }
+        for (const iv of cellSig.cell) { const d = pat.indexOf(((iv % 12) + 12) % 12); if (d >= 0) keep.add(d); }
       }
       const droppable = k.shuffle([1, 2, 3, 4, 5, 6].filter((d) => !keep.has(d)));
       const drop = new Set(droppable.slice(0, Math.max(0, scaleLen - size)));
@@ -643,7 +676,7 @@
     { id: 'melRange', label: 'Melodic range', tier: 'adv', group: 'Harmony (advanced)', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
       gloss: 'narrow ↔ wide melodic compass', hint: 'narrow ↔ wide',
       apply(v, x) { v.grammar = Object.assign({}, v.grammar, { range: 7 + Math.round(13 * (x / 4)) }); } },
-    { id: 'instruments', label: 'Instruments', tier: 'adv', group: 'Instruments', type: 'checkset', options: MASTER_INSTRUMENTS, bits: 24, speed: 'boundary',
+    { id: 'instruments', label: 'Instruments', tier: 'adv', group: 'Instruments', type: 'checkset', options: MASTER_INSTRUMENTS, bits: 27, speed: 'boundary',
       gloss: 'the exact instruments in the piece — check to add, uncheck to remove',
       apply(v, mask) {
         if (!mask) return;                         // 0 = untouched: keep the natural ensemble

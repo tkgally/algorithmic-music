@@ -389,11 +389,12 @@ test('site: a zero instrument mask leaves the natural ensemble untouched', () =>
   eq(AM.style.effectiveEnsemble(b).map((e) => e.voice), AM.style.effectiveEnsemble(a).map((e) => e.voice));
 });
 
-test('site: every genre exposes 8 instrument palettes (3+ authored + 5 generic)', () => {
+test('site: every genre exposes authored + 7 generic instrument palettes', () => {
   for (const p of AM.styles.list()) {
     const v = AM.style.buildVector(3, { a: p.id, b: null, invent: false }, {});
-    ok(v.palettes.length === v.paletteAuthored + 5, p.id + ' has authored+5 palettes');
-    ok(v.palettes.length >= 8, p.id + ' has >= 8 palettes (' + v.palettes.length + ')');
+    ok(v.palettes.length === v.paletteAuthored + 7, p.id + ' has authored+7 palettes');
+    ok(v.palettes.length >= 10, p.id + ' has >= 10 palettes (' + v.palettes.length + ')');
+    ok(v.palettes.length <= 16, p.id + ' palettes fit the 4-bit palette control');
     ok(v.palettes.every((pal) => pal.desc), p.id + ' palettes all have descriptions');
   }
 });
@@ -410,9 +411,32 @@ test('site: URL codec rejects garbage without throwing', () => {
   eq(AM.serialize.decode('AAAA'), null); // version 0 -> unknown
 });
 
-test('site: current (V2) URL layout snapshot matches the live control registry', () => {
+test('site: current (V3) URL layout snapshot matches the live control registry', () => {
   const live = AM.style.CONTROLS.map((c) => [c.id, c.bits]);
-  eq(AM.serialize.V2_CONTROLS, live, 'V2 layout must mirror the live registry (id + bits)');
+  eq(AM.serialize.V3_CONTROLS, live, 'V3 layout must mirror the live registry (id + bits)');
+  eq(AM.serialize.CUR_VERSION, 3);
+});
+
+test('site: V2 layout stays frozen (only the instrument mask widened in V3)', () => {
+  const v2 = AM.serialize.V2_CONTROLS, v3 = AM.serialize.V3_CONTROLS;
+  eq(v2.length, v3.length, 'same field list');
+  for (let i = 0; i < v2.length; i++) {
+    eq(v2[i][0], v3[i][0], 'field id at ' + i);
+    if (v2[i][0] !== 'instruments') eq(v2[i][1], v3[i][1], 'width unchanged at ' + v2[i][0]);
+  }
+  eq(v2.filter(([id]) => id === 'instruments')[0][1], 24);
+  eq(v3.filter(([id]) => id === 'instruments')[0][1], 27);
+  // a V2 link (24-bit mask) still decodes: build one by hand, nothing pinned
+  const w = new AM.serialize.BitWriter();
+  w.write(2, 6); w.write(0xabad1dea >>> 0, 32); w.write(1, 2); w.write(4, 4); w.write(15, 4);
+  for (let i = 0; i < v2.length; i++) w.write(0, 1);
+  const dec = AM.serialize.decode(w.toBase64url());
+  eq(dec.seed, 0xabad1dea >>> 0, 'V2 link still decodes');
+  eq(dec.sel.a, 4);
+  // and a V3 round-trip carries a mask that uses the three new high bits
+  const mask = ((1 << 26) | (1 << 25) | (1 << 24) | 1) >>> 0;
+  const rt = AM.serialize.decode(AM.serialize.encode({ seed: 7, uiMode: 2, sel: { a: 0, b: null, invent: false }, controls: { instruments: mask } }));
+  eq(rt.controls.instruments >>> 0, mask, 'V3 27-bit instrument mask round-trips');
 });
 
 test('site: V1 layout stays a frozen historical prefix (ids match; only palette width changed)', () => {
@@ -445,4 +469,125 @@ test('site: sieves and tendency masks are deterministic', () => {
   const r1 = new AM.rng.Rng(7);
   const v = t(r1, 0.5);
   ok(v >= 5 && v <= 7);
+});
+
+// ---- session 039: expression layer, rich voices, repeated-note guards ----
+
+function leadLineStats(events) {
+  const lead = events.filter((e) => e.role === 'lead' && e.midi != null).sort((a, b) => a.tSec - b.tSec);
+  let maxRun = 0, run = 0, prev = null;
+  for (const e of lead) { run = e.midi === prev ? run + 1 : 1; if (run > maxRun) maxRun = run; prev = e.midi; }
+  return { n: lead.length, distinct: new Set(lead.map((e) => e.midi)).size, maxRun, lead };
+}
+
+test('site 039: the chorale-over-drone seed no longer hammers one pitch (Tom 2026-07-11)', () => {
+  // Tom's shared link #p=CwGngWyPIAAAAAA decodes to this invented seed; before
+  // the fixes its lead played one MIDI pitch 61 times running (3 distinct
+  // pitches in 65 notes) — a chorale whose chord-tone-locked top voice met a
+  // drone (one chord forever) and a gamut corrupted by the offsets-as-steps bug.
+  const dec = AM.serialize.decode('CwGngWyPIAAAAAA');
+  eq(dec.seed >>> 0, 3228164187, 'the reported link decodes to the expected seed');
+  ok(dec.sel.invent, 'it is an invented style');
+  const { events } = composeAll(dec.seed >>> 0, { a: null, b: null, invent: true }, dec.controls);
+  const st = leadLineStats(events);
+  ok(st.distinct >= 5, 'lead has >= 5 distinct pitches (got ' + st.distinct + ')');
+  ok(st.maxRun <= 8, 'longest same-pitch run <= 8 (got ' + st.maxRun + ')');
+});
+
+test('site 039: invented lead lines avoid long single-pitch runs (24-seed sweep)', () => {
+  for (let i = 0; i < 24; i++) {
+    const seed = (0x9e3779b9 * (i + 1)) >>> 0;
+    const { events, vec } = composeAll(seed, { a: null, b: null, invent: true }, { length: 0 });
+    const st = leadLineStats(events);
+    if (st.n < 24) continue; // sparse leads (breaks, thin textures) are fine
+    ok(st.maxRun <= 12, 'seed ' + seed.toString(16) + ' (' + vec.kernel.texture + '): run ' + st.maxRun + ' <= 12');
+    ok(st.distinct >= 4, 'seed ' + seed.toString(16) + ' (' + vec.kernel.texture + '): ' + st.distinct + ' distinct pitches');
+  }
+});
+
+test('site 039: the melodic gamut is a true subset of the scale (offsets-as-steps fix)', () => {
+  const pcOf = (m) => ((m % 12) + 12) % 12;
+  for (let i = 0; i < 25; i++) {
+    const seed = (0x51ed2701 * (i + 1) + 11) >>> 0;
+    const v = AM.style.buildVector(seed, { a: null, b: null, invent: true }, {});
+    const scalePcs = new Set((AM.theory.SCALES[v.scale] || AM.theory.SCALES.major).map((off) => pcOf(v.tonicPc + off)));
+    const g = AM.invent._internals.gamutPcs(v, v.kernel);
+    for (const pc of g) ok(scalePcs.has(pc), 'seed ' + seed.toString(16) + ': gamut pc ' + pc + ' is in ' + v.scale + ' on ' + v.tonicPc);
+    ok(g.size >= 4, 'gamut keeps at least 4 pitch classes');
+  }
+});
+
+test('site 039: a chorale kernel never sits on a drone (coherence coupling)', () => {
+  let seen = 0;
+  for (let i = 0; i < 120 && seen < 6; i++) {
+    const v = AM.style.buildVector((0x2545f491 * (i + 1)) >>> 0, { a: null, b: null, invent: true }, {});
+    if (v.kernel.texture !== 'chorale') continue;
+    seen++;
+    ok(v.harmonyType !== 'drone', 'chorale harmony moves (got ' + v.harmonyType + ')');
+  }
+  ok(seen >= 3, 'sweep actually saw chorale kernels (' + seen + ')');
+});
+
+test('site 039: legato — a classical lead binds inside phrases and breathes between them', () => {
+  const { events, vec } = composeAll(11, { a: 'classical', b: null, invent: false }, {});
+  const lead = events.filter((e) => e.role === 'lead' && e.midi != null).sort((a, b) => a.tSec - b.tSec);
+  ok(lead.length > 30, 'enough lead notes to judge');
+  let overlaps = 0, gaps = 0, pairs = 0;
+  for (let i = 0; i + 1 < lead.length; i++) {
+    const a = lead[i], b = lead[i + 1];
+    if (b.tSec - a.tSec < 1e-3) continue; // chordal/simultaneous
+    pairs++;
+    const end = a.tSec + a.durSec;
+    if (end > b.tSec + 0.005) overlaps++;
+    else if (end < b.tSec - 0.05) gaps++;
+  }
+  ok(overlaps / pairs > 0.25, 'a good share of lead pairs overlap legato (' + overlaps + '/' + pairs + ')');
+  ok(gaps > 2, 'phrase boundaries still breathe (' + gaps + ' gaps)');
+  ok(vec.rubato >= 0.45, 'classical draws a real rubato allowance');
+});
+
+test('site 039: groove leads stay detached (legato follows the style)', () => {
+  const { events } = composeAll(21, { a: 'lofi', b: null, invent: false }, {});
+  const lead = events.filter((e) => e.role === 'lead' && e.midi != null).sort((a, b) => a.tSec - b.tSec);
+  let overlaps = 0, pairs = 0;
+  for (let i = 0; i + 1 < lead.length; i++) {
+    const a = lead[i], b = lead[i + 1];
+    if (b.tSec - a.tSec < 1e-3) continue;
+    pairs++;
+    if (a.tSec + a.durSec > b.tSec + 0.005) overlaps++;
+  }
+  ok(pairs === 0 || overlaps / pairs < 0.5, 'lofi lead pairs mostly detached (' + overlaps + '/' + pairs + ')');
+});
+
+test('site 039: new sustained voices are registered and receive expression + portamento', () => {
+  for (const v of ['organ', 'horn', 'voce']) ok(typeof SYNTH.VOICES[v] === 'function', v + ' voice registered');
+  const vec = AM.style.buildVector(5, { a: 'classical', b: null, invent: false }, {});
+  const unit = {
+    lengthBeats: 4, intensity: 0.8, arcLevel: 0.9,
+    notes: [
+      { beat: 0, durBeats: 2, midi: 72, voice: 'voce', role: 'lead', weight: 0.8, tags: ['phraseStart'] },
+      { beat: 2, durBeats: 2, midi: 74, voice: 'voce', role: 'lead', weight: 0.6, tags: [] },
+    ],
+  };
+  const perf = AM.perform.realize(unit, vec, new AM.rng.Rng(1).stream('x'), {});
+  const evs = perf.events.filter((e) => e.voice === 'voce');
+  eq(evs.length, 2);
+  ok(evs[0].expr && evs[0].expr.vibDepth > 0, 'first note carries vibrato expression');
+  ok(evs[1].expr && typeof evs[1].expr.onsetCents === 'number' && evs[1].expr.onsetCents < 0,
+    'the slurred second note glides from the previous pitch (portamento, got ' + (evs[1].expr && evs[1].expr.onsetCents) + ')');
+  ok(evs[0].tSec + evs[0].durSec > evs[1].tSec, 'the pair overlaps (legato)');
+});
+
+test('site 039: jazz stays registered for old links though hidden from the picker', () => {
+  const p = AM.styles.get('jazz');
+  ok(p && p.order === 3, 'jazz pack registered at its frozen URL order');
+  const v = AM.style.buildVector(42, { a: 'jazz', b: null, invent: false }, {});
+  eq(v.strategy, 'jazz', 'a jazz link still builds a playable vector');
+});
+
+test('site 039: master instrument list has 27 entries; new voices appended (mask stability)', () => {
+  eq(AM.style.MASTER_INSTRUMENTS.length, 27);
+  eq(AM.style.MASTER_INSTRUMENTS.slice(24).map((m) => m.voice), ['organ', 'horn', 'voce']);
+  const known = new Set(Object.keys(SYNTH.VOICES));
+  for (const m of AM.style.MASTER_INSTRUMENTS) ok(known.has(m.voice), m.voice + ' exists in synth');
 });

@@ -4,8 +4,9 @@
    site (docs/index.html): the ui-smoke counterpart for the new site.
 
    Asserts, in headless Chromium from file://:
-     1. the site loads with ZERO console/page errors; all 8 genre buttons
-        render; the footer still links to the preliminary tests;
+     1. the site loads with ZERO console/page errors; the 7 visible genre
+        buttons render (Jazz withdrawn from the picker in session 039 — the
+        pack stays registered for old links); footer links preliminary tests;
      2. Play starts the transport (button flips to Stop, playhead advances);
      3. the URL carries a compact #p= payload that ROUND-TRIPS: a fresh page
         opened at the same URL derives the same piece (name + detail line);
@@ -20,8 +21,9 @@
      8. continuous play advances to a fresh piece (new conductor + new seed)
         without stopping the transport;
      9. batch-2 controls: invent-a-style in Start, the Intermediate palette
-        dropdown (8 described sets), the Advanced instrument checkboxes + new
-        parameters, the reset button, and the live structure window.
+        dropdown (10+ described sets), the Advanced instrument checkboxes
+        (27 as of session 039) + new parameters, the reset button, and the
+        live structure window.
 
    Usage:  node experiments/tools/site-smoke.mjs [--json] [--quick]
            --quick skips the per-genre spin (step 6).
@@ -63,7 +65,9 @@ async function main() {
 
   // 1 — shell
   const genreCount = await page.$$eval('#genres button.genre:not(#inventBtn)', (b) => b.length);
-  g('site loads with 8 genre buttons', genreCount === 8, genreCount + ' buttons');
+  g('site loads with 7 visible genre buttons (Jazz withdrawn 039)', genreCount === 7, genreCount + ' buttons');
+  const hasJazzBtn = await page.$$eval('#genres button.genre', (bs) => bs.some((b) => b.getAttribute('data-id') === 'jazz'));
+  g('no Jazz button in the picker', !hasJazzBtn, '');
   const links = await page.$$eval('a[href]', (as) => as.map((a) => a.getAttribute('href')));
   g('footer links to preliminary tests', links.some((l) => l && l.includes('preliminary-tests/')));
 
@@ -200,13 +204,13 @@ async function main() {
     g('invent-a-style visible in Start', await p.$eval('#inventBtn', (b) => b.style.display !== 'none'), '');
     await p.click('#mode1');
     const palOpts = await p.$$eval('[data-ctl="palette"] select option', (os) => os.map((o) => o.textContent));
-    g('Intermediate palette: 8 sets with descriptions', palOpts.length === 8 && palOpts.every((t) => t.includes('—')), palOpts.length + ' opts');
+    g('Intermediate palette: 10-16 sets with descriptions', palOpts.length >= 10 && palOpts.length <= 16 && palOpts.every((t) => t.includes('—')), palOpts.length + ' opts');
     await p.click('#mode2');
     const palHidden = await p.$eval('[data-ctl="palette"]', (r) => r.style.display === 'none');
     const nBoxes = await p.$$eval('[data-ctl="instruments"] input[type=checkbox]', (b) => b.length);
     const nChecked = await p.$$eval('[data-ctl="instruments"] input[type=checkbox]:checked', (b) => b.length);
     const advCtls = await p.$$eval('#advControls [data-ctl]', (rs) => rs.map((r) => r.getAttribute('data-ctl')));
-    g('Advanced replaces palette with instrument checkboxes', palHidden && nBoxes === 24 && nChecked >= 2, 'hidden=' + palHidden + ' boxes=' + nBoxes + ' checked=' + nChecked);
+    g('Advanced replaces palette with instrument checkboxes', palHidden && nBoxes === 27 && nChecked >= 2, 'hidden=' + palHidden + ' boxes=' + nBoxes + ' checked=' + nChecked);
     g('Advanced exposes the new params', ['laidBack', 'rubato', 'harmonicRhythm', 'stepBias', 'melRange'].every((id) => advCtls.includes(id)), '');
     // uncheck an active instrument -> removed from the composition
     const before = await p.evaluate(() => AM.style.effectiveEnsemble(window.AMApp.buildVector()).map((e) => e.voice));

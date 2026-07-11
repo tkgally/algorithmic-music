@@ -198,12 +198,12 @@
   };
 
   window.__checkSerialize = function () {
-    // the CURRENT (V2) layout must mirror the live control registry (id + bits)
+    // the CURRENT (V3) layout must mirror the live control registry (id + bits)
     const live = AM.style.CONTROLS.map((c) => [c.id, c.bits]);
-    const v2 = AM.serialize.V2_CONTROLS;
-    let layoutOk = v2.length === live.length;
-    for (let i = 0; i < v2.length && layoutOk; i++) {
-      if (v2[i][0] !== live[i][0] || v2[i][1] !== live[i][1]) layoutOk = false;
+    const v3 = AM.serialize.V3_CONTROLS;
+    let layoutOk = v3.length === live.length;
+    for (let i = 0; i < v3.length && layoutOk; i++) {
+      if (v3[i][0] !== live[i][0] || v3[i][1] !== live[i][1]) layoutOk = false;
     }
     // pack orders must be unique, 0..7
     const orders = AM.styles.list().map((p) => p.order).sort((a, b) => a - b);

@@ -102,11 +102,14 @@
       canon: null, strata: null, tin: null, respGap: 2, midCycle: 2, endTogether: false,
     };
   }
+  // theory.SCALES entries are SEMITONE OFFSETS from the tonic (major =
+  // [0,2,4,5,7,9,11]), not step sizes. Session 038 accumulated them as steps,
+  // which made the gamut a set of mostly out-of-scale pitch classes — when its
+  // accidental overlap with the real scale was 1-2 pitch classes, the melodic
+  // pool collapsed and the lead hammered one note (Tom's 2026-07-11 report).
   function degreePcs(vector) {
     const pat = theory.SCALES[vector.scale] || theory.SCALES.major;
-    const out = []; let acc = 0;
-    for (let i = 0; i < pat.length; i++) { out.push(pcOf(vector.tonicPc + acc)); acc += pat[i]; }
-    return out;
+    return pat.map((off) => pcOf(vector.tonicPc + off));
   }
   function gamutPcs(vector, K) {
     const degs = degreePcs(vector);
@@ -121,10 +124,12 @@
     for (const d of K.pillars) if (d < degs.length) s.add(degs[d]);
     return s;
   }
-  // tonic-triad pitch classes (for the tintinnabuli T-voice and ring-out colors)
+  // tonic-triad pitch classes (for the tintinnabuli T-voice and ring-out
+  // colors) — SCALES entries are offsets (see degreePcs), so map directly
   function triadPcs(vector) {
     const hs = compose.harmonicScale(vector.scale);
-    const degs = (function () { const pat = theory.SCALES[hs]; const out = []; let acc = 0; for (let i = 0; i < pat.length; i++) { out.push(pcOf(vector.tonicPc + acc)); acc += pat[i]; } return out; })();
+    const pat = theory.SCALES[hs] || theory.SCALES.major;
+    const degs = pat.map((off) => pcOf(vector.tonicPc + off));
     return [degs[0], degs[2 % degs.length], degs[4 % degs.length]];
   }
 
@@ -635,6 +640,7 @@
         const slots = bars * 2;
         const goal = compose.nearestInPool(use, (reg[0] + reg[1]) / 2 - 2, new Set(pillars));
         let cur = compose.nearestInPool(use, (reg[0] + reg[1]) / 2 + 2) || use[0];
+        let parked = 0;
         for (let s = 0; s < slots; s++) {
           const t = s / Math.max(1, slots - 1);
           const target = cur + (goal - cur) * t;
@@ -642,6 +648,15 @@
           const chPcs = new Set(ch.notes.map(pcOf));
           let m = compose.nearestInPool(use, target, s === slots - 1 ? new Set(pillars) : (s % 2 === 0 ? chPcs : null));
           if (m == null) m = compose.nearestInPool(use, target);
+          // once the walk reaches its goal early it would sit there for the
+          // rest of the phrase, and the figuration above it hammers one pitch
+          // (039 repeated-note pass): swing to a pool NEIGHBOR instead — the
+          // upper/lower auxiliary around a held goal tone, gamelan-style
+          if (m === cur) parked++; else parked = 0;
+          if (parked >= 2 && s < slots - 1) {
+            const idx = use.indexOf(m);
+            if (idx >= 0) { m = use[clamp(idx + (s % 2 === 0 ? 1 : -1), 0, use.length - 1)]; parked = 0; }
+          }
           skel.push(m);
           if (roles.mid1) mk(notes, L, roles.mid1, s * bb / 2, bb / 2 + 0.1, m, 0.5);
           cur = m;
@@ -655,6 +670,10 @@
         const use = pool.length >= 4 ? pool : compose.scalePool(vector, reg);
         const perSkel = Math.max(2, Math.round(mult / 2));
         const step = (bb / 2) / perSkel;
+        let prevM = null; // figuration must circle the skeleton, not sit on it:
+        // when the skeleton pauses (from === to) the ±2 nudge can round back to
+        // the same pool note over and over — take the other side or a pool
+        // neighbor instead (part of the 039 repeated-note pass)
         for (let s = 0; s < skel.length; s++) {
           const from = nearestOct(skel[s], reg);
           const to = nearestOct(skel[Math.min(s + 1, skel.length - 1)], reg);
@@ -664,7 +683,19 @@
             let m;
             if (i === 0) m = from;
             else if (i === perSkel - 1) m = compose.nearestInPool(use, to) || to;
-            else m = compose.nearestInPool(use, from + (to - from) * t + (rng.bool(0.5) ? 2 : -2));
+            else {
+              const off = rng.bool(0.5) ? 2 : -2;
+              m = compose.nearestInPool(use, from + (to - from) * t + off);
+              if (m === prevM) {
+                const alt = compose.nearestInPool(use, from + (to - from) * t - off);
+                if (alt != null && alt !== prevM) m = alt;
+                else {
+                  const idx = use.indexOf(prevM);
+                  if (idx >= 0) m = use[clamp(idx + (off > 0 ? 1 : -1), 0, use.length - 1)];
+                }
+              }
+            }
+            prevM = m;
             mk(notes, L, lead, s * bb / 2 + i * step, step * 1.1, m, 0.52 + 0.14 * ctx.I * (i === 0 ? 1.2 : 1));
           }
         }
@@ -733,18 +764,49 @@
       const leadPool = compose.scalePool(vector, leadReg);
       const leadG = leadPool.filter((m) => g.has(pcOf(m)));
       const usePool = leadG.length >= 4 ? leadG : leadPool;
-      let prevTop = null;
+      // Top-voice contour: a gentle per-phrase arch the choices lean toward.
+      // The pre-039 writer walked prevTop±2 and HARD-filtered to chord tones;
+      // under drone harmony with a narrow gamut that intersection is one or
+      // two pitches, and the lead hammered a single note for a whole piece
+      // (Tom's 2026-07-11 report, seed c069e05b: a 61-note single-pitch run).
+      // Chord membership is now a scored BONUS, never a filter, with an
+      // explicit repeat penalty — melodyPhrase's constraint set, phrase-local.
+      const nOn = onsets.length;
+      const center = (leadReg[0] + leadReg[1]) / 2;
+      const archAmp = 4 + Math.min(3, nOn * 0.4);
+      let prevTop = null, prev2Top = null;
       onsets.forEach(([t, d], i) => {
         const ch = compose.chordAt(chords, t);
         voicing = compose.voiceChord(ch, roles.mid1 ? (roles.mid1.register || [50, 72]) : [50, 72], voicing, vector.harmRich, rng, { vector });
         const isCad = i === onsets.length - 1;
-        // top voice: the lead — chord tone near a gentle arch, stepwise-biased
+        // top voice: the lead — a real melodic line over the shared rhythm
         if (roles.lead) {
           const chPcs = new Set(ch.notes.map(pcOf));
-          const target = prevTop == null ? (leadReg[0] + leadReg[1]) / 2 : prevTop + rng.int(-2, 2);
-          let m = compose.nearestInPool(usePool, target, isCad ? new Set([pcOf(vector.tonicPc)]) : chPcs);
-          if (m == null) m = compose.nearestInPool(usePool, target);
-          prevTop = m;
+          const x = nOn < 2 ? 0 : i / (nOn - 1);
+          const target = center - 2 + archAmp * Math.sin(Math.PI * Math.min(1, x / 0.62)) + (isCad ? -3 : 0);
+          let m;
+          if (isCad) {
+            m = compose.nearestInPool(usePool, target, new Set([pcOf(vector.tonicPc)]));
+            if (m == null) m = compose.nearestInPool(usePool, target);
+          } else {
+            const onBeat = Math.abs(t - Math.round(t)) < 1e-6;
+            const cands = [], weights = [];
+            for (const c of usePool) {
+              if (Math.abs(c - target) > 9) continue;
+              let score = -0.5 * Math.abs(c - target);
+              if (chPcs.has(pcOf(c))) score += onBeat ? 1.1 : 0.3;
+              if (prevTop != null) {
+                const stp = Math.abs(c - prevTop);
+                if (stp === 0) score -= (prev2Top === prevTop ? 6 : 2.2); // a third repeat is (nearly) out
+                else if (stp <= 2) score += 1.0;
+                else if (stp <= 4) score += 0.15;
+                else score -= 0.5 * (stp - 4);
+              }
+              cands.push(c); weights.push(Math.exp(score));
+            }
+            m = cands.length ? rng.weighted(cands, weights) : compose.nearestInPool(usePool, target);
+          }
+          prev2Top = prevTop; prevTop = m;
           mk(notes, L, roles.lead, t, d * (isCad ? 1.1 : 0.98), m, 0.62 + 0.1 * ctx.I, { tags: isCad ? ['cadence:PAC'] : [], weight: isCad ? 0.85 : 0.55 });
         }
         if (roles.mid1) for (const m of voicing) mk(notes, L, roles.mid1, t, d * (isCad ? 1.1 : 0.96), m, 0.5);

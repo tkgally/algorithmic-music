@@ -58,6 +58,7 @@
         { name: 'Warm (bell & pad)', desc: 'soft bells over a warm pad — the default drift', map: {} },
         { name: 'Dark (low glass)', desc: 'a darker wash: low glass lead over pad', map: { lead: 'glass', tex: 'pad' } },
         { name: 'Air (high chime)', desc: 'bright and airy: high chimes over bells', map: { lead: 'chime', tex: 'bell' } },
+        { name: 'Voices (choral drift)', desc: 'soft wordless voices drifting over the pad', map: { lead: 'voce' } },
       ],
     },
 

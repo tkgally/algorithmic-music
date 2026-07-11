@@ -56,6 +56,7 @@
         { name: 'Piano & strings', desc: 'a keyboard lead over a string comp — the default', map: {} },
         { name: 'Chamber (bowed lead)', desc: 'a warm bowed-string lead, chamber-music feel', map: { lead: 'aria' } },
         { name: 'Glass & pluck', desc: 'a pure glass lead over a plucked comp', map: { lead: 'glass', comp: 'pluck' } },
+        { name: 'Horn & strings', desc: 'a dark, blooming brass-like lead over the strings', map: { lead: 'horn' } },
       ],
     },
 

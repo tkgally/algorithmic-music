@@ -778,6 +778,140 @@
     disconnectOnEnd(o1, [o1, o2, mix, lp, g, pan]);
   }
 
+  // ---- organ: glowing additive sustain (drawbar family in spirit, imitating
+  // none) — session 039's "richer, more complex tones" request. A small stack
+  // of pure partials in two slightly-detuned ranks (the detuning beats gently,
+  // so the sustain is never static), a delayed TREMULANT (amplitude LFO) whose
+  // depth follows the expression drive, and a fixed wooden-case body. The
+  // steadiest of the sustained voices: pitch drift is minimal; the life is in
+  // the rank beating and the tremulant. Reads note.expr like aria/reed.
+  function organ(ctx, dest, note) {
+    const { freq, time, durSec, vel } = note;
+    const e = note.expr || {};
+    const pan = panTo(ctx, dest, note.pan);
+    const bright = clamp(e.bright == null ? 0.45 : e.bright, 0, 1);
+    // [ratio, gain] — fundamental doubled as two detuned ranks
+    const partials = [[1, 0.62, -4], [1, 0.62, 4], [2, 0.5, 2], [3, 0.26, -2], [4, 0.18, 3], [6, 0.09 + 0.08 * bright, -3]];
+    const sum = ctx.createGain(); sum.gain.value = 0.55;
+    const oscs = [], detunes = [];
+    for (const [ratio, gg, dc] of partials) {
+      if (gg < 0.012) continue;
+      const o = ctx.createOscillator(); o.type = 'sine';
+      o.frequency.setValueAtTime(freq * ratio * centsRatio(dc), time);
+      const og = ctx.createGain(); og.gain.value = gg;
+      o.connect(og); og.connect(sum);
+      oscs.push(o); detunes.push(o.detune);
+    }
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.setValueAtTime(0.5, time);
+    lp.frequency.setValueAtTime(clamp(freq * (3.5 + 4 * bright), 900, 9000), time);
+    // tremulant: delayed, gentle amplitude wobble (the organ's vibrato reads
+    // as tremolo; pitch vibrato via note.expr stays available on top)
+    const trem = ctx.createGain(); trem.gain.setValueAtTime(1, time);
+    const env = exprEnv(ctx, time, durSec, { peak: 0.2 * (0.5 + 0.5 * vel), attackSec: e.attackSec == null ? 0.05 : e.attackSec, releaseSec: e.releaseSec == null ? 0.3 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.92 : e.sustain });
+    const nodes = [sum, lp, trem, env.gain, pan];
+    if (durSec > 0.5) {
+      const lfo = ctx.createOscillator(); lfo.type = 'sine'; lfo.frequency.setValueAtTime(5.2, time);
+      const depth = ctx.createGain();
+      const tdep = 0.04 + 0.09 * clamp(e.swell == null ? 0.3 : e.swell, 0, 1);
+      depth.gain.setValueAtTime(0.0001, time);
+      depth.gain.setValueAtTime(0.0001, time + 0.4);
+      depth.gain.linearRampToValueAtTime(tdep, Math.min(env.stopAt, time + 1.1));
+      lfo.connect(depth); depth.connect(trem.gain);
+      lfo.start(time); lfo.stop(env.stopAt);
+      nodes.push(lfo, depth);
+    }
+    // a fixed case/pipe body colour
+    const body = bodyResonance(ctx, [[350, 2.2, 1.3], [1600, 2, 2.2]], time, 0.85);
+    sum.connect(lp); lp.connect(body.input); body.output.connect(trem); trem.connect(env.gain); env.gain.connect(pan);
+    const extra = pitchExpr(ctx, detunes, time, durSec, e);
+    const drift = microDrift(ctx, detunes, time, durSec, (e.drift || 0) * 0.5, [0.07, 0.13, 0.23]);
+    const on = onsetTransient(ctx, pan, time, freq, 0.08, 'click'); // faint key chiff
+    for (const o of oscs) o.start(time);
+    for (const o of oscs) o.stop(env.stopAt);
+    disconnectOnEnd(oscs[0], oscs.concat(nodes).concat(body.nodes).concat(extra).concat(drift).concat(on));
+  }
+
+  // ---- horn: dark, warm, blooming brass-like lead (imitating none) ----------
+  // Two detuned saws + a soft sub-octave through a lowpass that OPENS through
+  // the note ("the bloom" — the defining brass gesture: brightness arrives
+  // after the onset, grows toward the swell peak, and eases back), with fixed
+  // bell/tube formants and a breath-chiff onset. Reads note.expr fully.
+  function horn(ctx, dest, note) {
+    const { freq, time, durSec, vel } = note;
+    const e = note.expr || {};
+    const pan = panTo(ctx, dest, note.pan);
+    const o1 = ctx.createOscillator(); o1.type = 'sawtooth'; o1.frequency.setValueAtTime(freq * centsRatio(-3), time);
+    const o2 = ctx.createOscillator(); o2.type = 'sawtooth'; o2.frequency.setValueAtTime(freq * centsRatio(3), time);
+    const sub = ctx.createOscillator(); sub.type = 'triangle'; sub.frequency.setValueAtTime(freq * 0.5, time);
+    const subG = ctx.createGain(); subG.gain.value = 0.3;
+    const pre = ctx.createGain(); pre.gain.value = 0.52;
+    const bright = clamp(e.bright == null ? 0.45 : e.bright, 0, 1);
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.setValueAtTime(1.1, time);
+    const cutLo = clamp(freq * 1.6, 300, 2400);
+    const cutHi = clamp(freq * (2.6 + 3.2 * bright), 700, 7000);
+    lp.frequency.setValueAtTime(cutLo, time);
+    lp.frequency.linearRampToValueAtTime(cutHi, time + Math.min(0.7, Math.max(0.12, durSec * 0.45)));
+    lp.frequency.linearRampToValueAtTime((cutLo + cutHi) * 0.55, time + Math.max(0.71, durSec));
+    const env = exprEnv(ctx, time, durSec, { peak: 0.21 * (0.5 + 0.5 * vel), attackSec: e.attackSec == null ? 0.055 : e.attackSec, releaseSec: e.releaseSec == null ? 0.22 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.85 : e.sustain });
+    // a fixed dark bell/tube body
+    const body = bodyResonance(ctx, [[480, 3, 1.6], [1150, 2.6, 2.2]], time, 0.8);
+    o1.connect(pre); o2.connect(pre); sub.connect(subG); subG.connect(pre);
+    pre.connect(lp); lp.connect(body.input); body.output.connect(env.gain); env.gain.connect(pan);
+    const extra = pitchExpr(ctx, [o1.detune, o2.detune, sub.detune], time, durSec, e);
+    const drift = microDrift(ctx, [o1.detune, o2.detune, sub.detune], time, durSec, (e.drift || 0) * 1.1, [0.12, 0.2, 0.37]);
+    const on = onsetTransient(ctx, pan, time, freq, (e.grain == null ? 0.3 : e.grain) * 0.6 + 0.12, 'breath');
+    const br = breathLayer(ctx, pan, time, durSec, freq, (e.grain || 0) * 0.5, freq * 1.8);
+    o1.start(time); o2.start(time); sub.start(time);
+    o1.stop(env.stopAt); o2.stop(env.stopAt); sub.stop(env.stopAt);
+    disconnectOnEnd(o1, [o1, o2, sub, subG, pre, lp, env.gain, pan].concat(body.nodes).concat(extra).concat(drift).concat(on).concat(br));
+  }
+
+  // ---- voce: soft singing vowel voice (the most vocal, imitating none) ------
+  // A saw+triangle source split through two resonant vowel-formant bandpasses
+  // that MORPH slowly during the note (an "ah" opening toward "eh" — a mouth
+  // is never still) over a dark fundamental path, with breath grain and a
+  // deeper default vibrato. The strongest carrier of variable pitch: scoops,
+  // portamento, and vibrato all read as singing. Reads note.expr fully.
+  function voce(ctx, dest, note) {
+    const { freq, time, durSec, vel } = note;
+    const e = note.expr || {};
+    const pan = panTo(ctx, dest, note.pan);
+    const o1 = ctx.createOscillator(); o1.type = 'sawtooth'; o1.frequency.setValueAtTime(freq * centsRatio(-3), time);
+    const o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.setValueAtTime(freq * centsRatio(3), time);
+    const src = ctx.createGain(); src.gain.value = 0.5;
+    const o2g = ctx.createGain(); o2g.gain.value = 0.8;
+    o1.connect(src); o2.connect(o2g); o2g.connect(src);
+    // vowel formants: centers keep a floor above the fundamental so high notes
+    // stay full; F2 glides up a little during the note (the vowel opens)
+    const morphT = Math.min(1.2, Math.max(0.25, durSec * 0.7));
+    const f1 = ctx.createBiquadFilter(); f1.type = 'bandpass'; f1.Q.setValueAtTime(5, time);
+    const f1c = clamp(freq * 1.15, 480, 950);
+    f1.frequency.setValueAtTime(f1c, time);
+    f1.frequency.linearRampToValueAtTime(f1c * 0.88, time + morphT);
+    const f2 = ctx.createBiquadFilter(); f2.type = 'bandpass'; f2.Q.setValueAtTime(7, time);
+    const f2c = clamp(freq * 2.4, 1150, 2300);
+    f2.frequency.setValueAtTime(f2c, time);
+    f2.frequency.linearRampToValueAtTime(Math.min(2600, f2c * 1.22), time + morphT);
+    const f1g = ctx.createGain(); f1g.gain.value = 1.1;
+    const f2g = ctx.createGain(); f2g.gain.value = 0.55;
+    // dark fundamental path so the tone has a chest under the vowels
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.setValueAtTime(0.5, time);
+    lp.frequency.setValueAtTime(clamp(freq * 2.2, 500, 2600), time);
+    const lpg = ctx.createGain(); lpg.gain.value = 0.6;
+    const sum = ctx.createGain(); sum.gain.value = 1.7; // the resonant formant paths are lossy — bring the voice up to lead level
+    src.connect(f1); f1.connect(f1g); f1g.connect(sum);
+    src.connect(f2); f2.connect(f2g); f2g.connect(sum);
+    src.connect(lp); lp.connect(lpg); lpg.connect(sum);
+    const env = exprEnv(ctx, time, durSec, { peak: 0.22 * (0.5 + 0.5 * vel), attackSec: e.attackSec == null ? 0.07 : e.attackSec, releaseSec: e.releaseSec == null ? 0.32 : e.releaseSec, swell: e.swell, swellPeak: e.swellPeak, sustain: e.sustain == null ? 0.8 : e.sustain });
+    sum.connect(env.gain); env.gain.connect(pan);
+    const extra = pitchExpr(ctx, [o1.detune, o2.detune], time, durSec, e);
+    const drift = microDrift(ctx, [o1.detune, o2.detune], time, durSec, (e.drift || 0) * 1.2 + 1.2, [0.12, 0.21, 0.34]);
+    const on = onsetTransient(ctx, pan, time, freq, 0.1, 'breath');
+    const br = breathLayer(ctx, pan, time, durSec, freq, (e.grain == null ? 0.3 : e.grain) * 0.8 + 0.1, freq * 2);
+    o1.start(time); o2.start(time); o1.stop(env.stopAt); o2.stop(env.stopAt);
+    disconnectOnEnd(o1, [o1, o2, o2g, src, f1, f2, f1g, f2g, lp, lpg, sum, env.gain, pan].concat(extra).concat(drift).concat(on).concat(br));
+  }
+
   // ==========================================================================
   // PERCUSSION VOICES (Engine 05 — "Percussion Ensemble")
   // --------------------------------------------------------------------------
@@ -1165,6 +1299,7 @@
   const VOICES = { melody: keys, chord: strings, bass: bass, bell: bell, pad: pad, drone: drone,
     kick: kick, snare: snare, hat: hat, rhodes: rhodes,
     aria: aria, reed: reed, wire: wire, glass: glass, pluck: pluck,
+    organ: organ, horn: horn, voce: voce,
     boom: boom, drum: drum, wood: wood, metal: metal, gong: gong, shaker: shaker, mallet: mallet,
     clap: clap, scrape: scrape, chime: chime, friction: friction };
 
@@ -1175,7 +1310,8 @@
   }
 
   return { play, keys, strings, bass, bell, pad, drone, kick, snare, hat, rhodes,
-    aria, reed, wire, glass, pluck, boom, drum, wood, metal, gong, shaker, mallet,
+    aria, reed, wire, glass, pluck, organ, horn, voce,
+    boom, drum, wood, metal, gong, shaker, mallet,
     clap, scrape, chime, friction, VOICES, envGain, noiseBuffer,
     exprEnv, pitchExpr, panTo, microDrift, bodyResonance, onsetTransient };
 });
