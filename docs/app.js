@@ -315,6 +315,14 @@
 
   function bgEl() { return $('bgAudio'); }
 
+  // Pre-rendered NEXT track for continuous background play. Rendering a piece
+  // takes seconds (longer for longer pieces), which was an audible silent gap
+  // between tracks. So while the current track plays, render the next one ahead
+  // of time and hold it ready; the boundary hand-off is then near-instant. The
+  // render runs off the main thread, so the playing <audio> is unaffected.
+  let prepared = null;      // { seed, url, info } — the next track, ready to play
+  let prepareToken = 0;     // bumped to invalidate an in-flight prepare render
+
   /** Render the current state to a 16-bit PCM WAV blob URL (same deterministic
    *  pipeline as live/offline). opts.capUnits bounds it for the dev/smoke hook. */
   async function renderToWavUrl(st, opts) {
@@ -337,6 +345,55 @@
     return SILENCE_URL;
   }
   function revokeBgUrl() { if (bg.url) { try { URL.revokeObjectURL(bg.url); } catch (e) {} bg.url = null; } }
+  function discardPrepared() {
+    prepareToken++;   // invalidate any in-flight prepare render
+    if (prepared) { try { URL.revokeObjectURL(prepared.url); } catch (e) {} prepared = null; }
+  }
+
+  function bgNowPlaying(info) {
+    const secs = Math.round((info && info.musicSec) || 0);
+    setStatus('playing (background) · ' + Math.floor(secs / 60) + ':' + ('0' + (secs % 60)).slice(-2) +
+      (continuous ? ' · continuous' : '') + ' — keeps playing with the screen locked');
+  }
+
+  /** The <audio> reached the end of a track. */
+  function onBgEnded() {
+    if (!bg.active) return;
+    if (continuous) advanceRendered();
+    else { bgStop(); setPlayingUi(false); }
+  }
+
+  /** Play a ready rendered track on the (already user-activated) element and
+   *  wire the ended handler + Media Session. */
+  function startTrack(el, item) {
+    revokeBgUrl();                     // release the track that just finished
+    bg.url = item.url;
+    el.loop = false;
+    el.onended = onBgEnded;
+    el.src = item.url;
+    try { const pr = el.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (e) {}
+    bgNowPlaying(item.info);
+    setupMediaSession(item.info);
+  }
+
+  /** Pre-render the NEXT continuous track (new seed, current style) while the
+   *  current one plays, so the hand-off has no render gap. Superseded prepares
+   *  (a newer prepare, a stop, or a style/seed change) discard themselves. */
+  async function prepareNext() {
+    if (!bg.active || !continuous) return;
+    const myToken = ++prepareToken;
+    const sessionSeq = bg.seq;
+    const seed = newSeed() >>> 0;
+    let out;
+    try { out = await renderToWavUrl({ seed, sel: state.sel, controls: state.controls }); }
+    catch (e) { return; }
+    if (myToken !== prepareToken || sessionSeq !== bg.seq || !bg.active) {
+      try { URL.revokeObjectURL(out.url); } catch (e) {}   // superseded → drop it
+      return;
+    }
+    if (prepared) { try { URL.revokeObjectURL(prepared.url); } catch (e) {} }
+    prepared = { seed, url: out.url, info: out.info };
+  }
 
   /** Background-mode Play: render this piece to a file and play it through <audio>. */
   async function playRendered() {
@@ -355,31 +412,37 @@
     catch (e) { if (mySeq === bg.seq) { setStatus('render failed: ' + e.message); bgStop(); setPlayingUi(false); } return; }
     if (mySeq !== bg.seq || !bg.active) { try { URL.revokeObjectURL(out.url); } catch (e) {} return; } // superseded
     // 3) swap the rendered file in and play it (element already user-activated)
-    revokeBgUrl();
-    bg.url = out.url;
     bg.rendering = false;
-    el.loop = false;
-    el.onended = () => { if (bg.active && mySeq === bg.seq) { if (continuous) advanceRendered(); else { bgStop(); setPlayingUi(false); } } };
-    el.src = out.url;
-    try { const pr = el.play(); if (pr && pr.catch) pr.catch(() => {}); } catch (e) {}
-    const secs = Math.round(out.info.musicSec || 0);
-    setStatus('playing (background) · ' + Math.floor(secs / 60) + ':' + ('0' + (secs % 60)).slice(-2) +
-      ' · ' + (out.bytes / 1048576).toFixed(1) + ' MB WAV — keeps playing with the screen locked');
-    setupMediaSession(out.info);
+    startTrack(el, out);
+    prepareNext();                     // start rendering the next track ahead of time
   }
 
-  /** Background continuous / "next track": reseed and render the next piece. */
+  /** Continuous / "next track": use the pre-rendered next track if it's ready
+   *  (near-instant, no gap), else fall back to rendering on demand. */
   function advanceRendered() {
-    state.seed = newSeed();
-    if ($('seed')) $('seed').value = seedHex(state.seed);
-    stateToUrl(); refreshVectorPreview();
-    playRendered();
+    const el = bgEl();
+    if (prepared && prepared.url && el) {
+      const nx = prepared; prepared = null;
+      state.seed = nx.seed;
+      if ($('seed')) $('seed').value = seedHex(state.seed);
+      stateToUrl(); refreshVectorPreview();
+      startTrack(el, nx);
+      prepareNext();                   // render the track after this one
+    } else {
+      // not ready yet (render slower than the track, or the first transition):
+      // render on demand — a brief gap, then continuous is caught up.
+      state.seed = newSeed();
+      if ($('seed')) $('seed').value = seedHex(state.seed);
+      stateToUrl(); refreshVectorPreview();
+      playRendered();
+    }
   }
 
-  /** Stop background playback and release the file + media session. */
+  /** Stop background playback and release the file(s) + media session. */
   function bgStop() {
     bg.seq++;                          // invalidate any in-flight render
     bg.active = false; bg.rendering = false;
+    discardPrepared();                 // drop the pre-rendered next track too
     const el = bgEl();
     if (el) { try { el.pause(); } catch (e) {} el.onended = null; el.loop = false; try { el.removeAttribute('src'); el.load(); } catch (e) {} }
     revokeBgUrl();
@@ -956,6 +1019,9 @@
       continuous = !continuous;
       $('loop').classList.toggle('on', continuous);
       $('loop').setAttribute('aria-pressed', continuous ? 'true' : 'false');
+      // background mode: pre-render the next track when continuous turns on, or
+      // drop the prepared one when it turns off.
+      if (bg.active) { if (continuous) prepareNext(); else discardPrepared(); }
       if (!playing() && !bg.active) setStatus(continuous ? 'continuous play — press play' : 'stopped');
     });
     $('reset').addEventListener('click', resetControls);
@@ -1008,6 +1074,8 @@
     get bgMode() { return bgMode; },
     set bgMode(v) { bgMode = !!v; if (doc && $('bgmode')) { $('bgmode').classList.toggle('on', bgMode); $('bgmode').setAttribute('aria-pressed', bgMode ? 'true' : 'false'); } },
     get bgActive() { return bg.active; },
+    get bgPrepared() { return !!(prepared && prepared.url); },   // dev/smoke: next track pre-rendered?
+    bgAdvance() { advanceRendered(); },                          // dev/smoke: trigger a continuous hand-off
     get conductor() { return conductor; },
   };
   if (doc && doc.readyState !== 'loading') boot();
