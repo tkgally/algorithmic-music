@@ -315,10 +315,16 @@
     return e;
   }
 
+  // Styles withdrawn from the picker (Tom 2026-07-11: Jazz doesn't yet earn its
+  // place — "does not sound at all like jazz"). The pack stays REGISTERED: pack
+  // order is the URL genre enum, so old jazz links and melds still decode and
+  // play; only the button is gone. Revisit note: wiki/findings-comprehensive-site.md.
+  const HIDDEN_STYLES = { jazz: 1 };
   function buildGenreButtons() {
     const wrap = $('genres');
     wrap.innerHTML = '';
     for (const pack of AM.styles.list()) {
+      if (HIDDEN_STYLES[pack.id]) continue;
       const btn = el('button', {
         class: 'genre', type: 'button', 'data-id': pack.id, title: pack.blurb || '',
         onclick: () => toggleGenre(pack.id),

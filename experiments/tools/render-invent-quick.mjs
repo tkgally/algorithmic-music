@@ -31,9 +31,13 @@ const { chromium } = require(path.join(globalRoot, 'playwright'));
 const HERE = path.dirname(url.fileURLToPath(import.meta.url));
 const PAGE = 'file://' + path.resolve(HERE, '../../docs/_selftest.html');
 
-// short invented pieces (~70-80 s): callResponse/cell/percussion/cadence and
-// ostinatoWeb/timeline/percussion/ringout as of session 038's kernel draw
-const seeds = process.argv.slice(2).length ? process.argv.slice(2) : ['4cb5c', '5e48d4'];
+// short invented pieces (length pinned to ~60 s so the gate stays bounded no
+// matter what the seed draws). As of session 039's kernel draw:
+//   c069e05b — Tom's 2026-07-11 repeated-note report seed: chorale / cell /
+//              voce lead / fade (the regression case for the gamut+chorale fix)
+//   a555b    — melodyAccomp / timeline / HORN lead + kick/hat / 5/8 / cadence
+//              (exercises a new sustained voice, percussion, and legato)
+const seeds = process.argv.slice(2).length ? process.argv.slice(2) : ['c069e05b', 'a555b'];
 
 const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage();
@@ -45,7 +49,7 @@ await page.waitForFunction('typeof window.__renderSite === "function"', { timeou
 
 let pass = 0, fail = 0;
 for (const seed of seeds) {
-  const r = await page.evaluate((spec) => window.__renderSite(spec), { invent: true, seed, checkDeterminism: false });
+  const r = await page.evaluate((spec) => window.__renderSite(spec), { invent: true, seed, controls: { length: 0 }, checkDeterminism: false });
   const m = r.metrics || {};
   const gates = [
     ['no clipping (peak < 1.0)', m.peak < 1.0, 'peak=' + m.peak],

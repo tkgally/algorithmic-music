@@ -12,8 +12,8 @@
  * because the seed re-derives them. RFC 4648 §5 base64url alphabet
  * (A-Z a-z 0-9 - _), no padding.
  *
- * With nothing pinned the payload is 14 characters; everything pinned ≈ 36
- * (V2, incl. the 24-bit instrument mask) — still comfortably compact.
+ * With nothing pinned the payload is 14 characters; everything pinned ≈ 37
+ * (V3, incl. the 27-bit instrument mask) — still comfortably compact.
  *
  * The V1 layout is snapshotted HERE (ids + widths), independently of the live
  * control registry in style.js, so future registry growth cannot silently
@@ -96,8 +96,14 @@
     ['laidBack', 3], ['rubato', 3], ['harmonicRhythm', 3], ['stepBias', 3], ['melRange', 3],
     ['instruments', 24],
   ];
-  const VERSIONS = { 1: V1_CONTROLS, 2: V2_CONTROLS };
-  const CUR_VERSION = 2;
+  // ---- V3 layout (FROZEN 2026-07-11 — append-only from here) --------------------
+  // Identical to V2 except the instrument mask widened 24 -> 27 bits (three
+  // session-039 voices appended to the master list: organ, horn, voce).
+  // encode() writes V3; decode() still reads V1 and V2 links exactly as before
+  // (a V2 link's 24-bit mask leaves the three new instruments unchecked).
+  const V3_CONTROLS = V2_CONTROLS.map(([id, bits]) => [id, id === 'instruments' ? 27 : bits]);
+  const VERSIONS = { 1: V1_CONTROLS, 2: V2_CONTROLS, 3: V3_CONTROLS };
+  const CUR_VERSION = 3;
   const GENRE_INVENTED = 8, GENRE_NONE = 15;
 
   /**
@@ -153,5 +159,5 @@
     }
   }
 
-  return { encode, decode, V1_CONTROLS, V2_CONTROLS, CUR_VERSION, GENRE_INVENTED, GENRE_NONE, BitWriter, BitReader };
+  return { encode, decode, V1_CONTROLS, V2_CONTROLS, V3_CONTROLS, CUR_VERSION, GENRE_INVENTED, GENRE_NONE, BitWriter, BitReader };
 });

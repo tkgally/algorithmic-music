@@ -94,6 +94,7 @@
         { name: 'Fiddle band (bowed lead)', desc: 'a bowed fiddle leads the tune — the default', map: {} },
         { name: 'Piper (electric lead)', desc: 'a piercing lead stands in for pipes', map: { lead: 'wire' } },
         { name: 'Session (free-reed & bar)', desc: 'a reedy lead with a struck-bar backing', map: { lead: 'reed', pluck: 'mallet' } },
+        { name: 'Singer (voice lead)', desc: 'a soft wordless voice carries the tune', map: { lead: 'voce' } },
       ],
     },
 

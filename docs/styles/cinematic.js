@@ -103,6 +103,7 @@
         { name: 'Strings & aria (default)', desc: 'a bowed, orchestral lead over strings', map: {} },
         { name: 'Breathy reed lead',        desc: 'a woodwind-like reed carries the theme', map: { lead: 'reed' } },
         { name: 'Electric trailer lead',    desc: 'a modern electric lead for a trailer feel', map: { lead: 'wire' } },
+        { name: 'Brass swell',              desc: 'a dark brass-like lead that blooms into the theme', map: { lead: 'horn' } },
       ],
     },
 

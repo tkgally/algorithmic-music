@@ -81,6 +81,18 @@ function check(seed, sel, quiet) {
   let covered = 0;
   for (const [on, off] of sounding) { if (on > covered && on - covered > maxGap && covered > 0) maxGap = on - covered; covered = Math.max(covered, off); }
   if (maxGap > 3) problems.push('symbolic silence gap ' + maxGap.toFixed(1) + 's');
+  // lead-line monotony (039, Tom's repeated-note report): a MELODIC lead must
+  // not hammer one pitch. Unpitched drums are excluded; the percussion pack's
+  // whole idiom is repetition, so it is exempt as a strategy.
+  if (r.vec.strategy !== 'percussion') {
+    const UNPITCHED = new Set(['kick', 'snare', 'hat', 'clap', 'shaker', 'scrape', 'boom', 'drum', 'gong', 'friction']);
+    const leadMel = r.events.filter((e) => e.role === 'lead' && e.midi != null && !UNPITCHED.has(e.voice)).sort((a, b) => a.tSec - b.tSec);
+    let runMax = 0, run = 0, prevMidi = null;
+    for (const e of leadMel) { run = e.midi === prevMidi ? run + 1 : 1; if (run > runMax) runMax = run; prevMidi = e.midi; }
+    const distinctMel = new Set(leadMel.map((e) => e.midi)).size;
+    if (leadMel.length >= 24 && runMax > 16) problems.push('lead hammers one pitch: run of ' + runMax);
+    if (leadMel.length >= 24 && distinctMel < 4) problems.push('lead uses only ' + distinctMel + ' distinct pitches');
+  }
   if (!quiet) {
     console.log('vector:', JSON.stringify({ name: r.vec.name, kind: r.vec.kind, strategy: r.vec.strategy, scale: r.vec.scale, tonic: AM.theory.PC_NAMES_SHARP[r.vec.tonicPc], bpm: +r.vec.bpm.toFixed(1), meter: r.vec.meter.id, harmony: r.vec.harmonyType, density: +r.vec.density.toFixed(2), lengthSec: Math.round(r.vec.lengthSec), ending: r.vec.ending, arc: r.vec.arc, ensemble: r.vec.ensemble.map((e) => e.role + ':' + e.voice).join(' '), meld: r.vec.meld ? r.vec.meld.a + '×' + r.vec.meld.b + ' chassis=' + r.vec.meld.chassis : null, novelty: r.vec.noveltyAxes || null }));
     console.log('units:', r.units.length, '· events:', r.events.length, '· musicSec:', r.musicSec.toFixed(1));

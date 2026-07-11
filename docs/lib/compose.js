@@ -688,6 +688,10 @@
         const unitRng = root.stream('unit:' + replanCount + ':' + pos.unitIdx);
         const unit = strategy.nextUnit(plan, v, p, unitRng);
         if (!unit) { pos.done = true; return null; }
+        // stamp the unit with its place in the WHOLE piece's form — the
+        // expression layer (perform.js) reads these to shape a passage by its
+        // role in the piece (session 039), without any pack changes
+        unit.tPiece = p.tPiece; unit.arcLevel = p.arcLevel; unit.sectionIdx = p.sectionIdx;
         unit.bar = pos.bar; unit.unitIdx = pos.unitIdx;
         unit.bars = unit.bars || Math.max(1, Math.round(unit.lengthBeats / v.meter.barBeats));
         pos.bar += unit.bars;
