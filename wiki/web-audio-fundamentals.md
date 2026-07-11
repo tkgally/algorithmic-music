@@ -3,8 +3,8 @@ title: Web Audio fundamentals
 tags: [implementation]
 status: reviewed
 created: 2026-07-06
-updated: 2026-07-07
-summary: The audio-graph mental model, AudioContext lifecycle, AudioParam automation and click-safety, the node zoo, envelope patterns, and OfflineAudioContext rendering — the base layer every engine builds on.
+updated: 2026-07-11
+summary: The audio-graph mental model, AudioContext lifecycle (including mobile background/lock-screen suspension), AudioParam automation and click-safety, the node zoo, envelope patterns, and OfflineAudioContext rendering — the base layer every engine builds on.
 ---
 
 # Web Audio fundamentals
@@ -26,6 +26,25 @@ An `AudioContext` owns a directed graph: source nodes (oscillators, buffer playe
 - States: `"suspended"` → `"running"` → `"closed"`. A context created before a user gesture starts `"suspended"` under autoplay policy; call `resume()` inside a click/keydown handler ([audio-worklets-and-performance](audio-worklets-and-performance.md) covers policies and the Safari `"interrupted"` behavior, which the 1.1 spec draft is standardizing as a state).
 - `suspend()` on pause releases CPU (and on some platforms the audio hardware); `close()` is terminal — you cannot restart a closed context.
 - `ctx.sampleRate` is fixed for the context's life and is **whatever the output device prefers** (44100 and 48000 both common). Never hardcode a rate: compute buffer lengths, delay times, and filter coefficients from `ctx.sampleRate`.
+
+## Background and lock-screen playback (mobile Safari especially)
+
+A running `AudioContext` **does not keep playing when the page is backgrounded or the screen locks** — on iOS Safari this is deliberate, not a bug. When the user locks the phone, switches apps, or moves Safari to the background, the context is paused (it enters `suspended`, or on Safari the `interrupted` state the 1.1 draft is standardizing) and produces no sound until a user gesture resumes it (WebKit tracks this as intended behavior: [Bug 237878](https://bugs.webkit.org/show_bug.cgi?id=237878); desktop Safari does the same on window minimize, [Bug 231105](https://bugs.webkit.org/show_bug.cgi?id=231105); standalone home-screen PWAs are hit too, [Bug 198277](https://bugs.webkit.org/show_bug.cgi?id=198277)).
+
+**iOS grants background/lock-screen audio only to `HTMLMediaElement` (`<audio>`/`<video>`) playing media** — that is the mechanism behind web music/podcast players and their lock-screen transport controls (wired up via the Media Session API). A pure Web Audio graph — this project's entire sound path — gets no such privilege.
+
+For a **generative** engine there is a *second, independent* obstacle even if you obtain a media-element audio session: JavaScript timers are frozen/heavily throttled in the background, so a lookahead scheduler ([scheduling-and-timing](scheduling-and-timing.md)) stops producing new events — a compose-a-few-seconds-ahead loop starves within its lookahead window. Keeping the *composition* running in the background would require moving scheduling onto the audio rendering thread (an [AudioWorklet](audio-worklets-and-performance.md)). Both mechanisms — the suspended context *and* the frozen timer — must be defeated, which is why the usual web-player workarounds only solve half the problem here.
+
+Options, with honest tradeoffs (none is a clean win on iOS):
+
+- **`MediaStreamAudioDestinationNode` → `<audio>.srcObject` bridge** (plus Media Session metadata and a resume-on-return handler). The standard attempt: route the master bus into a stream and let a real media element hold the audio session. Historically **unreliable and version-dependent on iOS**, and it still needs worklet-based scheduling to keep *generating*. Best-effort, not dependable.
+- **Pre-render to a file/blob, play through an `<audio>` element.** The one **reliable** route to background + lock-screen playback (with media controls) — but it forfeits live, interactive composition while backgrounded, so it is effectively a different product (a recorded stem, not a live engine).
+- **Screen Wake Lock API** (`navigator.wakeLock.request('screen')`, iOS 16.4+). Keeps the *screen on* so nothing suspends; costs battery, keeps the display lit, and is released the instant the user manually locks — a partial measure, not true background audio.
+- **Native wrapper** (Capacitor/native shell) — out of scope for a vanilla, `file://`-runnable web project.
+
+**Do regardless:** listen for `visibilitychange`/`pageshow` and call `ctx.resume()` on return, so playback recovers cleanly when the user comes back instead of staying silent. Two more iOS gotchas worth knowing: the context must first be unlocked by a user gesture (`resume()` inside a click/keydown), and iOS blocks Web Audio entirely when the hardware ringer switch is set to silent/vibrate ([Matt Montag, "Unlock Web Audio in Safari"](https://www.mattmontag.com/web/unlock-web-audio-in-safari-for-ios-and-macos)).
+
+*This project's status (2026-07-11):* the comprehensive site uses a bare `AudioContext` plus a `setTimeout` lookahead scheduler, so both obstacles apply and playback stops when an iPhone screen locks. Tom's decision was to **document the limitation** rather than pursue a fragile workaround; recorded here so a future session need not re-derive it. See also [findings-comprehensive-site](findings-comprehensive-site.md) ("Deliberately deferred").
 
 ## Sample rate and the render quantum
 
@@ -162,3 +181,10 @@ Practical notes: write engines **context-agnostic** (take the context as a param
 - MDN Web Docs — "AudioParam.cancelAndHoldAtTime()" (limited availability; accessed 2026-07-06). https://developer.mozilla.org/en-US/docs/Web/API/AudioParam/cancelAndHoldAtTime
 - Mozilla Bugzilla — Bug 1308431 "Implement cancelAndHoldAtTime" (status NEW as of early 2026). https://bugzilla.mozilla.org/show_bug.cgi?id=1308431
 - MDN Web Docs — "AnalyserNode" (pass-through analysis; accessed 2026-07-06). https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode
+- WebKit Bugzilla — Bug 237878 "AudioContext is suspended on iOS when page is backgrounded" (intended behavior; accessed 2026-07-11). https://bugs.webkit.org/show_bug.cgi?id=237878
+- WebKit Bugzilla — Bug 231105 "AudioContext stops playing when minimizing or moving the macOS Safari window to the background" (accessed 2026-07-11). https://bugs.webkit.org/show_bug.cgi?id=231105
+- WebKit Bugzilla — Bug 198277 "Audio stops playing when standalone web app is no longer in foreground" (accessed 2026-07-11). https://bugs.webkit.org/show_bug.cgi?id=198277
+- MDN Web Docs — "BaseAudioContext: state property" (suspended/running/closed and the Safari interrupted state; accessed 2026-07-11). https://developer.mozilla.org/en-US/docs/Web/API/BaseAudioContext/state
+- MDN Web Docs — "Media Session API" (lock-screen/background transport controls for media elements; accessed 2026-07-11). https://developer.mozilla.org/en-US/docs/Web/API/Media_Session_API
+- MDN Web Docs — "Screen Wake Lock API" (navigator.wakeLock; Safari support from iOS 16.4; accessed 2026-07-11). https://developer.mozilla.org/en-US/docs/Web/API/Screen_Wake_Lock_API
+- Matt Montag — "Unlock JavaScript Web Audio in Safari and Chrome" (gesture unlock; the ringer-switch/silent-mode block; accessed 2026-07-11). https://www.mattmontag.com/web/unlock-web-audio-in-safari-for-ios-and-macos
