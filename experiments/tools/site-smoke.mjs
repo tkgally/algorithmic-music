@@ -23,7 +23,10 @@
      9. batch-2 controls: invent-a-style in Start, the Intermediate palette
         dropdown (10+ described sets), the Advanced instrument checkboxes
         (27 as of session 039) + new parameters, the reset button, and the
-        live structure window.
+        live structure window;
+    10. background mode (experimental iOS lock-screen PoC): the toggle wires up,
+        the hidden <audio> element is present, and render -> WAV blob produces a
+        valid RIFF/WAVE payload (bounded render; on-device behavior needs a phone).
 
    Usage:  node experiments/tools/site-smoke.mjs [--json] [--quick]
            --quick skips the per-genre spin (step 6).
@@ -228,6 +231,35 @@ async function main() {
     g('structure window populated + live section chips', /Instruments:/.test(desc) && chips >= 1, chips + ' chips');
     await p.click('#play');
     g('batch-2 page: no errors', errs.length === 0, errs.slice(0, 3).join('; ') || 'none');
+    await p.close();
+  }
+
+  // 10 — background mode (experimental iOS lock-screen PoC): the toggle wires up,
+  //      the hidden <audio> element is present, and the render->WAV->blob path
+  //      yields a real RIFF/WAVE payload (bounded render so it stays fast). The
+  //      actual screen-locked playback can only be verified on a device.
+  {
+    const errs = [];
+    const p = await newPage(browser, errs);
+    await p.goto(PAGE);
+    await p.waitForSelector('#bgmode', { timeout: 8000 });
+    const aria0 = await p.$eval('#bgmode', (b) => b.getAttribute('aria-pressed'));
+    await p.click('#bgmode');
+    const aria1 = await p.$eval('#bgmode', (b) => b.getAttribute('aria-pressed'));
+    const on = await p.$eval('#bgmode', (b) => b.classList.contains('on'));
+    g('background: toggle flips aria + on-state', aria0 === 'false' && aria1 === 'true' && on, aria0 + ' -> ' + aria1);
+    g('background: hidden <audio> element present', await p.$eval('#bgAudio', (a) => a.tagName === 'AUDIO'), '');
+    const wav = await p.evaluate(async () => {
+      const r = await window.AMApp.renderWavURL({ capUnits: 2 });
+      let head = '';
+      try {
+        const u = new Uint8Array(await (await fetch(r.url)).arrayBuffer(), 0, 12);
+        head = String.fromCharCode(u[0], u[1], u[2], u[3]) + String.fromCharCode(u[8], u[9], u[10], u[11]);
+      } catch (e) {}
+      return { okUrl: /^blob:/.test(r.url), bytes: r.bytes, head };
+    });
+    g('background: render -> WAV blob (RIFF/WAVE)', wav.okUrl && wav.bytes > 44 && wav.head === 'RIFFWAVE', wav.bytes + ' bytes, head=' + wav.head);
+    g('background page: no errors', errs.length === 0, errs.slice(0, 3).join('; ') || 'none');
     await p.close();
   }
 
