@@ -691,8 +691,10 @@
       val.textContent = fmtCtl(c, state.controls[id]);
     } else {
       // Auto: a dropdown shows the italic "choose…" placeholder (value "");
-      // a slider keeps its thumb position but shows no value in the readout.
+      // a slider returns to its rest position (thumb far left, no accent fill),
+      // matching the initial open state so nothing reads as manually set.
       if (isSelect) { input.value = ''; input.classList.add('placeheld'); }
+      else input.value = '0';
       val.textContent = '';
     }
   }
@@ -1011,7 +1013,7 @@
   }
 
   // ------------------------------------------------------------------ boot ----
-  const SITE_VERSION = '1.0.0';
+  const SITE_VERSION = '1.0.1';
   function boot() {
     buildGenreButtons();
     buildControls();
