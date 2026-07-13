@@ -1013,7 +1013,7 @@
   }
 
   // ------------------------------------------------------------------ boot ----
-  const SITE_VERSION = '1.0.2';
+  const SITE_VERSION = '1.1.0';
   function boot() {
     buildGenreButtons();
     buildControls();

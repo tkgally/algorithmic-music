@@ -289,6 +289,31 @@ test('site: invented pieces state a theme and bring it back (recognizable return
   ok(checked >= 2, 'verified a recognizable return on ' + checked + ' seeds');
 });
 
+test('site: invented pieces are structurally varied and rarely share a mid-piece break (session 047)', () => {
+  // Tom 2026-07-13: the pre-047 grammar gave a large fraction of invented pieces
+  // the SAME dronelike mid-piece break, and only three form shapes overall. Guard
+  // both: mid-piece thin/contrast sections are now OCCASIONAL, of a VARIED
+  // character when they occur, and the section sequence differs widely by seed.
+  const CONTRAST = ['drone', 'breakdown', 'solo', 'stripped', 'pulse'];
+  const N = 200;
+  let withBreak = 0;
+  const seqs = new Set();
+  const kinds = new Set();
+  for (let s = 1; s <= N; s++) {
+    const seed = (s * 2654435761) >>> 0;
+    const r = composeAll(seed, { a: null, b: null, invent: true });
+    const order = [];
+    const seen = new Set();
+    for (const u of r.units) if (!seen.has(u.section)) { seen.add(u.section); order.push(u.section); }
+    seqs.add(order.join('>'));
+    const brk = r.units.find((u) => CONTRAST.indexOf(u.section) >= 0);
+    if (brk) { withBreak++; kinds.add(brk.section); }
+  }
+  ok(withBreak / N < 0.25, 'a mid-piece break is occasional, not usual (' + withBreak + '/' + N + ')');
+  ok(seqs.size >= 25, 'many distinct section sequences (form variety): got ' + seqs.size);
+  ok(kinds.size >= 3, 'the occasional break is realized in varied ways: got ' + kinds.size + ' kinds');
+});
+
 // ---- performer ----
 test('site: perform is deterministic and returns sane, sorted events', () => {
   const vec = AM.style.buildVector(64, { a: 'classical', b: null, invent: false }, {});
