@@ -3,7 +3,7 @@ title: Findings — the dedicated invented-style composer
 tags: [findings, implementation, project]
 status: draft
 created: 2026-07-10
-updated: 2026-07-11
+updated: 2026-07-13
 summary: Session 038 replaced the invented-style strategy routing (borrow one of the eight genre engines) with a dedicated composer that realizes a per-seed style KERNEL — a texture architecture × a rhythm system × a melodic gamut with hierarchy pillars × a functional form grammar — voicing the whole drawn ensemble including percussion; the design rationale (an original reading of the style-invention, meta-composition, texture, and failure-modes pages), what the gates caught, and what a listening pass should probe.
 ---
 
@@ -69,6 +69,20 @@ Tom's first listen (2026-07-11) reported invented pieces that, after the intro, 
 **Standing guards added** so the class of bug stays dead: `site-check`'s every run (single and sweep) now fails any non-percussion piece whose melodic lead has a same-pitch run > 16 or < 4 distinct pitches (≥ 24 notes); the node suite pins Tom's exact seed (distinct ≥ 5, run ≤ 8) plus a 24-seed sweep (run ≤ 12, distinct ≥ 4). Post-fix worst case over 60 seeds: run 9 (an ostinato-scale figure, not a stuck note); Tom's seed now has 12 distinct pitches, max run 2 — and, via the session's other track, a `voce` (singing) lead instead of a bell.
 
 **Variety adjustments in the same pass:** drone weight in the invented harmony draw trimmed 0.18 → 0.14 (static harmony narrows every texture's room to move); 8 new sustained-voice ensemble templates (organ/horn/voce; 32 → 40); chorale/tintinnabuli usually remap a struck lead to a sustained voice (held-tone textures need held tones). Invented seeds redraw, so pre-039 invented links play different pieces — the third consecutive session where that holds (037, 038, 039).
+
+## Form variety + the varied contrast section (session 048 — Tom's variety pass)
+
+Tom (2026-07-13), listening to invented pieces: "there is **often or even usually** a 'break' section in the middle … where notes are repeated dronelike for a measure or two … I want the pieces to be **varied** and to avoid **distinctive shared features** like this mid-piece break." The diagnosis was structural, not a bug. The session-038 form grammar had **exactly one shape per development band** — `cyclic` (dev < 0.35), `arch` (dev < 0.7), `through` (dev ≥ 0.7) — and **two of the three hard-wired a `break` section**, realized by a single `writeBreak` that always did the same thing: a held low drone + a quiet repeating pulse for a phrase. So a large fraction of pieces shared one salient, identical gesture. Measured before the fix: **~38%** of random invented seeds had a break (and ~45–50% among the textures that permit it — chorale/tintinnabuli were already exempt); every one sounded alike.
+
+Two coupled failure modes were at work: (1) **a shared signature** — the same drone in ~40% of pieces reads as "the invented-style sound," the opposite of per-seed identity (style-invention-and-style-space: the *differences* between styles must be audible); (2) **too little form variety** — three fixed shapes over the whole development range meant structure barely varied by seed.
+
+The fix (all in `docs/lib/invent.js`, `buildSections` + the contrast writers):
+
+- **Form is now DRAWN, not thresholded.** `development` biases a weighted family draw (weights clamp to a 0.1 floor so every dev value keeps some spread), and each family offers **~5 shapes** — 15 skeletons where there were 3. Nearby-development seeds can now diverge. Measured: **~65 distinct section sequences** over 200 seeds (was ~3). The old invariants are preserved in every shape — a stated theme `A`, at least one recognizable return `A′`/`A″`, one late-ish `peak` — so the failure-mode guarantees (FM3/FM4) still hold.
+- **The `break` is occasional and its slot is optional.** Most shapes carry their mid-piece contrast through **real departure sections** (`B`/`C`, off-tonic, new material) rather than a thin drop; only a minority of shapes carry a `thin` slot. Measured break rate: **~7–9%** (was ~38%). The length-fit shrink step also removes the break first, so short (~60 s) pieces — like both of Tom's examples — drop it entirely and spend the time on music.
+- **When a thin section does occur, its character is DRAWN** (`pickContrast` → `writeContrast`), matched to what the ensemble can do: **breakdown** (percussion groove alone), **solo** (a moving lead spotlight on the *contrast* contour, never the theme), **stripped** (a moving lead+bass duet), **pulse** (a rhythmic pitched cell on shifting gamut tones), and **drone** (the pre-047 hold — now the *rarest*, ~1% of pieces). Static kinds (drone/pulse) are shortened to two bars ("a measure or two"). Each keeps something sounding (the no-silence gate) and falls back if its voice is absent. Measured over 200 seeds: the breaks that occur spread across ≥ 4 kinds, with the old drone the least common.
+
+**Determinism is untouched.** The draws use the previously-unused `form` RNG stream and the per-unit stream, so no other stream shifts; same seed → same piece. As in 037/038/039, invented *seeds* now compose different (better-formed, more varied) pieces — old invented links still decode and play. **Standing guard added** (`site.test.js`): over 200 invented seeds, a mid-piece break must stay < 25%, distinct section sequences ≥ 25, and the break must be realized in ≥ 3 distinct ways — so a future change can't silently return to one universal drone. Gates green: 198 node tests, `site-check` sweep 12/12, `render-invent-quick` 10/10 (breakdown + stripped pieces render clean), `site-smoke` 48/48. `SITE_VERSION` → **v1.1.0** (minor — a whole mode's output audibly changed).
 
 ## Open questions (for Tom's listening)
 

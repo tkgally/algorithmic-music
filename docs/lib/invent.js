@@ -134,44 +134,67 @@
   }
 
   // ---- form grammar -----------------------------------------------------------
-  // Sections as FUNCTIONS (state / return / depart / break / peak / end), not a
-  // fixed per-genre list: the development value picks the grammar flavor, the
-  // grammar guarantees at least one recognizable return and one late peak, and
-  // the arc supplies intensities (overridden by function).
+  // Sections as FUNCTIONS (state / return / depart / peak / end + an optional
+  // thin contrast), not a fixed per-genre list. Session 048 (Tom's variety pass):
+  // the pre-048 grammar had exactly ONE shape per development band and hard-wired
+  // an identical dronelike "break" into two of the three, so a large fraction of
+  // invented pieces shared that mid-piece drone as a distinctive feature. Now the
+  // development value only BIASES which family is drawn (nearby-dev seeds can
+  // diverge), each family offers SEVERAL shapes, and a dedicated thin contrast
+  // slot is OCCASIONAL and — when present — of a VARIED character (writeContrast).
+  // Every shape still guarantees a stated theme (A), at least one recognizable
+  // return (A′/A″), and one peak; the arc supplies intensities (overridden by
+  // function). 'thin' marks the optional contrast slot.
   function buildSections(vector, K, rng, totalTarget) {
     const introBars = K.entry === 'together' ? 0 : K.entry === 'leadFirst' ? 2 : 4;
     const endBars = vector.ending === 'fade' ? 4 : 2;
     const middle = Math.max(2 * PHRASE + PHRASE, totalTarget - introBars - endBars);
-    const form = vector.development < 0.35 ? 'cyclic' : vector.development < 0.7 ? 'arch' : 'through';
-    // descriptor list; each main block is nominally 2 phrases (8 bars)
-    const B = 2 * PHRASE;
-    let seq;
-    if (form === 'cyclic') {
-      seq = [
-        { role: 'A', kind: 'state', bars: B },
-        { role: 'A′', kind: 'return', bars: B },
-        { role: 'break', kind: 'break', bars: PHRASE },
-        { role: 'A″', kind: 'peak', bars: B },
-      ];
-    } else if (form === 'arch') {
-      seq = [
-        { role: 'A', kind: 'state', bars: B },
-        { role: 'B', kind: 'depart', bars: B },
-        { role: 'A′', kind: 'return', bars: B },
-        { role: 'break', kind: 'break', bars: PHRASE },
-        { role: 'peak', kind: 'peak', bars: B },
-      ];
-    } else {
-      seq = [
-        { role: 'A', kind: 'state', bars: B },
-        { role: 'B', kind: 'depart', bars: B },
-        { role: 'C', kind: 'depart2', bars: B },
-        { role: 'peak', kind: 'peak', bars: B },
-        { role: 'A′', kind: 'return', bars: B },
-      ];
+    const B = 2 * PHRASE; // each main block is nominally 2 phrases (8 bars)
+    const dev = vector.development;
+    // singing textures never thin to a bare break (a sudden thin bar reads wrong)
+    const canThin = K.texture !== 'chorale' && K.texture !== 'tintinnabuli';
+    // development biases the family; arch is the flat middle. Weights never hit
+    // zero, so every development value keeps some shape variety.
+    const family = rng.weighted(
+      ['cyclic', 'arch', 'through'],
+      [clamp(1.2 - 1.7 * dev, 0.1, 1), 0.8, clamp(1.7 * dev - 0.55, 0.1, 1)]);
+    const SHAPES = {
+      cyclic: [ // returns-dominant; contrast comes from a real B or (rarely) a thin slot
+        { w: 0.34, s: [['A', 'state'], ['B', 'depart'], ['A′', 'return'], ['A″', 'peak']] },
+        { w: 0.26, s: [['A', 'state'], ['A′', 'return'], ['A″', 'peak']] },
+        { w: 0.18, s: [['A', 'state'], ['A′', 'return'], ['B', 'depart'], ['A″', 'peak']] },
+        { w: 0.12, s: [['A', 'state'], ['A′', 'return'], ['thin'], ['A″', 'peak']] },
+        { w: 0.10, s: [['A', 'state'], ['B', 'depart'], ['A′', 'return'], ['thin'], ['A″', 'peak']] },
+      ],
+      arch: [ // one clear departure, a return, a late peak
+        { w: 0.34, s: [['A', 'state'], ['B', 'depart'], ['A′', 'return'], ['peak', 'peak']] },
+        { w: 0.24, s: [['A', 'state'], ['B', 'depart'], ['A′', 'return'], ['C', 'depart2'], ['peak', 'peak']] },
+        { w: 0.16, s: [['A', 'state'], ['B', 'depart'], ['peak', 'peak'], ['A′', 'return']] },
+        { w: 0.16, s: [['A', 'state'], ['B', 'depart'], ['A′', 'return'], ['thin'], ['peak', 'peak']] },
+        { w: 0.10, s: [['A', 'state'], ['B', 'depart'], ['C', 'depart2'], ['peak', 'peak'], ['A′', 'return']] },
+      ],
+      through: [ // continuous new material, one clear return near the end
+        { w: 0.34, s: [['A', 'state'], ['B', 'depart'], ['C', 'depart2'], ['peak', 'peak'], ['A′', 'return']] },
+        { w: 0.24, s: [['A', 'state'], ['B', 'depart'], ['peak', 'peak'], ['C', 'depart2'], ['A′', 'return']] },
+        { w: 0.16, s: [['A', 'state'], ['B', 'depart'], ['C', 'depart2'], ['D', 'depart'], ['peak', 'peak'], ['A′', 'return']] },
+        { w: 0.16, s: [['A', 'state'], ['B', 'depart'], ['C', 'depart2'], ['thin'], ['peak', 'peak'], ['A′', 'return']] },
+        { w: 0.10, s: [['A', 'state'], ['B', 'depart'], ['A′', 'return'], ['C', 'depart2'], ['peak', 'peak']] },
+      ],
+    };
+    const shapes = SHAPES[family];
+    const chosen = rng.weighted(shapes.map((x) => x.s), shapes.map((x) => x.w));
+    const seq = [];
+    for (const [role, kind] of chosen) {
+      if (role === 'thin') {
+        if (!canThin) continue;
+        const contrast = pickContrast(vector, K, rng);
+        // static kinds stay SHORT ("a measure or two", Tom); active ones get a phrase
+        const cbars = (contrast === 'drone' || contrast === 'pulse') ? PHRASE / 2 : PHRASE;
+        seq.push({ role: contrast, kind: 'break', bars: cbars, contrast });
+      } else {
+        seq.push({ role, kind, bars: B });
+      }
     }
-    // quiet architectures skip the hard break (a sudden thin bar reads wrong there)
-    if (K.texture === 'chorale' || K.texture === 'tintinnabuli') seq = seq.filter((s) => s.kind !== 'break');
     // fit to the target: grow sections by whole phrases round-robin up to a
     // cap, and past the cap EXTEND THE FORM — another departure-return cycle
     // before the peak — so long pieces get more journeys, not longer rooms
@@ -212,6 +235,23 @@
       else if (s.kind === 'end') s.intensity = vector.ending === 'stop' ? Math.max(s.intensity, 0.7) : Math.min(s.intensity, 0.6);
     }
     return sections;
+  }
+
+  // choose a realization for the occasional thin/contrast section, appropriate to
+  // what the drawn ensemble can actually do. The old static drone is now just one
+  // option among several and is deliberately de-weighted — so the rare piece that
+  // does thin out mid-way rarely does it the same way twice (Tom 2026-07-13).
+  function pickContrast(vector, K, rng) {
+    const ens = style.effectiveEnsemble(vector);
+    const hasPerc = ens.some((e) => PERC_ROLES[e.role]);
+    const hasMid = ens.some((e) => e.role === 'comp' || e.role === 'pad' || e.role === 'counter' || e.role === 'tex');
+    const hasLead = ens.some((e) => e.role === 'lead' || e.role === 'counter' || e.role === 'tex');
+    const opts = ['stripped'], w = [1.0];   // a moving lead+bass duet — always sensible
+    if (hasPerc) { opts.push('breakdown'); w.push(1.5); }
+    if (hasLead) { opts.push('solo'); w.push(0.9); }
+    if (hasMid) { opts.push('pulse'); w.push(1.1); }
+    opts.push('drone'); w.push(0.5);        // the pre-048 default, now rare
+    return rng.weighted(opts, w);
   }
 
   // quantize a beat to the meter's comfortable grid (eighths)
@@ -372,7 +412,7 @@
         return { notes, lengthBeats: L, bars, section: sec.role, intensity: sec.intensity, last: false };
       }
       if (sec.kind === 'break') {
-        writeBreak(ctx);
+        writeContrast(ctx);
         return { notes, lengthBeats: L, bars, section: sec.role, intensity: sec.intensity, last: false };
       }
 
@@ -1005,12 +1045,88 @@
     }
   }
 
-  function writeBreak(ctx) {
+  // The occasional contrast/relief section (session 048). Dispatch on the drawn
+  // contrast kind so mid-piece relief is VARIED across pieces instead of always
+  // the same held drone. Each kind keeps SOMETHING sounding (the parseability
+  // anchor + the site's no-silence gate) and falls back if its voice is absent.
+  function writeContrast(ctx) {
+    switch (ctx.sec.contrast) {
+      case 'breakdown': return contrastBreakdown(ctx);
+      case 'solo': return contrastSolo(ctx);
+      case 'stripped': return contrastStripped(ctx);
+      case 'pulse': return contrastPulse(ctx);
+      default: return contrastDrone(ctx);
+    }
+  }
+
+  // breakdown: the groove carries the relief alone — pitched material drops out,
+  // percussion keeps time at a moderate level, a quiet low root holds tonality.
+  function contrastBreakdown(ctx) {
+    const { vector, roles, notes, L } = ctx;
+    if (roles.low) {
+      const root = compose.nearestBassNote(pcOf(vector.tonicPc), roles.low.register || [36, 55]);
+      notes.push({ beat: 0, durBeats: L, midi: root, voice: roles.low.voice, role: roles.low.role, vel: 0.4 * (roles.low.level == null ? 1 : roles.low.level) });
+    }
+    writePercussion(Object.assign({}, ctx, { I: 0.55 }), {}); // let the kit/timeline speak (the section's own I is clamped low)
+    if (!notes.length) contrastDrone(ctx);
+  }
+
+  // solo: a bare spotlight — the lead alone plays a moving, contrasting line (a
+  // mini-cadenza; sec.kind==='break' so leadPhrase gives the CONTRAST contour,
+  // never the committed theme), over an optional whisper of the low reference.
+  function contrastSolo(ctx) {
+    const { vector, rng, roles, notes, L, plan } = ctx;
+    if (!roles.lead) return contrastStripped(ctx);
+    const chords = compose.progression(vector, ctx.bars, rng, { cadence: 'none', loop: plan.loop || undefined });
+    pushLead(ctx, leadPhrase(ctx, chords, true), 0.8);
+    if (roles.low) {
+      const root = compose.nearestBassNote(pcOf(vector.tonicPc), roles.low.register || [36, 55]);
+      notes.push({ beat: 0, durBeats: L, midi: root, voice: roles.low.voice, role: roles.low.role, vel: 0.3 * (roles.low.level == null ? 1 : roles.low.level) });
+    }
+  }
+
+  // stripped: a moving duet — lead + bass keep the momentum at reduced density
+  // (a genuine thinned texture, not a static hold).
+  function contrastStripped(ctx) {
+    const { vector, rng, roles, plan } = ctx;
+    const chords = compose.progression(vector, ctx.bars, rng, { cadence: 'none', loop: plan.loop || undefined });
+    const mel = roles.lead ? leadPhrase(ctx, chords, true) : null;
+    pushLead(ctx, mel, 0.85);
+    bassPart(ctx, chords, {});
+    if (!mel && !roles.low) contrastDrone(ctx);
+  }
+
+  // pulse: a rhythmic pitched relief — a mid voice plays the style's shared cell
+  // on shifting gamut tones (moving, not held), a low anchor underneath.
+  function contrastPulse(ctx) {
+    const { vector, rng, roles, notes, K, bb, bars, L, plan } = ctx;
+    const mid = roles.mid1 || roles.mid2 || roles.lead;
+    if (!mid) return contrastDrone(ctx);
+    const reg = mid.register || [55, 76];
+    const pool = compose.scalePool(vector, reg);
+    const g = gamutPcs(vector, K);
+    const gp = pool.filter((m) => g.has(pcOf(m)));
+    const use = gp.length >= 4 ? gp : pool;
+    const cell = plan.cellMotif && plan.cellMotif.length ? plan.cellMotif : [[0, 1], [bb / 2, 1]];
+    let idx = Math.floor(use.length / 2);
+    for (let b = 0; b < bars; b++) {
+      for (const [t, d] of cell) {
+        idx = clamp(idx + rng.int(-1, 1), 0, use.length - 1);
+        mk(notes, L, mid, b * bb + t, Math.min(d, 1), use[idx], 0.4);
+      }
+    }
+    if (roles.low) {
+      const root = compose.nearestBassNote(pcOf(vector.tonicPc), roles.low.register || [36, 55]);
+      notes.push({ beat: 0, durBeats: L, midi: root, voice: roles.low.voice, role: roles.low.role, vel: 0.42 * (roles.low.level == null ? 1 : roles.low.level) });
+    }
+  }
+
+  // drone: the pre-048 default (now rare) — a sudden thin stretch that drops to
+  // the reference layers: a held low tone plus one quiet pulse, relaunching with
+  // a pickup fill. Something must keep sounding (the parseability anchor and the
+  // site's own no-silence gate), so the low sustains and the pulse tapers.
+  function contrastDrone(ctx) {
     const { plan, vector, rng, roles, notes, K, bb, bars, L } = ctx;
-    // the sudden thin stretch: the texture drops to the reference layers — a
-    // held low tone plus one quiet pulse — then relaunches with a pickup fill.
-    // Something must keep sounding (the parseability anchor and the site's own
-    // no-silence gate), so the low sustains and the pulse tapers, never stops.
     if (roles.low) {
       const root = compose.nearestBassNote(pcOf(vector.tonicPc), roles.low.register || [36, 55]);
       mk(notes, L, roles.low, 0, L, root, 0.5);
