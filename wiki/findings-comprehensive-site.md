@@ -3,7 +3,7 @@ title: Findings — the comprehensive site (Phase 3c build)
 tags: [findings, implementation, project]
 status: draft
 created: 2026-07-09
-updated: 2026-07-11
+updated: 2026-07-13
 summary: What building the comprehensive site (session 034) established — the just-in-time composition loop works and is the right architecture; one vector-driven composer core really can serve presets, melds, and invented styles; the concrete bugs the offline gates caught (unit-boundary note truncation, chord-slot tiling, a PCM-fingerprint pitfall); and what the first working version deliberately defers.
 ---
 
@@ -148,6 +148,12 @@ The auto/pin affordance has to be **symmetric**: a control on *auto* must look i
 Fix: one line in `syncCtl` — the unpinned branch now resets a range input to its rest value (`input.value = '0'`, the same value `controlRow` builds it with), so the thumb returns to the far left and the accent fill disappears. The change is centralized, so it covers *both* un-pin paths (the per-control AUTO chip and the global Reset button, which both flow through `syncCtl`). Dropdowns keep their placeholder path; only sliders needed the value reset. The lesson worth keeping: **`accent-color` sliders carry visible state in their value, so "return to auto" for a slider means resetting the value, not just the surrounding chrome** — clearing the label/readout/chip is not enough.
 
 Presentation-only (the `else` branch of one UI-controller function); the audio engine, determinism, and URL layout are untouched. Verified by a targeted headless drive of the exact flow (move a slider → it pins, thumb + fill + amber label appear → press AUTO → thumb returns to 0, fill gone, chip on, row un-pinned, state byte-identical to the initial open state; the Reset button path too), plus a 2× before/after screenshot pair, and the standing gates: `site-smoke` 48/48, `site-check` clean, 197 node tests. `SITE_VERSION` → **v1.0.1** (patch). Full narrative: `logs/sessions/046-2026-07-12.md`.
+
+## The first control tier is "Basic," not "Start" (session 047 — Tom)
+
+Tom renamed the first of the three control-level modes from **Start** to **Basic**. The reason is an affordance collision: the modes sit at the top of the page as *Start · Intermediate · Advanced*, and **"Start" reads as the control that begins playback** — the same word the transport's Play button implies — so a first-time listener could mistake the tier selector for the play control. "Basic" removes the collision while keeping the plain-language ladder (Basic → Intermediate → Advanced). The lesson worth keeping: **a mode/section label must not overlap the verb of a nearby action control**; name tiers by their *content level*, not by a word that also names an operation.
+
+The rename is a pure relabel — the tier is a rendering-column selector, never a serialized value — so URLs, seeds, and determinism are untouched. It touched every reference to *this mode* and nothing else: the button label and its container id (`startControls` → `basicControls`) in `docs/index.html`; the `buildControls` variable and lookups (`startWrap` → `basicWrap`, `$('basicControls')`) and the tier tests (`c.tier === 'basic'`) in `docs/app.js`; the four base-tier control definitions (`tier: 'basic'`) plus the registry comment in `docs/lib/style.js`; the operating-instructions prose in `docs/about.html`; and the two mode-referring smoke-test labels. Deliberately **not** renamed: the project-wide term **"Start genres"** (the eight preset styles, a distinct concept used across the wiki/logs), and the dated Phase-3b design docs in `docs/design/` (historical snapshots that already diverge from the shipped UI) — both flagged for Tom rather than silently rewritten. The mode buttons are wired by numeric index (`mode0/1/2`, `state.uiMode`), so no id or handler changed. Verified: `site-smoke` **48/48** (incl. tier-reveal + the renamed label), `site-check` clean, **197** node tests, and a full-diff review confirming no `startControls`/`startWrap`/`tier: 'start'` remains in the product. `SITE_VERSION` → **v1.0.2** (patch). Full narrative: `logs/sessions/047-2026-07-13.md`.
 
 ## Implications for generative engines
 
