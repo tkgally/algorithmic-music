@@ -556,21 +556,21 @@
       if (btn.id === 'inventBtn') btn.classList.toggle('on', state.sel.invent);
       else btn.classList.toggle('on', state.sel.a === id || state.sel.b === id);
     }
-    // Invent a style is available in every mode (Tom 2026-07-10 — added to Start).
+    // Invent a style is available in every mode (Tom 2026-07-10 — added to Basic).
     $('inventBtn').style.display = '';
   }
 
   const GROUP_ORDER = ['Feel', 'Form', 'Sound', 'Time & feel', 'Pitch & harmony', 'Texture', 'Sound & space', 'Form & variation', 'Expression', 'Invented parameters'];
   function buildControls() {
-    const startWrap = $('startControls'), intWrap = $('intControls'), advWrap = $('advControls');
-    startWrap.innerHTML = ''; intWrap.innerHTML = ''; advWrap.innerHTML = '';
+    const basicWrap = $('basicControls'), intWrap = $('intControls'), advWrap = $('advControls');
+    basicWrap.innerHTML = ''; intWrap.innerHTML = ''; advWrap.innerHTML = '';
     const groups = {};
     for (const c of AM.style.CONTROLS) {
-      const target = c.tier === 'start' ? startWrap : c.tier === 'int' ? intWrap : advWrap;
+      const target = c.tier === 'basic' ? basicWrap : c.tier === 'int' ? intWrap : advWrap;
       let g = groups[c.tier + ':' + c.group];
       if (!g) {
         g = el('div', { class: 'ctlGroup' });
-        if (c.tier !== 'start') g.appendChild(el('div', { class: 'ctlGroupName', text: c.group }));
+        if (c.tier !== 'basic') g.appendChild(el('div', { class: 'ctlGroupName', text: c.group }));
         groups[c.tier + ':' + c.group] = g;
         target.appendChild(g);
       }
@@ -1013,7 +1013,7 @@
   }
 
   // ------------------------------------------------------------------ boot ----
-  const SITE_VERSION = '1.0.1';
+  const SITE_VERSION = '1.0.2';
   function boot() {
     buildGenreButtons();
     buildControls();

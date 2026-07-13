@@ -195,14 +195,14 @@ async function main() {
     await p.close();
   }
 
-  // 9 — batch-2 controls: invent-in-Start, palette descriptions (Intermediate),
+  // 9 — batch-2 controls: invent-in-Basic, palette descriptions (Intermediate),
   //     Advanced instrument checkboxes + new params, reset, structure window.
   {
     const errs = [];
     const p = await newPage(browser, errs);
     await p.goto(PAGE);
     await p.waitForSelector('#reset', { timeout: 8000 });
-    g('invent-a-style visible in Start', await p.$eval('#inventBtn', (b) => b.style.display !== 'none'), '');
+    g('invent-a-style visible in Basic', await p.$eval('#inventBtn', (b) => b.style.display !== 'none'), '');
     await p.click('#mode1');
     // ignore the "choose…" auto placeholder (value ""); check the real sets only
     const palOpts = await p.$$eval('[data-ctl="palette"] select option', (os) => os.filter((o) => o.value !== '').map((o) => o.textContent));

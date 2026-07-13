@@ -561,28 +561,28 @@
   // ---- The control registry (control-taxonomy design doc) -----------------------
   // ORDER IS LOAD-BEARING: it is the v1 URL bit layout (serialize.js) — append
   // only, never reorder or resize an existing entry once links are live.
-  // Each control: { id, label, tier: 'start'|'int'|'adv', group, type:
+  // Each control: { id, label, tier: 'basic'|'int'|'adv', group, type:
   // 'slider'|'enum', steps | values, bits, speed: 'instant'|'boundary'|'replan',
   // apply(vector, raw) } — apply is deterministic (NO rng) and runs in registry
   // order after sampling, only for set (non-auto) controls.
   function mix(a, b, w) { return a + (b - a) * w; }
   const CONTROLS = [
-    { id: 'energy', label: 'Energy', tier: 'start', group: 'Feel', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
+    { id: 'energy', label: 'Energy', tier: 'basic', group: 'Feel', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
       hint: 'calm ↔ energetic',
       apply(v, x) { const e = x / 4; v.energy = e;
         v.bpm = mix(v.bpmBand[0], v.bpmBand[1], 0.12 + 0.76 * e);
         v.density = mix(v.density, e, 0.65);
         v.dynRange = mix(v.dynRange, 0.3 + 0.7 * e, 0.5);
         v.brightness = mix(v.brightness, 0.25 + 0.62 * e, 0.4); } },
-    { id: 'mood', label: 'Mood', tier: 'start', group: 'Feel', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
+    { id: 'mood', label: 'Mood', tier: 'basic', group: 'Feel', type: 'slider', steps: 5, bits: 3, speed: 'boundary',
       hint: 'dark ↔ bright',
       apply(v, x) { const m = x / 4; v.mood = m;
         const pool = v.moodModePool || ['naturalMinor', 'dorian', 'mixolydian', 'major', 'lydian'];
         v.scale = pool[Math.max(0, Math.min(pool.length - 1, Math.round(m * (pool.length - 1))))];
         v.brightness = mix(v.brightness, 0.2 + 0.6 * m, 0.5); } },
-    { id: 'length', label: 'Length', tier: 'start', group: 'Form', type: 'enum', values: ['short', 'medium', 'long'], bits: 2, speed: 'replan',
+    { id: 'length', label: 'Length', tier: 'basic', group: 'Form', type: 'enum', values: ['short', 'medium', 'long'], bits: 2, speed: 'replan',
       apply(v, x) { v.lengthSec = LENGTH_SECS[x]; } },
-    { id: 'space', label: 'Space', tier: 'start', group: 'Sound', type: 'slider', steps: 5, bits: 3, speed: 'instant',
+    { id: 'space', label: 'Space', tier: 'basic', group: 'Sound', type: 'slider', steps: 5, bits: 3, speed: 'instant',
       hint: 'dry ↔ spacious',
       apply(v, x) { v.reverb = x / 4; } },
     { id: 'tempo', label: 'Tempo', tier: 'int', group: 'Time & feel', type: 'slider', steps: 64, bits: 6, speed: 'boundary',
